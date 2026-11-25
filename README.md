@@ -32,6 +32,7 @@ Claude 或 Codex 会读你的项目，画出一张能点开的地图。每一块
 </p>
 <p align="center"><sub>▶ <a href="https://youtu.be/NTUUzC7L_NQ">看演示</a>：先装上 Floorplan，再逛一遍 Brewline 的地图。Brewline 是一个演示用的咖啡订阅应用，代码分在四个仓库里。</sub></p>
 <p align="center"><b><a href="https://haydenschmitty.github.io/floorplan-demo/">打开在线演示 →</a></b> 在浏览器里逛 Brewline 的地图，不用安装。演示站和视频仍是上游原作者的。</p>
+<p align="center"><sub>演示站和视频里的界面文字是上游原版（英文），你安装本仓库后用中文提问，生成的地图就是中文的。</sub></p>
 
 <a id="why"></a>
 
@@ -138,7 +139,7 @@ Floorplan 主要是给已经有的代码画地图。它也可以从一份 PRD（
 
 ## 实际长什么样
 
-想自己点一点？打开[在线演示](https://haydenschmitty.github.io/floorplan-demo/)：一边是真实的 Brewline 地图，一边是写好的对话，Claude Code 和 Codex 里都能看。演示站是上游原作者放的。
+想自己点一点？打开[在线演示](https://haydenschmitty.github.io/floorplan-demo/)：一边是真实的 Brewline 地图，一边是写好的对话，Claude Code 和 Codex 里都能看。演示站是上游原作者放的。演示站和视频里的界面文字是上游原版（英文），你安装本仓库后用中文提问，生成的地图就是中文的。
 
 <table>
 <tr>
@@ -177,6 +178,14 @@ Floorplan 主要是给已经有的代码画地图。它也可以从一份 PRD（
 
 ## 安装
 
+> **先看一眼（排雷提示）**
+>
+> Floorplan 目前只配合 **Claude Code** 或 **Codex** 使用，不是点开就能用的独立软件。
+>
+> 它直接走你现有的 Claude 或 ChatGPT 账号/套餐，不需要单独去申请或配置新的 API 密钥。
+>
+> 完全没装过 Node.js 或命令行工具的新手，遇到 `command not found` 等报错不要慌，直接把报错复制给 AI 让它帮你一步步装好环境即可。
+
 你需要 [Node.js 18 或更新](https://nodejs.org)（跑 Floorplan 自带脚本的运行环境），以及 Claude Code 或 Codex 里的一个。Floorplan 用你已经有的套餐，不用另外配 API 密钥。
 
 给人复制的命令指向这份中文版：`Aondle/floorplan`。插件名仍是 `floorplan`。上游仓库 [haydenschmitty/floorplan](https://github.com/haydenschmitty/floorplan) 是出处，从那里安装会得到英文原版。
@@ -192,7 +201,7 @@ claude plugin install floorplan@floorplan
 
 第一行把这份仓库登记成插件来源（marketplace，就是「去哪个仓库找插件」）。第二行安装，插件名是 `floorplan`。
 
-**新开一轮对话**之后就能用。就算你主要用桌面应用，也建议装上 Claude Code 命令行：有了它，地图的提问栏才能去读你的真实代码。详见[上手](docs/getting-started.md)。
+**⚠️ 重要：安装完成后，一定要【新开一轮对话】，再让它画图（在旧窗口里直接说可能会没反应）。** 就算你主要用桌面应用，也建议装上 Claude Code 命令行：有了它，地图的提问栏才能去读你的真实代码。详见[上手](docs/getting-started.md)。
 
 ### Codex
 
@@ -209,7 +218,7 @@ codex plugin marketplace add Aondle/floorplan
 codex plugin add floorplan@floorplan
 ```
 
-新开一个聊天，说要一张 floorplan，或输入 `$floorplan`。地图的提问栏用的是你自己的 Codex 登录，不用 API 密钥。详见[在 Codex 里用 Floorplan](docs/codex.md)。
+**⚠️ 重要：安装完成后，一定要【新开一个聊天】，再说要一张 floorplan，或输入 `$floorplan`（在旧窗口里直接说可能会没反应）。** 地图的提问栏用的是你自己的 Codex 登录，不用 API 密钥。详见[在 Codex 里用 Floorplan](docs/codex.md)。
 
 <a id="quick-start"></a>
 
@@ -260,6 +269,8 @@ flowchart LR
 
 脚本干机械的活：找仓库、解析十几种语言的代码、把网页请求对上接口、把地图摆开。它们是不带第三方依赖的普通 Node 脚本。Claude 或 Codex 干只有读过代码的人才能干的那部分：判断你的应用*有哪些块*，并用大白话说出来。细节见[它怎么干活](docs/how-it-works.md)。
 
+（下面这三行是给想确认是否支持特定编程语言或框架的人看的，完全看不懂直接跳过即可，不影响使用。）
+
 **语言：** TypeScript、JavaScript、Python、Go、Rust、Java、Kotlin、Scala、Swift、C#、PHP，外加 Vue、Svelte、Astro 文件和 Shopify 主题（Liquid）。其他语言也能扫，只是没这么细。<br>
 **接口：** Express、Fastify、Koa、Hono、NestJS、Next.js、Firebase Cloud Functions、Supabase Edge Functions、Flask、FastAPI、Django、Go 的 net/http、Gin、Echo、chi、Actix、Axum、Spring、ASP.NET Core、Laravel（含 Wayfinder 调用）、Serverless Framework（`serverless.yml`）、`Bun.serve` 的路由，以及按方法和路径当键的路由表（JavaScript 和 Python 里的 `"GET /api/orders": listOrders`，或 JavaScript 里写成 `{ method, path, handle }` 的列表）。<br>
 **页面：** Next.js、React Router、Vue、SvelteKit、Remix、Nuxt、Astro、Expo、Angular、TanStack、Shopify 主题、Inertia。
@@ -274,7 +285,7 @@ flowchart LR
 - 没有第三方依赖，也没有安装脚本。地图离线也能用：排版引擎和字体都做在文件里。
 - 在地图上提问，走的是你自己的账号，经过 Claude Code 命令行或 Codex。它们能读你的代码，不能改。
 - 健康检查不保存、也不显示密钥的值，只说它在哪。
-- 没有统计，也没有追踪。地图可能会问一次：Floorplan Cloud 上线时要不要发邮件给你。你不报名，什么都不会发出去；报名也只发你的邮箱，以及「就我自己」还是「和团队一起」。
+- 没有统计，也没有追踪。地图可能会问一次：Floorplan Cloud 上线时要不要发邮件给你。你不报名，什么都不会发出去；报名也只发你的邮箱，以及「就我自己」还是「和团队一起」。核心功能 100% 在本地免费使用，完全不需要注册云端账号。
 
 更多见[隐私与安全](docs/privacy-and-security.md)。装一个插件放不放心？[装上安全吗？](docs/is-it-safe.md) 列出 Floorplan 在你电脑上会做的每一件事、每次改动怎么用测试盯着，以及怎么核对你装到的那一份。
 
@@ -355,6 +366,24 @@ Floorplan 没有挂钩（hooks，会话里一有事件就自动跑的脚本）�
 <summary><b>这和 Archify 或 Understand Anything 有什么不同？</b></summary>
 
 Archify 什么都能画成图。Understand Anything 给开发者做代码库的知识图谱。Floorplan 用大白话画出你做的应用，并告诉你哪里有风险、AI 刚改了什么。见[Floorplan、Archify，还是 Understand Anything？](#floorplan-archify-or-understand-anything)
+</details>
+
+<details>
+<summary><b>输入安装命令提示找不到 <code>claude</code>、<code>codex</code> 或 <code>node</code> 怎么办？</b></summary>
+
+电脑里还没装好对应的前置工具：需要 Node.js 18 或更新，以及 Claude Code 或 Codex 里的一个。不用自己硬啃英文报错，直接把终端里的报错截图或复制发给你正在用的 AI 助手，让它按你的电脑系统（Windows 或 Mac）一步步带你装好就行。
+</details>
+
+<details>
+<summary><b>让它画第一张图时，等了好几分钟还没出结果，是不是卡死了？</b></summary>
+
+大概率没有卡死。第一次生成地图需要把你项目里的文件挨个读一遍并用大白话写说明，项目文件越多耗时越长（一般几分钟，大项目可能更久）。只要终端或对话框还在转圈/输出进度，耐心等一会即可。
+</details>
+
+<details>
+<summary><b>为什么生成的地图里有一部分还是英文，或者还有些技术词？</b></summary>
+
+代码里的文件名、接口路径和报错原文会保留原样方便对照。如果发现整段解释变成了英文，可以直接对它说一句：「请把 floorplan 里的所有解释和卡片名字都改成通俗易懂的简体中文」，让它重新整理。
 </details>
 
 ## 星标走势

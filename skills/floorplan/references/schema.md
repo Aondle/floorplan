@@ -2,9 +2,9 @@
 
 `floorplan/architecture.json` 描述结构：大块、小块、外部服务、流程。单个文件和接口的名字、说明放在 `floorplan/descriptions/*.json`（见 [writing-descriptions.md](writing-descriptions.md)）。分开写，是为了几个助手同时写也不会撞车。`build.mjs` 会拿这两份去对扫描结果，并按字段报问题。
 
-给人看的名称、说明、流程和导览用通俗简体中文。下面的字段名、枚举值和路径保持原样。
+给人看的名称、说明、流程和导览用通俗简体中文。下面的字段名、枚举值和路径保持原样。用户想改结构或说明、又不熟悉 JSON 语法时，不要让他们自己改 `architecture.json` 或 `descriptions/*.json`：告诉助手想改什么，由你代改。手改漏一个逗号或引号，校验就会报错。
 
-目录：[顶层](#顶层) · [nodes](#nodes) · [文件怎么分进去](#文件怎么分进去) · [edges](#edges) · [annotations](#annotations) · [flows](#flows) · [recent work](#recent-work) · [Full example](#full-example)
+目录：[顶层](#顶层) · [节点](#nodes) · [文件怎么分进去](#文件怎么分进去) · [连线](#edges) · [备注](#annotations) · [流程](#flows) · [最近改动](#recent-work) · [完整示例](#full-example)
 
 ## 顶层
 
@@ -22,7 +22,8 @@
 | `ignore` | string[] | 否 | 整块留在板外的通配路径（生成的代码、拷进来的第三方库、样例） |
 | `editor` | string | 否 | **在编辑器里打开**用哪个编辑器。默认 VS Code。一个名字（`vscode`、`vscode-insiders`、`vscodium`、`cursor`、`windsurf`、`zed`、`idea`、`phpstorm`），或编辑器自己的链接，里面带 `{path}`、`{line}`、`{column}`，例如 `"zed://file/{path}:{line}"`。只有用户说了自己用哪个编辑器才写 |
 
-## nodes
+<a id="nodes"></a>
+## nodes（节点）
 
 每个节点是板上的一张卡片。层次来自 `parent`。没有 parent 的节点在顶层板上。
 
@@ -73,7 +74,8 @@
 
 地图上，一个节点自己的文件超过大约 24 个时，会自动按文件夹收成卡片，所以你不必为每个目录做一个节点。一个节点要有含义才做。
 
-## edges
+<a id="edges"></a>
+## edges（连线）
 
 只补静态分析找不到的。引用（`import`）和对上了接口的网页请求（`http`）已经在扫描结果里。
 
@@ -93,11 +95,13 @@
 - Firebase 的后台函数（定时、Firestore / Storage / Pub/Sub 触发，来自扫描的 FIREBASE FUNCTIONS 列表）→ 一个 `worker` 节点；把触发它们的集合或主题连上（`event`）
 - 地址的前半段写在设置里、匹配器漏掉的调用（`http`）
 
-## annotations
+<a id="annotations"></a>
+## annotations（备注）
 
 `{ "path": "<file>", "note": "…", "tags": ["hotspot"] }` 把一条备注钉在一个文件上。那张卡片会有一圈强调边。少用，留给什么都塞在里面的大文件、容易踩错的不变量，或还在用的废弃代码。`note` 用通俗中文。
 
-## flows
+<a id="flows"></a>
+## flows（流程）
 
 ```json
 { "id": "checkout", "title": "结账", "description": "可选",
@@ -108,7 +112,8 @@
 - 地图会移到相邻两步都能看见的那块板，并在它们之间做一次动画。
 - `note` 写成一个新人愿意听的讲解，用通俗中文。
 
-## recent work
+<a id="recent-work"></a>
+## recent work（最近改动）
 
 `floorplan/recent-work.json` 是单独的文件，每次新建和更新都重写。它放的是刚做过的事，对着用户要求的那件事来说。地图给那些卡片绿色的「改过了」或「新加的」标记，包含它们的部分显示「N 处改动」，把每条 `note` 加到卡片的悬停上，并在**最近改动**按钮和总览侧栏里列出这些任务。
 
@@ -140,7 +145,8 @@
 
 `{ "tasks": [] }` 清掉所有高亮。
 
-## Full example
+<a id="full-example"></a>
+## Full example（完整示例）
 
 一个前端仓库和一个后端仓库并排放着：
 
