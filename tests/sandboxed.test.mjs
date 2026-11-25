@@ -196,7 +196,7 @@ test('askHost sends only the chosen items\' ids and names to the page around the
   const plain = (v) => JSON.parse(JSON.stringify(v));
   assert.deepEqual(plain(posted[0]), [{ type: 'floorplan:ask', items: [{ id: 'f:shop-api/server.js', name: 'Server' }, { id: 'n:api', name: 'Shop API' }] }, '*']);
   assert.deepEqual(plain(posted[1][0]), { type: 'floorplan:ask', items: [] });
-  assert.deepEqual(plain(toasts), ['Asking about Server and Shop API', 'Ask about this view']);
+  assert.deepEqual(plain(toasts), ['正在问：Server、Shop API', '向地图问当前这一块']);
 });
 
 test('ask=host stays in the address as people move around the map, like tour=0', () => {
@@ -225,10 +225,10 @@ test('a refused copy reports failure and shows the text, selected, to copy by ha
   assert.equal(await b.copy('<b>GET /api/orders</b>'), false, 'copy() must resolve false when nothing was copied');
   assert.equal(b.seen.modals.length, 1, 'with nothing on screen to select, a small window shows the text');
   const m = b.seen.modals[0];
-  assert.equal(m.title, 'Copy it yourself');
+  assert.equal(m.title, '请自己复制');
   assert.ok(m.html.includes('&lt;b&gt;GET /api/orders&lt;/b&gt;'), 'the text is shown, escaped');
   assert.deepEqual(b.seen.selected, [m.pre], 'and selected');
-  assert.ok(!b.seen.toasts.some((t) => /copied/i.test(t)), 'no "Copied" message');
+  assert.ok(!b.seen.toasts.some((t) => /已复制|copied/i.test(t)), 'no "Copied" message');
 });
 
 test('a refused copy of text already on screen selects it there and says so plainly', async () => {
@@ -237,7 +237,7 @@ test('a refused copy of text already on screen selects it there and says so plai
   assert.equal(await b.copy('node floorplan/serve.mjs', { select: shown }), false);
   assert.deepEqual(b.seen.selected, [shown]);
   assert.equal(b.seen.modals.length, 0);
-  assert.match(b.seen.toasts[0], /blocked copying/);
+  assert.match(b.seen.toasts[0], /拦住了复制/);
   const quiet = browser({ clipboard: 'refused' });
   assert.equal(await quiet.copy('x', { quiet: true }), false);
   assert.equal(quiet.seen.modals.length + quiet.seen.toasts.length, 0, 'quiet: the caller handles it');
@@ -260,7 +260,7 @@ test('every copy in the page goes through copy(), and nothing says "Copied" unle
   assert.doesNotMatch(rest, /navigator\.clipboard/, 'use copy() (SC.copy in ui/*.js), which only reports success when the text was really copied');
   assert.doesNotMatch(rest, /SC\.copy\([^;]*\);\s*SC\.toast/, 'show "Copied" only after SC.copy(...) resolves true: SC.copy(x).then((ok) => { if (ok) SC.toast(...) })');
   assert.match(rest, /copy\(a\.dataset\.copy, \{ select: a\.previousElementSibling \}\)\.then\(\(ok\) => \{ if \(ok\) a\.textContent = '✓'; \}\)/, 'the panel\'s copy button shows its tick only after a real copy');
-  assert.match(rest, /copy\('node floorplan\/serve\.mjs', \{ select: warn\.querySelector\('code'\) \}\)\.then\(\(ok\) => \{ if \(ok\) b\.textContent = 'Copied'; \}\)/);
+  assert.match(rest, /copy\('node floorplan\/serve\.mjs', \{ select: warn\.querySelector\('code'\) \}\)\.then\(\(ok\) => \{ if \(ok\) b\.textContent = '已复制'; \}\)/);
 });
 
 // ---------- new windows ----------
@@ -279,10 +279,10 @@ test('a blocked new window shows the address, selected, with a Copy button, inst
     assert.equal(b.openWindow('https://example.com/new?title=a&body=b'), false, 'openWindow() must say the window did not open');
     const m = b.seen.modals[0];
     assert.ok(m, 'the address is shown');
-    assert.equal(m.title, 'Open this address');
+    assert.equal(m.title, '请打开这个地址');
     assert.ok(m.html.includes('https://example.com/new?title=a&amp;body=b'));
     assert.deepEqual(b.seen.selected, [m.pre]);
-    assert.equal(m.actions[0].label, 'Copy address');
+    assert.equal(m.actions[0].label, '复制地址');
   }
   const quiet = browser({ popups: false });
   assert.equal(quiet.openWindow('https://example.com', { quiet: true }), false);

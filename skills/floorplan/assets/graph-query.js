@@ -180,11 +180,11 @@ function createGraphQuery(G) {
 const FLOORPLAN_ANSWER_SCHEMA = {
   type: 'object',
   properties: {
-    title: { type: 'string', description: 'Short title for the answer view, at most 6 words.' },
-    answer: { type: 'string', description: 'The answer in Markdown, at most ~180 words. Mention map items inline as [[id]].' },
-    items: { type: 'array', description: '3-14 map items most relevant to the answer, most important first.', items: { type: 'object', properties: { id: { type: 'string' }, note: { type: 'string', description: 'Why this item matters here, at most 15 words.' } }, required: ['id', 'note'] } },
-    steps: { type: 'array', description: 'Optional ordered walkthrough when the answer is a sequence (a request path, a data flow). Empty otherwise.', items: { type: 'object', properties: { id: { type: 'string' }, note: { type: 'string' } }, required: ['id', 'note'] } },
-    followups: { type: 'array', description: '2-3 short follow-up questions the person might ask next.', items: { type: 'string' } },
+    title: { type: 'string', description: '这块回答的短标题，大约十个字以内，用通俗简体中文。' },
+    answer: { type: 'string', description: '用 Markdown 写的回答，大约 180 个词以内，通俗简体中文。提到地图上的东西时写成 [[id]]。' },
+    items: { type: 'array', description: '和回答最相关的 3 到 14 张卡片，最重要的放前面。', items: { type: 'object', properties: { id: { type: 'string' }, note: { type: 'string', description: '它在这里起什么作用，大约 15 个字以内，用通俗简体中文。' } }, required: ['id', 'note'] } },
+    steps: { type: 'array', description: '回答是一件事的先后顺序时（一次请求怎么走、数据怎么流），按顺序写；否则留空。', items: { type: 'object', properties: { id: { type: 'string' }, note: { type: 'string' } }, required: ['id', 'note'] } },
+    followups: { type: 'array', description: '对方接下来可能会问的 2 到 3 个短问题，用通俗简体中文。', items: { type: 'string' } },
   },
   required: ['title', 'answer', 'items'],
 };
@@ -193,9 +193,9 @@ const FLOORPLAN_ANSWER_SCHEMA = {
 const FLOORPLAN_FLOW_SCHEMA = {
   type: 'object',
   properties: {
-    title: { type: 'string', description: 'Short flow title, at most 6 words, e.g. "Checkout to Stripe payment".' },
-    description: { type: 'string', description: 'One sentence on what the flow shows.' },
-    steps: { type: 'array', description: '3-9 steps in the order things happen, each a map item and what happens there.', items: { type: 'object', properties: { id: { type: 'string' }, note: { type: 'string', description: 'What happens at this step, at most 18 words.' } }, required: ['id', 'note'] } },
+    title: { type: 'string', description: '流程的短标题，大约十个字以内，用通俗简体中文，例如「从结账到 Stripe 收款」。' },
+    description: { type: 'string', description: '一句话说明这条流程在讲什么，用通俗简体中文。' },
+    steps: { type: 'array', description: '按事情发生的顺序写 3 到 9 步，每步是地图上的一项，以及那里发生了什么。', items: { type: 'object', properties: { id: { type: 'string' }, note: { type: 'string', description: '这一步发生了什么，大约 18 个字以内，用通俗简体中文。' } }, required: ['id', 'note'] } },
   },
   required: ['title', 'steps'],
 };
@@ -205,12 +205,12 @@ const FLOORPLAN_FLOW_SCHEMA = {
 const FLOORPLAN_CHANGE_SCHEMA = {
   type: 'object',
   properties: {
-    title: { type: 'string', description: 'What changed, 2-6 words, e.g. "Planned out payments".' },
-    summary: { type: 'string', description: 'Markdown, at most ~150 words, plain words: what you added, changed or removed and why, plus any new assumptions or open questions.' },
-    plan: { type: 'string', description: 'The complete updated floorplan/plan.json, as JSON text.' },
-    architecture: { type: 'string', description: 'The complete updated floorplan/architecture.json, as JSON text.' },
-    changes: { type: 'array', description: 'Every new or changed card: a file path, node id or "METHOD /path".', items: { type: 'object', properties: { ref: { type: 'string' }, change: { type: 'string', enum: ['new', 'changed'] }, note: { type: 'string', description: 'How this card serves the request, one plain sentence.' } }, required: ['ref', 'change', 'note'] } },
-    followups: { type: 'array', description: '2-3 short changes the person might ask for next.', items: { type: 'string' } },
+    title: { type: 'string', description: '改了什么，2 到 6 个词，用通俗简体中文，例如「把付款规划进去了」。' },
+    summary: { type: 'string', description: 'Markdown，大约 150 个词以内，用通俗简体中文：加了、改了或删了什么，以及为什么，再加上新的假设或还没定的问题。' },
+    plan: { type: 'string', description: '完整更新后的 floorplan/plan.json，用 JSON 文本。' },
+    architecture: { type: 'string', description: '完整更新后的 floorplan/architecture.json，用 JSON 文本。' },
+    changes: { type: 'array', description: '每一张新增或改过的卡片：文件路径、节点 id 或 "METHOD /path"。', items: { type: 'object', properties: { ref: { type: 'string' }, change: { type: 'string', enum: ['new', 'changed'] }, note: { type: 'string', description: '这张卡片怎么服务于这次请求，一句通俗简体中文。' } }, required: ['ref', 'change', 'note'] } },
+    followups: { type: 'array', description: '对方接下来可能会要求的 2 到 3 个短改动，用通俗简体中文。', items: { type: 'string' } },
   },
   required: ['title', 'summary', 'plan', 'architecture', 'changes'],
 };
@@ -218,43 +218,46 @@ const FLOORPLAN_CHANGE_SCHEMA = {
 function floorplanChangeInstructions(G) {
   const src = G.meta?.blueprint?.source;
   return [
-    `You change a blueprint: an interactive map of "${G.project.name}", a system that is planned but not built yet. The person looking at it asks for a change, addition or removal ("also plan out payments", "drop the admin page", "staff should sign in with Google"), and you update the plan.`,
-    `Read floorplan/plan.json and floorplan/architecture.json first${src ? `, and ${src} (the PRD it was planned from) when the request touches what the PRD says` : ''}. You can look things up on the map with \`node floorplan/query.mjs find "<words>"\` and \`show <id>\`.`,
-    'plan.json format: { source, stack[], assumptions[], questions[{question, about[]}], files[{path, name, description, screen?, uses[], calls["METHOD /path"], services[node ids], data[node ids]}], endpoints[{method, path, file, name, description, access: public|signed-in|team|webhook|internal, who?, publicBecause?}] }. Every endpoint\'s file is a planned file, every call matches a planned endpoint exactly, and services/data name nodes in architecture.json.',
-    'architecture.json: { project, nodes[{id, label, kind, parent?, summary, paths[globs]}], edges[], flows[{id, title, steps[{node, note}]}], tour[] }. Kinds: ui service worker library feature data config test script infra external. External nodes (outside services, the database) own no files. Every planned file must fall under some node\'s paths, so add or widen globs for new folders. Flow and tour steps point at node ids or planned file paths.',
-    'Change only what the request needs, the way the rest of the plan is written: same stack and conventions, plain language for everyone, real file paths. Keep every other file, endpoint, id and description exactly as it is. If the PRD or plan already decided something, follow it; record a new choice in assumptions and a real open decision in questions. If the request removes something, remove everything that only it used. If it answers one of plan.json\'s questions, remove that question, build the answer into the plan, and record it in assumptions; if it settles who may use an endpoint, set access (and who or publicBecause). Many requests come from the map\'s design review: settle exactly what it names.',
-    'Reply with JSON only: {"title", "summary", "plan", "architecture", "changes", "followups"}. plan and architecture are the complete updated files as JSON text, not just the changed parts. changes lists every new or changed file, endpoint ("METHOD /path") or node id with a note on how it serves the request.',
-    'Do not edit any files yourself: the map server checks your JSON, saves it and redraws the map.',
+    `你在改一张规划蓝图：这是「${G.project.name}」的一张可点开的地图，系统还在计划里，还没做出来。看地图的人要求改、加或删（「把付款也规划进去」「不要管理页了」「店员用 Google 登录」），你来更新这份计划。`,
+    '输出语言（必须遵守）：无论需求文档是什么语言，名称、说明、流程讲解、假设和还没定的问题，全部用通俗简体中文。代码路径、变量名、接口 URL、JSON 字段名保持原样。',
+    `先读 floorplan/plan.json 和 floorplan/architecture.json${src ? `；请求碰到需求里写过的事时，再读 ${src}（规划所依据的需求）` : ''}。可以用 \`node floorplan/query.mjs find "<words>"\` 和 \`show <id>\` 在地图上查。`,
+    'plan.json 的格式：{ source, stack[], assumptions[], questions[{question, about[]}], files[{path, name, description, screen?, uses[], calls["METHOD /path"], services[节点 id], data[节点 id]}], endpoints[{method, path, file, name, description, access: public|signed-in|team|webhook|internal, who?, publicBecause?}] }。每条接口的 file 必须是一个计划中的文件，每一次 call 必须和一条计划中的接口完全一致，services 和 data 写的是 architecture.json 里的节点。',
+    'architecture.json：{ project, nodes[{id, label, kind, parent?, summary, paths[通配路径]}], edges[], flows[{id, title, steps[{node, note}]}], tour[] }。kind 只能是：ui service worker library feature data config test script infra external。外部节点（外面的服务、数据库）自己没有文件。每个计划中的文件都必须落在某个节点的 paths 下面，所以新文件夹要补上或放宽通配路径。流程和导览的步骤指向节点 id 或计划中的文件路径。',
+    '只改这次请求需要的，其余照着这份计划已有的写法：同一套技术、同一种约定，给人看的话用大白话，路径用真实路径。其他文件、接口、id 和说明原样保留。需求和计划里已经定了的，照着做；新的选择写进 assumptions，真正还没定的写进 questions。请求是删掉某样东西时，把只有它才用到的一切一起删掉。请求回答了 plan.json 里的某个问题，就删掉那个问题，把答案做进计划，并记进 assumptions；如果它定了谁可以用某条接口，就设置 access（以及 who 或 publicBecause）。很多请求来自地图的设计审查：它点了什么，就正好解决什么。',
+    '只回复 JSON：{"title", "summary", "plan", "architecture", "changes", "followups"}。plan 和 architecture 是完整更新后的文件，用 JSON 文本，不是只给改过的部分。changes 列出每一个新增或改过的文件、接口（"METHOD /path"）或节点 id，并写一句它怎么服务于这次请求。',
+    '不要自己改任何文件：地图服务器会检查你的 JSON，保存它，再重画地图。',
   ].join('\n');
 }
 
 function floorplanFlowInstructions(G, engine) {
   return [
-    `You build guided flows for an interactive architecture map of the codebase "${G.project.name}". A flow is an ordered walkthrough: each step is one map item (module n:..., file f:..., endpoint r:..., or export s:...) and a note on what happens there.`,
+    `你在给「${G.project.name}」这张可点开的结构地图做引导流程。一条流程是按顺序走一遍：每一步是地图上的一项（模块 n:...、文件 f:...、接口 r:...，或导出 s:...），加上那里发生了什么。`,
+    '输出语言（必须遵守）：标题、说明和每一步的讲解用通俗简体中文。代码路径、变量名、接口 URL 保持原样。',
     engine === 'cli'
-      ? 'Find the items with `node floorplan/query.mjs find "<words>"`, `show <id>` and `path <fromId> <toId>`; read source files when you need to confirm the order of events.'
-      : 'Find the items with the tools find_items, get_item and dependency_path.',
-    'Trace what the person asks for from its trigger (a user action, webhook, cron job) to its final effect (database write, external call, response).',
-    'Use 3-9 steps. Prefer the most specific item that tells the story (an endpoint over its file, a file over its module), and make consecutive steps things that really call or import each other.',
-    'Reply with JSON only: {"title", "description", "steps": [{"id", "note"}]}. Only use ids the map gave you.',
+      ? '用 `node floorplan/query.mjs find "<words>"`、`show <id>` 和 `path <fromId> <toId>` 找到这些项；需要确认事情的先后时，再读源文件。'
+      : '用 find_items、get_item 和 dependency_path 这些工具找到这些项。',
+    '从对方问的那件事的触发点（用户的一个动作、别人打来的通知、定时任务）追到最后的结果（写入数据库、调用外部服务、给出回应）。',
+    '用 3 到 9 步。优先用最能把故事讲清楚的那一项（接口优于它所在的文件，文件优于它所在的模块），相邻两步必须是真的会调用或引用彼此的东西。',
+    '只回复 JSON：{"title", "description", "steps": [{"id", "note"}]}。只用地图给你的 id。',
   ].join('\n');
 }
 
 function floorplanAskInstructions(G, engine) {
   const tools = engine === 'cli'
-    ? `Query the map from the shell: \`node floorplan/query.mjs overview\`, \`node floorplan/query.mjs find "<words>" [--kind module|file|endpoint|symbol]\`, \`node floorplan/query.mjs show <id>\`, \`node floorplan/query.mjs path <fromId> <toId>\`. Every result is JSON with ids. Start with the map; read or grep source files when you need specifics the map does not have.`
-    : `Use the tools find_items, get_item and dependency_path to explore the map. You cannot read source files, so answer from the map's names, descriptions, endpoints and connections, and say so when a question needs the code itself.`;
+    ? `在命令行里查地图：\`node floorplan/query.mjs overview\`、\`node floorplan/query.mjs find "<words>" [--kind module|file|endpoint|symbol]\`、\`node floorplan/query.mjs show <id>\`、\`node floorplan/query.mjs path <fromId> <toId>\`。每条结果都是带 id 的 JSON。先看地图；地图上没有的细节，再去读或搜索源文件。`
+    : `用 find_items、get_item 和 dependency_path 在地图上找。你读不了源文件，所以只根据地图上的名字、说明、接口和连线来回答；问题必须看代码才能答时，就直说。`;
   const bp = G.meta?.blueprint;
   return [
-    `You answer questions about the codebase "${G.project.name}" for someone exploring an interactive architecture map of it.`,
-    `The map has cards for modules (ids n:...), files (f:<path>), HTTP endpoints (r:<number>) and exported symbols (s:<path>#<number>), each with a human-readable name and description, connected by imports and HTTP calls.`,
+    `你在回答关于代码项目「${G.project.name}」的问题。对方正在看一张可点开的结构地图。`,
+    '输出语言（必须遵守）：无论项目代码和注释是什么语言，回答、卡片备注、步骤讲解和后续问题全部用通俗简体中文。代码路径、变量名、接口 URL 保持原样。',
+    '地图上有模块（id 形如 n:...）、文件（f:<路径>）、网页接口（r:<数字>）和导出的符号（s:<路径>#<数字>）。每张卡片都有人话名字和说明，靠引用和网页请求连在一起。',
     tools,
-    bp ? `This map is a blueprint: a plan of a system that hasn't been built yet, so its files don't exist.${engine === 'cli' ? ` Instead of source files, read floorplan/plan.json${bp.source ? ` and ${bp.source} (what it was planned from)` : ''} when you need more than the map.` : ''} Answer about what would be built and why, and say plainly when the plan doesn't cover something.` : '',
-    'Use a few lookups, not dozens. Then reply with JSON only: {"title", "answer", "items", "steps", "followups"}.',
-    '- answer: Markdown, at most ~180 words, plain and specific. Refer to map items inline as [[id]] (they become clickable).',
-    '- items: the 3-14 cards that best show the answer, most important first, each with a note (at most 15 words) on its role.',
-    '- steps: an ordered walkthrough when the answer is a sequence (a request path, a data flow); otherwise [].',
-    '- followups: 2-3 short follow-up questions.',
-    'Only use ids that the map gave you.',
+    bp ? `This map is a blueprint：这是一张规划蓝图，系统还没做出来，所以这些文件现在还不存在。${engine === 'cli' ? `需要比地图更多的内容时，不要去找源文件，改读 floorplan/plan.json${bp.source ? ` 和 ${bp.source}（规划所依据的材料）` : ''}。` : ''}讲将会做出什么、为什么这样排，计划没覆盖到的就直说。` : '',
+    '查几次就够，不要查几十次。然后只回复 JSON：{"title", "answer", "items", "steps", "followups"}。',
+    '- answer：Markdown，大约 180 个词以内，通俗而且具体。提到地图上的东西时写成 [[id]]（它们会变得可以点）。',
+    '- items：最能把回答显示出来的 3 到 14 张卡片，最重要的放前面，每张用一句备注（大约 15 个字以内）说它的角色。',
+    '- steps：回答是一件事的先后顺序时（一次请求怎么走、数据怎么流）按顺序写；否则 []。',
+    '- followups：2 到 3 个短的后续问题。',
+    '只用地图给你的 id。',
   ].filter(Boolean).join('\n');
 }

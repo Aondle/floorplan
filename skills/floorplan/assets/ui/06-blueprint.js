@@ -7,7 +7,6 @@
   const BP = SC && SC.graph.meta.blueprint;
   if (!BP) return;
   const { h } = SC;
-  const Cap = (t) => t[0].toUpperCase() + t.slice(1);
   const A = SC.agent || { name: 'Claude', app: 'Claude Code' };
   const G = SC.graph;
 
@@ -26,21 +25,21 @@
   const addPill = () => {
     const k = document.querySelector('#context .k');
     if (!k || k.querySelector('.bp-pill')) return;
-    k.insertAdjacentHTML('beforeend', '<span class="bp-pill" title="Planned, not built yet: every card is a part the system would need.">Blueprint</span>');
+    k.insertAdjacentHTML('beforeend', '<span class="bp-pill" title="还没做出来：每张虚线卡片都是这个系统需要的一块。">规划蓝图</span>');
   };
   SC.on('render', addPill);
   SC.on('ready', addPill);
 
-  const ACCESS = { public: 'anyone', 'signed-in': 'signed-in users', team: 'only the team that runs the service', webhook: 'the service that sends it, which must prove it', internal: 'only our own services' };
-  /** "for signed-in users: managers of that location", or the open question when nobody decided. */
-  const whoMay = (r) => !r.access ? 'who may use it isn’t decided yet: ask me'
-    : `for ${r.access === 'signed-in' && r.who ? r.who : ACCESS[r.access] || r.access}${r.publicBecause ? `, because ${r.publicBecause.replace(/\.$/, '')}` : ''}`;
+  const ACCESS = { public: '任何人', 'signed-in': '登录了的人', team: '只有运营这个服务的人', webhook: '发来通知的那个服务，而且必须证明是它', internal: '只有我们自己的服务' };
+  /** 「给登录了的人用：某店的店长」，还没定时就写成还没定。 */
+  const whoMay = (r) => !r.access ? '谁可以用还没定，先问我'
+    : `给${r.access === 'signed-in' && r.who ? r.who : ACCESS[r.access] || r.access}用${r.publicBecause ? `，因为${r.publicBecause.replace(/[。．.]$/, '')}` : ''}`;
 
   SC.addPanelSection('overview', () => ({
-    html: `<div class="sec"><h3>Blueprint</h3>
-      <p class="pd">Planned${BP.source ? ` from <b>${h(BP.source)}</b>` : ''}, not built yet. Every dashed card is a part the system would need.${SC.exported ? '' : ` Pick one and choose <b>Build this with ${h(A.name)}</b> to start on it.`}</p>
+    html: `<div class="sec"><h3>规划蓝图</h3>
+      <p class="pd">${BP.source ? `依据 <b>${h(BP.source)}</b> 规划的` : '规划出来的'}，还没做出来。每张虚线卡片都是这个系统需要的一块。${SC.exported ? '' : `选一块，点<b>让 ${h(A.name)} 来做</b>就可以开始。`}</p>
       ${BP.stack?.length ? `<div class="tags" style="margin-top:10px">${BP.stack.map((s) => `<span class="tag">${h(s)}</span>`).join('')}</div>` : ''}
-      ${BP.assumptions?.length ? `<h3 style="margin-top:14px">Assumptions</h3><ul class="bp-list">${BP.assumptions.map((a) => `<li>${h(a)}</li>`).join('')}</ul>` : ''}
+      ${BP.assumptions?.length ? `<h3 style="margin-top:14px">假设</h3><ul class="bp-list">${BP.assumptions.map((a) => `<li>${h(a)}</li>`).join('')}</ul>` : ''}
     </div>`,
   }));
 
@@ -61,16 +60,16 @@
     const inside = (x) => x === id || paths.has(x) || (x.startsWith('r:') && paths.has('f:' + SC.routes[+x.slice(2)]?.f)) || (SC.exists(x) && SC.chain(x).includes(id));
     const questions = (G.health?.issues || []).filter((q) => q.kind === 'question' && (q.items || []).some(inside)).map((q) => q.title);
     return [
-      `Build "${i.name}" from the ${G.project.name} blueprint: floorplan/plan.json and floorplan/architecture.json${BP.source ? `, planned from ${BP.source}` : ''}.`,
-      i.desc ? `\nWhat it's for: ${i.desc}` : '',
-      BP.stack?.length ? `\nStack: ${BP.stack.join('; ')}.` : '',
-      `\nFiles to create:`,
-      ...fl.map((f) => `- ${f.p}: ${f.name}${f.d ? `. ${f.d}` : ''}`),
-      eps.length ? `\nEndpoints to create (keep the method, path and who may use them exactly as planned):` : '',
-      ...eps.map((r) => `- ${r.m} ${r.p} (${whoMay(r)}): ${r.name}${r.d ? `. ${r.d}` : ''}`),
-      deps.size ? `\nIt relies on: ${[...deps.values()].join('; ')}.` : '',
-      questions.length ? `\nStill undecided (ask me before building what depends on it):\n${questions.map((q) => `- ${q}`).join('\n')}` : '',
-      `\nBefore writing code, read these parts of plan.json, and check which of the things it relies on exist yet; if some don't, tell me and suggest what to build first. Keep the plan's file paths and names. If the plan looks wrong or incomplete for this part, tell me before changing it. When it's done, run it or its tests and tell me how to try it.`,
+      `按 ${G.project.name} 的规划蓝图，做「${i.name}」：依据 floorplan/plan.json 和 floorplan/architecture.json${BP.source ? `（规划来自 ${BP.source}）` : ''}。`,
+      i.desc ? `\n它是干什么的：${i.desc}` : '',
+      BP.stack?.length ? `\n技术组合：${BP.stack.join('；')}。` : '',
+      `\n要新建的文件：`,
+      ...fl.map((f) => `- ${f.p}：${f.name}${f.d ? `。${f.d}` : ''}`),
+      eps.length ? `\n要做的接口（方法、路径、谁可以用，都按规划来，不要改）：` : '',
+      ...eps.map((r) => `- ${r.m} ${r.p}（${whoMay(r)}）：${r.name}${r.d ? `。${r.d}` : ''}`),
+      deps.size ? `\n它依赖：${[...deps.values()].join('；')}。` : '',
+      questions.length ? `\n还没定（做依赖这些的部分之前先问我）：\n${questions.map((q) => `- ${q}`).join('\n')}` : '',
+      `\n写代码之前，先读 plan.json 里相关的部分，并看它依赖的东西有没有已经存在；有的还没有，就告诉我，并建议先做哪一块。文件路径和名字按规划来。如果规划对这一块看起来不对或不完整，先告诉我，不要自己改规划。做完后跑起来或跑测试，并告诉我怎么试。`,
     ].filter((x) => x !== '').join('\n');
   }
 
@@ -80,21 +79,22 @@
     if (id.startsWith('r:')) {
       const r = SC.routes[+id.slice(2)];
       if (!r) return '';
-      const text = !r.access ? `Not decided yet.${SC.graph.health ? ' The design review lists it.' : ''}` : `${Cap(r.access === 'signed-in' && r.who ? r.who : ACCESS[r.access] || r.access)}.${r.publicBecause ? ` Open on purpose: ${r.publicBecause}` : ''}`;
-      return `<div class="sec"><h3>Who may use it</h3><p class="pd">${h(text)}</p></div>`;
+      const who = r.access === 'signed-in' && r.who ? r.who : ACCESS[r.access] || r.access;
+      const text = !r.access ? `还没定。${SC.graph.health ? '设计审查里列了这一条。' : ''}` : `${who}。${r.publicBecause ? `故意开放：${r.publicBecause}` : ''}`;
+      return `<div class="sec"><h3>谁可以用</h3><p class="pd">${h(text)}</p></div>`;
     }
     const i = SC.info(id);
     if (SC.exported || !i || (i.type === 'node' && i.n.kind === 'external') || !filesIn(id).length) return '';
     return {
-      html: `<div class="sec"><h3>Build it</h3><p class="pd">A ready request for ${h(A.app)} to build ${i.type === 'file' ? 'this file' : 'this part'} the way the plan describes.</p>
-        <div class="actions"><button class="btn soft" data-bp-build>${SC.iconI('spark')}Build this with ${h(A.name)}</button></div></div>`,
+      html: `<div class="sec"><h3>动手做</h3><p class="pd">一段现成的请求，让 ${h(A.app)} 按规划把${i.type === 'file' ? '这个文件' : '这一块'}做出来。</p>
+        <div class="actions"><button class="btn soft" data-bp-build>${SC.iconI('spark')}让 ${h(A.name)} 来做</button></div></div>`,
       bind: (el) => el.querySelector('[data-bp-build]')?.addEventListener('click', (ev) => {
         ev.stopPropagation();
         const prompt = buildPrompt(id);
         SC.modal({
-          title: `Build this with ${A.name}`,
-          html: `<p class="hc-hint">Copy this request and paste it into <b>${h(A.app)}</b>, opened in your project folder.</p><pre>${h(prompt)}</pre>`,
-          actions: [{ label: 'Copy prompt', primary: true, icon: 'copy', onClick: () => { SC.copy(prompt).then((ok) => { if (ok) SC.toast(`Copied. Paste it into ${A.app}.`); }); } }],
+          title: `让 ${A.name} 来做`,
+          html: `<p class="hc-hint">复制这段请求，贴进已经打开你项目文件夹的 <b>${h(A.app)}</b>。</p><pre>${h(prompt)}</pre>`,
+          actions: [{ label: '复制这段请求', primary: true, icon: 'copy', onClick: () => { SC.copy(prompt).then((ok) => { if (ok) SC.toast(`已复制。贴进 ${A.app}。`); }); } }],
         });
       }),
     };

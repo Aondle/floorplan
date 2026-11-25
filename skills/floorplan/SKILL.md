@@ -1,6 +1,6 @@
 ---
 name: floorplan
-description: "Draw a floorplan of an app's codebase (one repo or several side by side), an interactive node-graph map where every subsystem, module, file and HTTP route has a human-readable name and a one-line description, connected by the imports and HTTP calls between them, at several zoom levels. It is saved as a self-contained floorplan/index.html in the codebase. Use whenever the user wants to visualize, map, diagram, document or get an architectural overview of a codebase, repo or monorepo, understand how their app works or is connected under the hood, onboard onto unfamiliar code, see how the frontend talks to the backend, or update an existing floorplan, even if they don't say \"visualize\". Also use it before any code exists: when the user shares a PRD, a spec or a description of something they want to build and asks what pieces it needs or how they'd fit together, it draws a blueprint, the same map planned from the document."
+description: "给一个项目画一张能点开的结构地图（一个仓库，或好几个并排放在一起）。每个模块、文件和网页请求都有通俗中文名字和一句话说明，按谁引用了谁、谁请求了谁连起来，可以一层层放大。地图存成项目里单独的 floorplan/index.html。用户想看项目怎么串起来、前端怎么跟后端说话、给新人讲结构、或者更新已经有的地图时都要用，即使用户没说「画图」或 visualize。代码还没写、只有需求说明时也要用：它会画出一张规划蓝图（blueprint），用同一张地图把打算做的东西排出来。"
 argument-hint: "[path-to-codebase-root] [--refresh]"
 allowed-tools:
   - Bash(node ${CLAUDE_SKILL_DIR}/scripts/build.mjs *)
@@ -15,169 +15,182 @@ allowed-tools:
 
 # Floorplan
 
-You produce `floorplan/` at the codebase root: a floorplan of the app that someone new can read like a system diagram. Every card shows a human name and a one-line description, with the real path in small type underneath.
+你在项目根目录产出 `floorplan/`：一张新人也能当系统图来读的地图。每张卡片上都是人话名字和一句话说明，真正的路径用小字标在下面。
 
-- **You write:** `architecture.json` (subsystems, modules, flows) and `descriptions/*.json` (a name and description for every file and route).
-- **Generated:** `graph.json` and `index.html`.
+- **你来写：** `architecture.json`（有哪些大块、小块、流程）和 `descriptions/*.json`（每个文件、每条接口的名字和说明）。
+- **脚本生成：** `graph.json` 和 `index.html`。
 
-The scripts do the mechanical work: finding repos, parsing imports and routes, matching HTTP calls to endpoints, layout and rendering. Your job is the part only a reader of the code can do: deciding what things *are* and saying so plainly.
+找仓库、解析引用和接口、把网页请求对上接口、排版和出页面，这些机械的活脚本做。你只做读代码的人才能做的那部分：判断每样东西到底是干什么的，并用大白话说出来。
 
-Existing map: !`node ${CLAUDE_SKILL_DIR}/scripts/status.mjs || true`
-Arguments: $ARGUMENTS
+## 输出语言（必须遵守）
 
-**In Codex** (or any agent that left the two lines above unfilled): `${CLAUDE_SKILL_DIR}` in every command here means this skill's folder, the one holding this SKILL.md, so use its path. Run `node <that folder>/scripts/status.mjs` from the codebase root yourself to see whether a map exists, and take the path and `--refresh` from the user's request. The scripts notice they're running under Codex, so the map's Ask bar and "Fix with" prompts use Codex.
+无论目标项目的代码和注释是什么语言，下面这些全部用通俗易懂的简体中文来写、来讲：
 
-## Nothing built yet? Draw a blueprint
+- 模块名称（节点的 `label`，文件和接口的 `name`）
+- 业务功能描述（`summary`、`description`、流程步骤、导览的标题和讲解）
+- 健康检查里由你来写的风险说明和修复建议，以及最近改动的 `note`
+- 你最后给用户的汇报
 
-If the user wants to plan something they haven't built ("here's my PRD", "I want to build an app that…", a long description of a system), make a **blueprint**: the same map, planned from their document instead of scanned from code. Use this path when there's no code for the system yet, even if the folder holds other things. If the code exists, make a normal map.
+代码路径、变量名、接口 URL、JSON 字段名、命令和参数保持原样，不要翻译。产品名（Stripe、Shopify、Postgres）保持原样。只有用户明确要一张给工程师看的地图（`"audience": "developers"`）才可以出现框架和机制的说法，句子本身仍然用中文。
 
-1. **Read the input.** A PRD file, a pasted message, or a document they point you at. Ask 2–3 questions only if something fundamental is open (who uses it, web or mobile, does anyone sign in, does money change hands); otherwise decide and record it as an assumption.
-2. **Read [references/blueprint.md](references/blueprint.md)**, then [references/schema.md](references/schema.md) for architecture.json.
-3. **Write `floorplan/plan.json`**: every planned file and endpoint, what each screen calls, which outside services and data each part uses, who may use each endpoint, your assumptions and the open questions. If the PRD is only in the chat, save it as `docs/prd.md` and use that as `source`, so the map and later questions can refer back to it.
-4. **Write `floorplan/architecture.json`** as for a code map (parts, external nodes for the services and data plan.json names, 1–3 flows for the PRD's main user stories, a tour), with globs covering the planned paths. Plain language for everyone, as in step 4 below.
-5. **Run `node ${CLAUDE_SKILL_DIR}/scripts/plan.mjs <root>`, then build.mjs** (step 5 below). Fix what they report until both are clean. Skip describe.mjs and recent.mjs: names and descriptions come from plan.json. A blueprint adds no notes to CLAUDE.local.md, since there's no code to look up yet.
-6. **Show it** with open.mjs (step 8).
-7. **Report** (instead of step 8's report): the URL; the shape of the system in 3–5 lines; the stack you chose; your main assumptions; and the design review's questions and warnings. Tell them each part has **Build this with Claude** (or Codex) for a ready request to build just that part; that they can switch the map's Ask bar to **Change** and ask for additions or changes ("also plan out refunds"), and the map redraws with what changed highlighted (the design review's **Resolve on the map** fills in such a request, so open questions just need their answer); that plan.json and architecture.json are theirs to edit or to ask you to change; and that the map stays out of git.
+已有地图： !`node ${CLAUDE_SKILL_DIR}/scripts/status.mjs || true`
+参数： $ARGUMENTS
 
-To change a blueprint, edit plan.json and architecture.json and run `refresh.mjs`, which redraws it from plan.json. Once the code exists and the user wants a map of it, run `refresh.mjs <root> --from-code`, then carry on as for a refresh. plan.json stays where it is.
+**在 Codex 里**（或者上面两行没被填上的任何助手）：这里每条命令里的 `${CLAUDE_SKILL_DIR}` 就是本技能所在的文件夹，也就是放着这份 SKILL.md 的那个。自己用它的路径。先在项目根目录运行 `node <那个文件夹>/scripts/status.mjs`，看地图有没有；路径和 `--refresh` 从用户的请求里拿。脚本能认出自己跑在 Codex 下，所以地图上的提问栏和「让某某来改」会走 Codex。
 
-## A map already exists? Refresh it instead
+## 还没写代码？先画规划蓝图
 
-If the status above shows an existing map, don't start over. Run:
+用户想规划一个还没做的东西（「这是我的需求文档」「我想做一个……的应用」，或一大段系统描述）时，做一张**规划蓝图**：同一张地图，依据文档来排，而不是去扫代码。系统本身还没有代码时走这条路，哪怕文件夹里放着别的东西。代码已经在了，就做普通地图。
+
+1. **读输入。** 一份需求文件、粘贴的消息，或用户指给你的文档。只有根本性的事没说清才问 2 到 3 个问题（谁在用、网页还是手机、要不要登录、钱会不会过手）；否则你自己定，并写成一条假设。
+2. **读 [references/blueprint.md](references/blueprint.md)**，再读 [references/schema.md](references/schema.md)，按它写 architecture.json。
+3. **写 `floorplan/plan.json`**：计划中的每个文件和每条接口、每个页面会调用什么、每一块用到哪些外部服务和数据、谁可以用每条接口、你的假设和还没定的问题。需求只在对话里时，存成 `docs/prd.md`，并把它当作 `source`，这样地图和以后的提问都能指回去。
+4. **写 `floorplan/architecture.json`**，写法和代码地图一样（各个部分；plan.json 点到的服务和数据做成外部节点；需求里的主要使用故事做成 1 到 3 条流程；一条导览），用通配路径盖住计划中的文件。对人说人话，见下面第 4 步。
+5. **运行 `node ${CLAUDE_SKILL_DIR}/scripts/plan.mjs <root>`，再运行 build.mjs**（下面第 5 步）。它们报什么就改什么，直到两份都干净。跳过 describe.mjs 和 recent.mjs：名字和说明来自 plan.json。规划蓝图不往 CLAUDE.local.md 里写备注，因为还没有代码可查。
+6. **打开它**，用 open.mjs（第 8 步）。
+7. **汇报**（代替第 8 步的汇报）：网址；用 3 到 5 行说系统长什么样；你选的技术组合；主要假设；设计审查提出的问题和提醒。告诉用户：每一块都有**让 Claude 来做**（或 Codex），点下去就是一段可以直接拿去只做这一块的请求；提问栏可以切到**改规划**，说「把退款也规划进去」这类话，地图会重画，并标出改了哪里（设计审查的**在地图上处理**会填好这样一段请求，所以没定的问题只要用户回答）；plan.json 和 architecture.json 他们可以自己改，也可以叫你改；这张地图不会进 git。
+
+要改规划蓝图，就改 plan.json 和 architecture.json，再运行 `refresh.mjs`，它会按 plan.json 重画。等代码有了、用户想要一张对着代码的地图，运行 `refresh.mjs <root> --from-code`，然后按更新地图的做法继续。plan.json 留在原地。
+
+## 已经有地图？更新它，不要重做
+
+上面的状态显示已经有地图时，不要从头来。运行：
 
 `node ${CLAUDE_SKILL_DIR}/scripts/refresh.mjs <root>`
 
-It re-scans, compares content fingerprints against the last build, and does the bookkeeping without spending tokens:
-- carries descriptions over to moved or renamed files and endpoints;
-- drops entries for deleted files;
-- flags entries whose exports or routes changed with a `review` note (edits inside function bodies don't count);
-- rebuilds;
-- prints what changed and a short NEXT list.
+它会重新扫描，用内容指纹和上次构建对比，并把簿记做完，不另花模型：
 
-Do only what NEXT asks:
-- add globs for new directories that landed in "unassigned";
-- run describe.mjs (step 6), which now only produces worksheets for the new and flagged items;
-- check module summaries and flows if the change was large.
+- 文件或接口改名、挪了位置，说明跟着走；
+- 删掉的文件，对应条目去掉；
+- 导出或接口变了的条目标上 `review`（函数身体内部的修改不算）；
+- 重新构建；
+- 打印变了什么，以及一份很短的 NEXT 清单。
 
-A typical refresh after a few hours of work is a handful of worksheet entries. Then mark recent work (step 7), and show it and report (step 8). Always show it, even when nothing changed: the user asked to see their floorplan.
+只做 NEXT 让你做的事：
 
-## Workflow (first run)
+- 给落进 "unassigned" 的新目录补上通配路径；
+- 运行 describe.mjs（第 6 步），它现在只给新增和被标出来的条目出工作表；
+- 改动很大时，检查模块说明和流程还对不对。
 
-The codebase root is the argument if one was given, otherwise the current directory. It may be a single repo, or a plain folder holding several repos (frontend + backend + infra, and so on). The scanner finds every git repo under it and skips duplicate worktrees.
+忙了几小时之后的一次更新，通常只有几条工作表。然后标出最近改动（第 7 步），打开并汇报（第 8 步）。就算什么都没变也要打开：用户要看的就是自己的地图。
 
-1. **Scan.**
+## 第一次做（工作流）
+
+项目根目录是用户给的那个参数；没给就是当前目录。它可以是一个仓库，也可以是一个普通文件夹，里面并排放着好几个仓库（前端、后端、基础设施等）。扫描会找到下面每一个 git 仓库，并跳过重复的工作区。
+
+1. **扫描。**
    `node ${CLAUDE_SKILL_DIR}/scripts/scan.mjs <root>`
-   It writes `floorplan/.cache/scan.json` and prints a summary: repos, a code tree with LOC, entrypoints, the heaviest directory→directory import edges, HTTP call→route matches across repos, external packages and hosts. Work from the summary. Don't read scan.json, which is large.
+   它写出 `floorplan/.cache/scan.json`，并打印一份摘要：有哪些仓库、带行数的代码树、入口、最重的目录到目录的引用、跨仓库对上的网页请求和接口、外部包和主机名。根据摘要来工作。不要去读 scan.json，它很大。
 
-2. **Read the contract.** Read [references/schema.md](references/schema.md) (the architecture.json format) and [references/choosing-boundaries.md](references/choosing-boundaries.md) (how to carve a codebase into a good map).
+2. **读约定。** 读 [references/schema.md](references/schema.md)（architecture.json 的格式）和 [references/choosing-boundaries.md](references/choosing-boundaries.md)（怎么把一个项目切成一张好读的地图）。
 
-3. **Explore just enough.** Read READMEs, manifests (package.json, pyproject, go.mod, docker-compose, deploy configs) and entrypoints, then skim 1–2 files per candidate subsystem until you can write a one-sentence summary for each. You're after the shape of the system, not a code review.
+3. **够用就停。** 读 README、清单（package.json、pyproject、go.mod、docker-compose、部署配置）和入口，然后每个候选大块只扫 1 到 2 个文件，直到你能用一句话概括它。你要的是系统的形状，不是代码评审。
 
-4. **Write `floorplan/architecture.json`.** Aim for:
-   - 3–9 top-level nodes;
-   - 3–12 children under each big one;
-   - globs covering more than 90% of code files;
-   - external nodes for the databases and third-party services the code really talks to;
-   - edges only for what the scan can't see (queues, cron, webhooks, cross-service calls through env-configured URLs);
-   - 1–3 flows that explain the system's main jobs;
-   - a `tour`: 3–8 narrated stops for the "Start here" tour (see below).
+4. **写 `floorplan/architecture.json`。** 目标是：
+   - 顶层 3 到 9 个节点；
+   - 每个大的下面 3 到 12 个子节点；
+   - 通配路径盖住 90% 以上的代码文件；
+   - 代码真正在说话的数据库和第三方服务，做成外部节点；
+   - 边只补扫描看不见的（队列、定时任务、别人打过来的通知、地址写在设置里的跨服务调用）；
+   - 1 到 3 条流程，讲这个系统主要在干什么；
+   - 一条 `tour`：给「新手导览」用的 3 到 8 站讲解（见下）。
 
-   Every node needs a `summary`.
+   每个节点都要有 `summary`。
 
-   **Audience.** The people opening this map are usually the app's owners, often non-technical builders who made it with AI. Unless the user asks for a developer-facing map, leave `"audience"` unset or set it to `"everyone"`, and write every `project.summary`, node `label`/`summary`, and file/route description in plain language (see "Plain language" in references/writing-descriptions.md). Use short labels like "Main server" rather than "Shop API (Flask)". Paths and method/URL stay visible on the cards, so descriptions only need to say what the thing is for. And say what the code does today, not what its names suggest: when a part is mostly placeholders, its summary says so ("Say what it does today" in references/writing-descriptions.md).
+   **给谁看。** 打开这张地图的通常是应用的主人，常常是用 AI 做出来、自己不读代码的人。除非用户要一张给开发者看的地图，否则别写 `"audience"`，或写成 `"everyone"`。`project.summary`、每个节点的 `label` 和 `summary`、每个文件和接口的说明，都按 references/writing-descriptions.md 里的 "Plain language" 用大白话写。短标签用「主服务器」，不要写成「商店接口（Flask）」。路径、方法和 URL 已经印在卡片上，说明只要讲它是干什么的。写代码今天真正做的事，不要写名字暗示它该做的事：某一块大部分还是占位时，说明里就这么说（writing-descriptions.md 的 "Say what it does today"）。
 
-   **Tour.** Add `"tour": [{ "node": "<node id or file path>", "title": "…", "note": "…" }]`, with stops in the order a newcomer should see them: what the app is, the apps people use, the main server, outside services, and ending on an important screen's file. Write titles and notes in plain words for someone who has never read the code. The first guided flow is added at the end automatically as "watch a real request". Without a tour, one is built from node summaries and the first flow, so good summaries and at least one flow matter.
+   **导览。** 加上 `"tour": [{ "node": "<节点 id 或文件路径>", "title": "…", "note": "…" }]`，顺序按新人该看的来：这是个什么应用、人用的那些端、主服务器、外部服务，最后停在一个重要页面的文件上。标题和讲解用从没读过代码的人也能懂的话。第一条引导流程会自动加在最后，当作「跟着看一次真实请求」。没有导览时，会用节点说明和第一条流程拼一条，所以说明要写好，并且至少有一条流程。
 
-5. **Build and fix.**
+5. **构建并改到通过。**
    `node ${CLAUDE_SKILL_DIR}/scripts/build.mjs <root>`
-   It validates everything and names each problem ("did you mean …", files unassigned by directory, ambiguous globs). Fix and rebuild until it's clean and unassigned is under ~10%. Two warnings are worth one more pass: `plain language:` names a part whose label or summary uses developer words (reword it as suggested), and a part that "holds N files and no smaller parts" lists the folders it could be split along.
+   它会校验全部内容，并点名每个问题（「你是不是想写……」、按目录没分进去的文件、含糊的通配路径）。改完再构建，直到干净，没分进去的低于大约 10%。有两类提醒值得再过一遍：`plain language:` 点名某个部分的标签或说明用了开发者才懂的词（按它建议的说法改），以及「holds N files and no smaller parts」会列出可以顺着拆开的文件夹。
 
-   **Nothing Floorplan makes is committed.** `floorplan/` holds its own `.gitignore` that ignores the whole folder, so the project's tracked files aren't touched. If git already tracks files there, the build prints the `git rm -r --cached` command to untrack them; pass it on to the user rather than running it.
+   **Floorplan 做出来的东西都不提交。** `floorplan/` 自带 `.gitignore`，忽略整个文件夹，所以项目里已跟踪的文件不会被碰。如果 git 已经在跟踪那里的文件，构建会打印 `git rm -r --cached` 那条命令让它们退出跟踪；把命令告诉用户，不要自己跑。
 
-   **A note for future sessions, only if the user wants one.** In Claude Code, the build can keep a short marked block in the project's `CLAUDE.local.md`, Claude Code's personal, uncommitted project notes, which load at session start like CLAUDE.md. The block tells future Claude Code sessions here that the map exists and how to look things up in it with `floorplan/query.mjs`, so they start from the map instead of searching the code from scratch. Because it changes how later sessions work, the build never adds it on its own: it reports `CLAUDE.LOCAL.MD  not added`, and you offer it in your report (step 8). Only when the user says yes, run `node ${CLAUDE_SKILL_DIR}/scripts/build.mjs <root> --claude-md`. Once the block exists, every build keeps it current. The build adds `CLAUDE.local.md` to the repo's local ignore list (`.git/info/exclude`, not `.gitignore`), rewrites only its own block, and moves the block out of `CLAUDE.md` if an older version put it there. To remove it, the user deletes the block, or puts `<!-- floorplan:off -->` in CLAUDE.local.md to keep it from coming back. Under Codex the build skips this: Codex has no personal, uncommitted notes file (AGENTS.md is shared with the team), so don't add one there either.
+   **给以后的会话留一张便条，而且只有用户想要才留。** 在 Claude Code 里，构建可以在项目的 `CLAUDE.local.md` 里维护一小段带标记的文字。这是 Claude Code 个人的、不提交的项目笔记，会话开始时会像 CLAUDE.md 一样被读进来。这段话告诉以后在这里的 Claude Code：地图在，以及怎么用 `floorplan/query.mjs` 查它，这样它们从地图出发，而不是从零翻代码。因为它会改变以后会话的做法，构建不会自己加上：它会报告 `CLAUDE.LOCAL.MD  not added`，你在汇报（第 8 步）里问一次。只有用户说要，才运行 `node ${CLAUDE_SKILL_DIR}/scripts/build.mjs <root> --claude-md`。这段一旦在了，以后每次构建都会把它保持为最新。构建把 `CLAUDE.local.md` 加进仓库本地忽略列表（`.git/info/exclude`，不是 `.gitignore`），只改写自己的那一段，并且如果旧版本把它放进了 `CLAUDE.md`，会把它挪出来。用户想去掉，就删掉这段，或在 CLAUDE.local.md 里写 `<!-- floorplan:off -->`，这样它不会再回来。在 Codex 下构建会跳过这件事：Codex 没有这种个人的、不提交的笔记（AGENTS.md 是跟团队共享的），所以那里也不要加。
 
-6. **Describe every file and route.**
+6. **给每个文件和每条接口写说明。**
    `node ${CLAUDE_SKILL_DIR}/scripts/describe.mjs <root>`
-   This writes one worksheet per module (`floorplan/.cache/worksheets/<key>.md`) and a skeleton to fill in (`floorplan/descriptions/<key>.json`). Each worksheet holds a digest of every file (docstrings, definitions, what it uses, and the files that import it, send it web requests or name it) and every route (handler, docstring), and quotes the code of each route it lists and the whole of very short files (secrets masked). That's enough to describe most files without opening them.
-   - Read [references/writing-descriptions.md](references/writing-descriptions.md) first, especially "Say what it does today": describe what the quoted code does, say so plainly when it's a placeholder, and don't claim who runs or uses something unless the worksheet or the code shows it.
-   - **More than ~150 files:** split the worksheets across parallel subagents if you have them, ~100–150 files each, grouped by area (backend routes, services, scripts, tests, UI). Give each one its worksheet keys, the codebase root and the writing guide, and tell it to edit only its own `descriptions/<key>.json` files and keep the keys unchanged.
-   - **Smaller codebases:** do it yourself.
+   它为每个模块写一张工作表（`floorplan/.cache/worksheets/<key>.md`），以及一份待填的骨架（`floorplan/descriptions/<key>.json`）。每张工作表是每个文件的摘要（文档注释、定义了什么、用了什么，以及哪些文件引用了它、给它发网页请求、或点了它的名）和每条接口（处理函数、文档注释），并引用它列出的每条接口的代码，以及很短的文件的全文（密钥已遮住）。大多数文件不用打开就能写说明。
+   - 先读 [references/writing-descriptions.md](references/writing-descriptions.md)，尤其是 "Say what it does today"：按引用出来的代码写它在做什么；是占位就直说；工作表或代码没写的，不要声称谁在跑它、谁在用它。
+   - **超过大约 150 个文件：** 如果有并行的子助手，把工作表拆给它们，每个大约 100 到 150 个文件，按区域分组（后端接口、服务、脚本、测试、界面）。给每个子助手它的工作表键、项目根目录和写作指南，并告诉它只改自己的 `descriptions/<key>.json`，键不要动。
+   - **比较小的项目：** 你自己写。
 
-   Then rebuild. The build reports `DESCRIPTIONS files X/Y · routes X/Y`. Get both to 100%: re-run describe.mjs and it lists only what's still missing.
+   然后重新构建。构建会报告 `DESCRIPTIONS files X/Y · routes X/Y`。两边都要到 100%：再跑一次 describe.mjs，它只列出还缺的。
 
-7. **Mark recent work.** The map highlights what was just worked on: those cards get a green "Changed"/"New" tag, the parts containing them show "N changed", hovering shows your note, and a **Recent work** button lays them out on one board. Do this on every make and every update, because it replaces the previous highlights.
+7. **标出最近改动。** 地图会突出刚做过的事：那些卡片得到绿色的「改过了」或「新加的」标记，包含它们的部分显示「N 处改动」，悬停能看到你的备注，**最近改动**按钮把它们排到同一块板上。每次新建、每次更新都做，因为它会换掉上一次的高亮。
    `node ${CLAUDE_SKILL_DIR}/scripts/recent.mjs <root>`
-   It lists what changed since the previous map, uncommitted changes and recent commits, each matched to the card it appears as. The *why* comes from you:
-   - **What counts.** Work done in this conversation, by you or your subagents, is the main source. Lean on what you know about it. If you did nothing here (a fresh session), use what recent.mjs shows that is clearly in flight: uncommitted changes and the latest commits. If there's nothing, write `{ "tasks": [] }` so old highlights clear.
-   - **Write `floorplan/recent-work.json`.** Use one task per thing the user asked for: `title` (2–5 words), `request` (what they asked, in their words, shortened; leave it `""` when nobody asked here, as when working from commits, because the map shows it as "You asked: …"), `summary` (1–2 sentences on what was done toward it and where it stands, including anything deleted, since deleted files can't be highlighted). Then add `items`: the cards that changed, as a file path, node id or `"METHOD /path"`, with `change` (`"new"` or `"changed"`) and a `note`.
-   - **Every note answers "how does this relate to what they asked for?"** In one or two plain sentences, say what changed on this card and why the request needed it. For example, write "Now catches web requests whose address is built up in a variable first, which is why the orders and inventory screens were showing no server calls." Not "Added flattenTemplates and variableUse helpers".
-   - **Highlight what mattered.** Pick the files and endpoints whose behaviour changed for this request, usually 3–15. Skip tests and drive-by edits unless they're the point. A file with a changed endpoint can list both the file and the endpoint.
-   - **Keep the code's words out unless the audience is developers.** Never put secrets in notes, and never invent example values: say only what the code shows.
+   它列出上次地图以来变了什么、还没提交的改动和最近的提交，每一项都对上它在地图上的那张卡片。*为什么*由你来写：
+   - **算什么。** 这次对话里你或你的子助手做的事是主要来源。用你已经知道的。如果你在这里什么都没做（新开的会话），就用 recent.mjs 里明显还在进行的：未提交的改动和最新的提交。如果什么都没有，写 `{ "tasks": [] }`，把旧的高亮清掉。
+   - **写 `floorplan/recent-work.json`。** 用户让做的每一件事写成一个任务：`title`（2 到 5 个词）、`request`（他们怎么说的，缩短；这里没人开口时留 `""`，比如只是根据提交在整理，因为地图会把它显示成「你当时说：……」）、`summary`（1 到 2 句：为这件事做了什么、现在到哪了，包括删掉的，因为删掉的文件没法高亮）。然后加 `items`：变了的卡片，用文件路径、节点 id 或 `"METHOD /path"`，带上 `change`（`"new"` 或 `"changed"`）和 `note`。
+   - **每条备注都回答「这和他们要的有什么关系？」** 用一两句人话，说这张卡片上改了什么、为什么这个请求需要它。例如写「现在能认出地址是先拼进一个变量里的网页请求，所以订单页和库存页才看得到服务器调用。」不要写「加了 flattenTemplates 和 variableUse 这两个辅助函数」。
+   - **只突出要紧的。** 挑这次请求里行为变了的文件和接口，通常 3 到 15 个。测试和顺手改的跳过，除非它们就是这次的重点。一个文件改了接口，可以把文件和接口都列上。
+   - **给所有人看的地图，不要把代码里的词写进备注。** 备注里绝不放密钥，也绝不编造示例值：只说代码里看得到的。
 
-   Format: [references/schema.md#recent-work](references/schema.md#recent-work). Then run build.mjs. It reports `RECENT WORK  N card(s) highlighted` and warns about refs that aren't on the map.
+   格式见 [references/schema.md#recent-work](references/schema.md#recent-work)。然后运行 build.mjs。它报告 `RECENT WORK  N card(s) highlighted`，并对不上地图的引用给出提醒。
 
-8. **Show it, then report.** Whenever you make or update a floorplan, finish by putting it in front of the user:
+8. **打开，然后汇报。** 每次做地图或更新地图，最后都要把它放到用户面前：
    `node ${CLAUDE_SKILL_DIR}/scripts/open.mjs <root>`
-   - It starts the map's server in the background (or reuses the one already running for this map) and opens it in their browser. Tabs that are already open reload in place instead of a new one opening.
-   - It prints the URL, whether Ask works (the Claude Code CLI or Codex was found), and how to stop the server. The server also stops on its own a couple of hours after the last tab closes.
-   - **In Codex**, run open.mjs outside the sandbox (ask for escalated permissions): the server has to keep running after the command ends, and Ask needs the network to reach Codex. If that isn't allowed, give the user `node floorplan/serve.mjs` to run in their own terminal from the codebase root.
-   - If you have an in-app browser or preview tool, pass `--no-open` and open the printed URL there instead, so the map appears right beside the conversation.
-   - If this is a remote or headless machine where the user can't reach 127.0.0.1, skip open.mjs and tell them to run `node floorplan/serve.mjs` on their own machine, or offer the Claude app route (step 9).
+   - 它在后台启动地图的服务器（这张地图已经有一个在跑就接着用），并在浏览器里打开。已经开着的标签会就地刷新，不会再开一个新的。
+   - 它打印网址、提问能不能用（找到了 Claude Code 命令行或 Codex 没有），以及怎么停掉服务器。最后一个标签关掉大约两小时后，服务器自己也会停。
+   - **在 Codex 里**，把 open.mjs 放到沙箱外面跑（请求提升权限）：命令结束后服务器还得继续跑，提问也需要网络才能连上 Codex。如果不允许，就把 `node floorplan/serve.mjs` 交给用户，让他们在项目根目录自己的终端里跑。
+   - 你自己有应用内浏览器或预览工具时，加上 `--no-open`，改用打印出来的网址在那里打开，这样地图就在对话旁边。
+   - 如果这是用户够不着 127.0.0.1 的远程或无界面机器，跳过 open.mjs，告诉他们在自己的机器上运行 `node floorplan/serve.mjs`，或者走 Claude 应用那条路（第 9 步）。
 
-   Then **report.** Give the URL, then describe the architecture you mapped in 3–5 lines, in the user's language, including anything surprising: cycles, god-files, dead areas, coupled subsystems. Always mention the **high-severity Health items** (`graph.health`; the build output and graph.json list them). Hard-coded passwords/keys and endpoints anyone can change data through are things the owner needs to hear about. Also pass on any check the build marks with `!` under `what was checked` (like no endpoints found in code that runs a server): that check had nothing to look at, so a short Health list there isn't a clean bill of health. Never repeat a secret's value. When the build's `NOT MAPPED` line shows many docs or config files, say in one line that the map shows only the kinds of file it names (code, unless `include` says otherwise), so a small map isn't taken for a scan that missed things, and that you can add them. Say that `architecture.json` and `descriptions/` are theirs to edit, and that after more work they can just ask to "update the floorplan", which re-reads only what changed. Give them those plain words rather than a command: in Claude Code the plugin's command is `/floorplan:floorplan` (`/floorplan` as a personal skill), and in Codex it's `$floorplan`. On a first run, mention in one line that the map stays out of git. In Claude Code, when the build said `CLAUDE.LOCAL.MD  not added`, end by asking once whether future Claude Code sessions in this project should use the map: you'd add a short note to their personal, uncommitted CLAUDE.local.md. Add it (`build.mjs <root> --claude-md`) only on a yes, and don't ask again on later updates if they said no. On an update, start with what changed for what they asked (it's highlighted under **Recent work**).
+   然后**汇报。** 先给网址，再用 3 到 5 行通俗简体中文讲你画出来的结构，包括让人意外的地方：绕圈的依赖、什么都塞在里面的大文件、没人用的区域、缠在一起的部分。一定要提到**严重的健康检查项**（`graph.health`；构建输出和 graph.json 里都有）。写死在代码里的密码或密钥，以及谁都能改数据的接口，主人需要听到。构建在 `what was checked` 下面用 `!` 标出的检查也要转告（例如一个在跑服务器的项目里却没找到任何接口）：那项检查根本没有东西可看，所以健康检查列表很短，并不等于没问题。绝不重复密钥的值。构建的 `NOT MAPPED` 那一行显示有很多文档或配置文件时，用一句话说明地图只画出它点名的那类文件（默认是代码，除非 `include` 另有说法），免得一张小地图被当成漏扫了，并说明可以加进去。告诉用户 `architecture.json` 和 `descriptions/` 他们可以改；以后做了更多事，只要说「更新地图」，只会重读有变化的部分。把这句人话给他们，不要甩一条命令：在 Claude Code 里插件命令是 `/floorplan:floorplan`（作为个人技能是 `/floorplan`），在 Codex 里是 `$floorplan`。第一次做时，用一句话说明地图不进 git。在 Claude Code 里，构建说了 `CLAUDE.LOCAL.MD  not added` 时，最后问一次：以后这个项目里的 Claude Code 会话要不要用这张地图；你会往他们个人的、不提交的 CLAUDE.local.md 里加一句短说明。只有对方说要，才加上（`build.mjs <root> --claude-md`）；他们说不要，以后更新就别再问。更新时，先讲他们要的那件事改了什么（标在**最近改动**下面）。
 
-## 9. Opening the map and asking questions
+## 9. 打开地图、在上面提问
 
-The map has a floating Ask bar. The user types a question, and the agent answers with text plus an answer board: the relevant cards, the connections among them, a note on each card, and an optional step-by-step walkthrough. There are two ways to power it. The UI is the same either way.
+地图上有一条浮动的提问栏。用户打一个问题，助手用文字再加一块回答板来答：相关的卡片、它们之间的连线、每张卡片上的一句备注，以及可选的逐步走一遍。有两种方式给它提供回答，界面一样。
 
-- **Claude Code CLI or Codex (best).** The map's server (`floorplan/serve.mjs`, started by open.mjs in step 8) serves it at http://127.0.0.1:4378, or the next free port. Each question runs on the user's own sign-in, in the codebase, read-only, so answers can cite real code:
-  - **Claude Code:** `claude -p` with the map (via `floorplan/query.mjs`) plus Read/Grep/Glob on the source. The server finds `claude` on PATH or in `~/.local/bin`.
-  - **Codex:** `codex exec` in Codex's read-only sandbox, with nothing saved to their Codex history. The server finds `codex` on PATH, or the CLI that comes with the Codex app.
+- **Claude Code 命令行或 Codex（最好）。** 地图的服务器（`floorplan/serve.mjs`，由第 8 步的 open.mjs 启动）在 http://127.0.0.1:4378 提供它，这个端口被占了就用下一个空闲端口。每个问题都用用户自己的登录，在项目里、只读地跑，所以回答可以引用真实代码：
+  - **Claude Code：** `claude -p`，带着地图（通过 `floorplan/query.mjs`），再加上对源码的 Read、Grep、Glob。服务器在 PATH 或 `~/.local/bin` 里找 `claude`。
+  - **Codex：** `codex exec`，在 Codex 的只读沙箱里，什么都不写进他们的 Codex 历史。服务器在 PATH 里找 `codex`，或用 Codex 应用自带的命令行。
 
-  It uses the agent that built the map, and falls back to the other if that one isn't installed. `--engine claude|codex` forces one, `--claude <path>` or `--codex <path>` points at an unusual install, `--model <name>` picks the model, and `--editor <name or link>` the editor **Open in editor** opens, over architecture.json's `editor` (open.mjs passes all of these through). Users can also run `node floorplan/serve.mjs` themselves at any time, and stop a background one with `node floorplan/serve.mjs --stop`.
-- **Claude app.** If you're running in the Claude app (the Artifact tool is available), offer to publish the map so they can open it there and ask questions on their own Claude account. Answers then come from the map only (names, descriptions, connections, endpoints), not the source, and the Ask bar shows a hint to install the CLI for a better experience. To publish:
-  1. `node ${CLAUDE_SKILL_DIR}/scripts/build.mjs <root> --artifact`. This writes `floorplan/artifact.html` without the machine's absolute path.
-  2. Publish that file with the Artifact tool, `capabilities: {"sample": {}}`, and keep the same file path for later publishes so the URL stays stable.
-  3. After each refresh, rebuild with `--artifact` and republish.
+  它用画这张地图的那个助手；没装就退到另一个。`--engine claude|codex` 强制用其中一个，`--claude <path>` 或 `--codex <path>` 指向不寻常的安装位置，`--model <name>` 选模型，`--editor <name or link>` 决定**在编辑器里打开**用哪个编辑器，盖过 architecture.json 里的 `editor`（open.mjs 会把这些都传下去）。用户也可以随时自己运行 `node floorplan/serve.mjs`，用 `node floorplan/serve.mjs --stop` 停掉后台那个。
+- **Claude 应用。** 如果你跑在 Claude 应用里（有 Artifact 工具），可以提议把地图发布出去，让他们在那里打开，并用自己的 Claude 账号提问。那时回答只来自地图（名字、说明、连线、接口），不来自源码，提问栏会提示装上命令行会更好。发布方法：
+  1. `node ${CLAUDE_SKILL_DIR}/scripts/build.mjs <root> --artifact`。这会写出 `floorplan/artifact.html`，里面没有这台机器的绝对路径。
+  2. 用 Artifact 工具发布这个文件，`capabilities: {"sample": {}}`，以后再次发布保持同一个文件路径，网址才稳定。
+  3. 每次更新之后，用 `--artifact` 重新构建并再次发布。
 
-  Publishing uploads the map (paths, names, descriptions, structure), not the source code, to their private claude.ai account. Say that before you do it.
-- **Neither:** `floorplan/index.html` still opens directly in a browser. The Ask bar explains what's needed.
+  发布上传的是地图（路径、名字、说明、结构），不是源代码，而且是传到他们私人的 claude.ai 账号。做之前先说清楚。
+- **两个都没有：** `floorplan/index.html` 仍然可以直接在浏览器里打开。提问栏会说明还缺什么。
 
-### Sharing a copy
+### 把一份副本发给别人
 
-When the user wants to send the map to someone (a teammate, a client, someone without Claude or Codex), export it. An export is the same single HTML file without the Ask bar, prompts for Claude or Codex, editor links, this machine's folder path or git remotes. The map's **Export** button does this from the browser; from here, run:
+用户想把地图发给别人（同事、客户、没有 Claude 或 Codex 的人）时，导出一份。导出的是同一个 HTML 文件，但没有提问栏、没有给 Claude 或 Codex 的提示、没有编辑器链接、没有这台机器的文件夹路径或 git 远程地址。地图上的**导出**按钮在浏览器里做这件事；你在这里运行：
 
 ```
 node floorplan/serve.mjs --export [<file>] [--include flows,notes,recent,health]
 ```
 
-It writes `floorplan/<project>-map.html` unless given a file. `--include` defaults to `flows,notes` (flows and the tour, notes pinned to files); `recent` adds recent work and `health` adds the health check, or the design review on a blueprint. Leave health out unless the user asks for it, and if they do, say that it lists the endpoints anyone can use and where secrets sit in the code (never their values), so they should only send it to people they trust. Any export shows how the app fits together (every part, file and endpoint, with names and descriptions), but not the source code.
+没给文件名时，它写成 `floorplan/<project>-map.html`。`--include` 默认是 `flows,notes`（流程和导览，以及钉在文件上的备注）；`recent` 加上最近改动，`health` 加上健康检查，规划蓝图上则是设计审查。用户没要就不要带上 health；如果他们要了，说明这份里列出了谁都能用的接口、以及密钥在代码的哪一行（绝不是密钥本身），所以只发给信得过的人。任何一份导出都能看出应用怎么拼在一起（每一块、每个文件、每条接口，带名字和说明），但没有源代码。
 
-### What else the map gives them (automatic)
+### 地图还会自动给他们什么
 
-- **Health.** A header button, with a count of important issues, opens a plain-language list of problems the scan found:
-  - passwords and API keys written into the code or a committed `.env`;
-  - secret keys in variables the browser gets (`NEXT_PUBLIC_`, `VITE_` and the like);
-  - Supabase tables without row-level security, and policies that let anyone change a table (from the SQL migrations);
-  - Firebase rules (Firestore, Storage, Realtime Database) that let anyone in, including test mode and its expiry;
-  - Stripe webhooks that act on events without checking Stripe's signature;
-  - CORS that allows every website (worth fixing when credentials go along);
-  - endpoints that let anyone change or read data without signing in (including a sign-in check placed above the route line);
-  - files nothing uses;
-  - files over ~1,000 lines, which AI struggles to edit safely.
+- **健康检查。** 顶栏一个按钮，带着重要问题的数量，打开一份人话列表，列出扫描发现的问题：
+  - 密码和 API 密钥写进了代码，或写进了已提交的 `.env`；
+  - 浏览器拿得到的变量里放了密钥（`NEXT_PUBLIC_`、`VITE_` 这类）；
+  - Supabase 的表没有行级保护，以及允许任何人改一张表的策略（从 SQL 迁移里看）；
+  - Firebase 规则（Firestore、Storage、Realtime Database）让任何人都能进，包括测试模式和它的到期时间；
+  - Stripe 的到账通知不核对 Stripe 的签名就当真事处理；
+  - 跨域设置允许任何网站来访问（带着登录凭证时更该修）；
+  - 不登录就能改数据或读数据的接口（包括登录检查写在了接口那一行的上面，所以没生效）；
+  - 没有谁在用的文件；
+  - 超过大约 1000 行的文件，AI 改起来容易改坏。
 
-  Each issue has **Show on map** (highlights the affected files and endpoints with notes) and **Fix with Claude** or **Fix with Codex** (a ready-to-paste prompt naming the exact files and lines and the safe fix). It's computed by `scripts/lib/health.mjs` during scan and build, and it never stores secret values, only the file, line and a masked hint. Treat it as a quick automatic check, not a security audit.
-- **Screens.** The build detects the app's screens (Next.js, React Router, Vue, SvelteKit, Remix, Nuxt, Astro, Expo, Angular, TanStack, Shopify theme templates) with `scripts/lib/screens.mjs`. It also works out what sits behind each one: its components, the requests it makes, the server code and data that answer them, and outside services. A **Screens** button lets people start from the page they know.
-- **Start here.** A one-minute tour runs on first open and can be replayed from the header. It uses your `tour`, or builds one automatically.
-- **Plain words by default.** Connection types read "Uses", "Web requests", "Background jobs". Common technical terms are underlined and explained on hover. **Filters → Show technical detail** switches to developer terms and shows exports.
+  每条都有**在地图上标出来**（把相关文件和接口高亮，并带上备注）和**让 Claude 来改**或**让 Codex 来改**（一段可以直接粘贴的提示，写明具体文件、行号和安全的改法）。这些由扫描和构建时的 `scripts/lib/health.mjs` 算出来，绝不保存密钥的值，只保存文件、行号和一个打了码的提示。把它当成一次自动的快速检查，不是安全审计。
+- **页面。** 构建会认出应用的页面（Next.js、React Router、Vue、SvelteKit、Remix、Nuxt、Astro、Expo、Angular、TanStack、Shopify 主题模板），用的是 `scripts/lib/screens.mjs`。它也会算出每个页面背后是什么：上面的部件、它发出的请求、应答的服务器代码和数据、外部服务。**页面**按钮让人从自己认识的那个页面出发。
+- **新手导览。** 第一次打开会走大约一分钟，顶栏可以再看一遍。用的是你写的 `tour`，没有就自动拼一条。
+- **默认说人话。** 连线类型读作「用到」「网页请求」「后台任务」。常见的技术词会加下划线，悬停有解释。**筛选 → 显示技术细节**切到开发者用语，并显示导出了什么。
 
-People can also use **Flows → Request a new flow** to have the agent trace something ("how does a refund get back to the customer's card?") into a step-by-step flow. With serve.mjs these are saved to `floorplan/custom-flows.json`, and every build folds them into the map (steps pointing at deleted code are dropped with a warning). Treat that file as user content: keep it on refresh, and don't edit it unless asked.
+用户也可以用**流程 → 请一条新流程**，让助手把一件事串起来（「退款是怎么回到顾客卡上的？」），变成一步一步的流程。有 serve.mjs 时，这些存进 `floorplan/custom-flows.json`，每次构建都会折进地图（指向已删除代码的步骤会丢掉，并给一个提醒）。把这个文件当作用户的内容：更新时留着，没人让你改就不要改。
 
-## Notes
+## 备注
 
-- Paths are relative to the codebase root and use forward slashes. In a multi-repo root they start with the repo folder, e.g. `api-service/src/**`.
-- Route keys in descriptions are `"METHOD /full/path"` exactly as the worksheet prints them.
-- The map makes no outside requests: the build inlines the layout engine (ELK) and fonts from `${CLAUDE_SKILL_DIR}/assets/vendor/`, so it works offline.
-- HTTP edges come from matching URL strings at call sites (including URLs kept in a variable first, nested template strings, and small same-file helpers that add a path prefix) to route definitions (Flask, FastAPI, Express, Fastify, Next.js, Spring, ASP.NET Core, Go and others), with blueprint/router/plugin prefixes resolved, nested mounts included. Firebase callables are matched by name (`CALL /<name>`, from `httpsCallable`) and `onRequest` functions by URL; Supabase Edge Functions are endpoints at `/functions/v1/<name>` reached by `supabase.functions.invoke('<name>')` (the summary's SUPABASE EDGE FUNCTIONS line counts them); the summary's FIREBASE FUNCTIONS section lists scheduled and trigger functions, which belong in a `worker` node. Laravel routes (`Route::get`, `resource`, groups, and route files loaded inside groups or by `withRouting`) are placed in the controller method that answers them, and Laravel Wayfinder calls and Inertia pages are linked by route name, controller method and the page each method renders; the summary's LARAVEL section counts them and names route files nothing loads (their addresses may be missing a prefix: mention it in your report). Serverless Framework endpoints come from the `http` and `httpApi` events in `serverless*.yml` (and the files they include with `${file(...)}`), placed in the handler's file, or in the function a handler only passes the request on to; the summary's SERVERLESS section counts them, names functions whose handler file wasn't found, and lists scheduled, queue, stream and other background functions, which belong in a `worker` node. Treat them as strong hints. If an important service-to-service link is missing, add it as an explicit edge.
-- Shopify themes (a folder with `layout/theme.liquid`): templates use sections, which render snippets and load assets, all linked by name. Apps added as app blocks or embeds appear in EXTERNAL PACKAGES as `shopify-app:<app>`, so give each app that matters an external node with that package. Requests made through Shopify's `routes` object (the cart and search APIs) aren't seen; add an explicit edge to a Shopify external node where they matter.
-- Don't hand-edit graph.json or index.html; they're regenerated on every build.
+- 路径相对于项目根目录，用正斜杠。多个仓库并排时，路径从仓库文件夹开头，例如 `api-service/src/**`。
+- descriptions 里的接口键是 `"METHOD /full/path"`，和工作表印出来的完全一致。
+- 地图不向外发请求：构建把排版引擎（ELK）和字体从 `${CLAUDE_SKILL_DIR}/assets/vendor/` 内嵌进去，所以断网也能用。
+- 网页请求的连线，是把调用处的 URL 字符串（包括先放进变量的地址、嵌套的模板字符串，以及同一文件里给路径加前缀的小辅助函数）对上接口定义（Flask、FastAPI、Express、Fastify、Next.js、Spring、ASP.NET Core、Go 等），并把 blueprint、router、plugin 的前缀和嵌套挂载解析出来。Firebase 的可调用函数按名字对上（`CALL /<name>`，来自 `httpsCallable`），`onRequest` 函数按 URL 对上；Supabase Edge Functions 是 `/functions/v1/<name>` 上的接口，由 `supabase.functions.invoke('<name>')` 到达（摘要里的 SUPABASE EDGE FUNCTIONS 那一行在数它们）；摘要的 FIREBASE FUNCTIONS 一节列出定时和触发函数，它们属于一个 `worker` 节点。Laravel 路由（`Route::get`、`resource`、分组，以及在分组里或由 `withRouting` 加载的路由文件）落在应答它们的控制器方法上；Laravel Wayfinder 调用和 Inertia 页面按路由名、控制器方法、以及该方法渲染的页面连起来；摘要的 LARAVEL 一节数它们，并点名没有被加载的路由文件（它们的地址可能缺前缀：在汇报里提一句）。Serverless Framework 的接口来自 `serverless*.yml` 里的 `http` 和 `httpApi` 事件（以及它们用 `${file(...)}` 包含的文件），落在处理函数的文件里，或落在处理函数只是把请求转交过去的那个函数上；摘要的 SERVERLESS 一节数它们，点名找不到处理文件的函数，并列出定时、队列、流和其他后台函数，它们属于一个 `worker` 节点。把这些当成很强的提示。如果一条重要的服务到服务的连线缺失了，就补一条明确的边。
+- Shopify 主题（有 `layout/theme.liquid` 的文件夹）：模板用 section，section 渲染 snippet 并加载资源，全按名字连。作为应用块或嵌入加进来的应用，在 EXTERNAL PACKAGES 里是 `shopify-app:<app>`，所以每个要紧的应用做一个外部节点，带上那个包名。通过 Shopify 的 `routes` 对象发出的请求（购物车和搜索）看不见；要紧的地方，给 Shopify 外部节点补一条明确的边。
+- 不要手改 graph.json 或 index.html；每次构建都会重新生成。

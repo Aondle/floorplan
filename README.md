@@ -2,14 +2,16 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/logo-dark.png">
-  <img src="docs/images/logo-light.png" alt="Floorplan logo" height="88">
+  <img src="docs/images/logo-light.png" alt="Floorplan 标志" height="88">
 </picture>
 
 # Floorplan
 
-**See how your app actually fits together.**
+本项目基于 [haydenschmitty/floorplan](https://github.com/haydenschmitty/floorplan) 进行中文本土化适配。原作者是 [Hayden Smith](https://github.com/haydenschmitty)。这不是一份新写的软件，安装请用下面的 `Aondle/floorplan`，装到的才是中文版。
 
-Claude or Codex reads your codebase and draws an interactive map of it. Every part, file and web request gets a plain-English name, and every connection between them is shown.
+**看看你的应用到底是怎么拼在一起的。**
+
+Claude 或 Codex 会读你的项目，画出一张能点开的地图。每一块、每个文件、每种网页请求都有一句人话名字，它们之间怎么连，也画在上面。
 
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757?style=flat-square)](https://code.claude.com/docs/en/overview)
 [![Codex plugin](https://img.shields.io/badge/Codex-plugin-111?style=flat-square)](docs/codex.md)
@@ -19,333 +21,357 @@ Claude or Codex reads your codebase and draws an interactive map of it. Every pa
 [![Node 18+](https://img.shields.io/badge/node-%E2%89%A518-111?style=flat-square)](https://nodejs.org)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-111?style=flat-square)](#how-it-works)
 
-<a href="https://trendshift.io/repositories/322616"><img src="https://trendshift.io/api/badge/trendshift/repositories/322616/daily?language=JavaScript" alt="Floorplan on Trendshift" width="250" height="55"></a>
+<a href="https://trendshift.io/repositories/322616"><img src="https://trendshift.io/api/badge/trendshift/repositories/322616/daily?language=JavaScript" alt="Floorplan 在 Trendshift 上" width="250" height="55"></a>
 
-**[Try the live demo](https://haydenschmitty.github.io/floorplan-demo/)** · [Watch the video](https://youtu.be/NTUUzC7L_NQ) · [Install](#install) · [Quick start](#quick-start) · [Compared](#floorplan-archify-or-understand-anything) · [Features](#features) · [See it in action](#see-it-in-action) · [How it works](#how-it-works) · [Docs](docs/README.md) · [FAQ](#faq)
+**[打开在线演示](https://haydenschmitty.github.io/floorplan-demo/)** · [看视频](https://youtu.be/NTUUzC7L_NQ) · [安装](#install) · [三分钟上手](#quick-start) · [和别的工具比](#floorplan-archify-or-understand-anything) · [能做什么](#features) · [实际长什么样](#see-it-in-action) · [它怎么干活](#how-it-works) · [文档](docs/README.md) · [常见问题](#faq)
 
 </div>
 
 <p align="center">
-  <a href="https://youtu.be/NTUUzC7L_NQ"><img src="docs/images/video.jpg" alt="Watch the walkthrough on YouTube: installing Floorplan, then a tour of the map of Brewline, a coffee subscription app" width="100%"></a>
+  <a href="https://youtu.be/NTUUzC7L_NQ"><img src="docs/images/video.jpg" alt="YouTube 上的演示：先安装 Floorplan，再逛一遍 Brewline 的地图。Brewline 是一个咖啡订阅应用" width="100%"></a>
 </p>
-<p align="center"><sub>▶ <a href="https://youtu.be/NTUUzC7L_NQ">Watch the walkthrough</a>: installing Floorplan, then a tour of Brewline, a demo coffee-subscription app built across four repos.</sub></p>
-<p align="center"><b><a href="https://haydenschmitty.github.io/floorplan-demo/">Try the live demo →</a></b> Explore the Brewline map in your browser, no install needed.</p>
+<p align="center"><sub>▶ <a href="https://youtu.be/NTUUzC7L_NQ">看演示</a>：先装上 Floorplan，再逛一遍 Brewline 的地图。Brewline 是一个演示用的咖啡订阅应用，代码分在四个仓库里。</sub></p>
+<p align="center"><b><a href="https://haydenschmitty.github.io/floorplan-demo/">打开在线演示 →</a></b> 在浏览器里逛 Brewline 的地图，不用安装。演示站和视频仍是上游原作者的。</p>
 
-## Why Floorplan?
+<a id="why"></a>
 
-You built an app, probably with a lot of help from AI, and it works. But ask "what happens when someone checks out?" or "what breaks if I change this?" and the honest answer is *no idea*.
+## 为什么要用 Floorplan？
 
-Floorplan gives you the diagram nobody drew. Ask Claude Code or Codex for a floorplan and a few minutes later you have a map you can explore, ask questions on, and keep up to date as you work.
+你做了一个应用，多半是 AI 帮了大忙，而且它能跑。可一问「有人结账时发生了什么」或者「我改这里会弄坏什么」，老实话是：*不知道*。
 
-- **For builders:** understand the app you made, in your own words, without reading the code.
-- **For teams:** onboard someone in minutes, from the big picture down to the exact file.
-- **For working with AI:** after every change Claude or Codex makes, see exactly which parts it touched and why.
+Floorplan 补上那张没人画过的图。跟 Claude Code 或 Codex 说一声要 floorplan，几分钟后你就有一张能逛、能问、跟着你改代码一起更新的地图。
 
-## Floorplan, Archify or Understand Anything?
+- **给自己做东西的人：** 用你听得懂的话看懂这个应用，不用去读代码。
+- **给团队：** 新人几分钟就能从大局看到具体是哪个文件。
+- **给跟 AI 一起干活的人：** Claude 或 Codex 每改一处，你能看见动了哪几块、为什么动。
 
-All three turn code into something you can see, and all three are worth knowing. They answer different questions:
+<a id="floorplan-archify-or-understand-anything"></a>
+
+## Floorplan、Archify，还是 Understand Anything？
+
+三个都能把代码变成看得见的东西，都值得知道。它们回答的问题不一样：
 
 | | **Floorplan** | **[Archify](https://github.com/tt-a1i/archify)** | **[Understand Anything](https://github.com/Egonex-AI/Understand-Anything)** |
 |---|---|---|---|
-| **The question it answers** | How does the app I built actually work, and what should I worry about? | How do I show this clearly? | How does this big codebase work, down to the functions? |
-| **Made for** | People who build with AI and don't read the code | Anyone explaining a system, a process or an idea | Developers getting to know a large codebase |
-| **What you get** | A zoomable map of your whole app: parts, files and endpoints, the screens, the requests between frontend and backend (even across repos), and outside services | A polished diagram in one of 10 types (architecture, sequence, ERD…) or a one-page explainer, from a repo or just a description | A knowledge graph of every file, function and class, with layers, a business-domain view and guided tours |
-| **Only here** | **Health check** (keys in code, open Supabase tables and Firebase rules, fakeable Stripe webhooks, endpoints anyone can use), **Recent work** (what your AI just changed, and why), blueprints from a PRD | 10 diagram types, image and video exports, diagrams of things that aren't code | Diff impact, a dashboard that adapts to your role, knowledge-base graphs |
-| **Runs in** | Claude Code, Codex | Claude Code, Codex, Cursor, OpenCode and more | Claude Code, Codex, Cursor, Copilot, Gemini CLI and more |
+| **它回答的问题** | 我做的这个应用实际上怎么运转，我该担心什么？ | 我怎么把这个讲清楚？ | 这一大摊代码怎么工作，细到每个函数？ |
+| **给谁用** | 用 AI 做东西、自己不读代码的人 | 谁要讲一个系统、一个流程或一个想法 | 要摸清一个大代码库的开发者 |
+| **你得到什么** | 整张应用可以缩放的地图：各块、文件和接口（服务器答应应答的一种网址）、页面、页面和服务器之间的请求（仓库分开也行），以及外面的服务 | 十种图里选一种，画得整齐（架构图、时序图、表关系图……），或从仓库、甚至从一段描述做出一页说明 | 每个文件、函数、类的知识图谱，带分层、业务域视图和导览 |
+| **只有它有** | **健康检查**（密钥写在代码里、谁都能读的 Supabase 表和 Firebase 规则、能伪造的 Stripe 到账通知、谁都能调用的接口）、**最近改动**（AI 刚改了什么、为什么）、从需求文档画出的规划蓝图 | 十种图、导出图片和视频、不是代码的东西也能画 | 改动影响、按你的角色变的看板、知识库图谱 |
+| **跑在哪** | Claude Code、Codex | Claude Code、Codex、Cursor、OpenCode 等 | Claude Code、Codex、Cursor、Copilot、Gemini CLI 等 |
 
-**Pick Floorplan** to understand and check an app you own. **Pick Archify** to draw a diagram for a doc, a talk or a decision. **Pick Understand Anything** to study a large codebase function by function.
+**选 Floorplan**，是为了看懂并检查一个你自己拥有的应用。**选 Archify**，是为了给文档、分享或拍板画一张图。**选 Understand Anything**，是为了一个函数一个函数地研究大代码库。
 
-They also work together: map your app with Floorplan, then use Archify to draw one flow for a presentation.
+也可以一起用：先用 Floorplan 把应用画出来，再用 Archify 抽出一条流程去做演示。
 
-## Features
+<a id="features"></a>
+
+## 能做什么
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-**🗺️ A map at every zoom**<br>
-Start with the whole app, then double-click into a part, a group of files, a file, and its endpoints. Each view shows what it's used by and what it uses.
+**🗺️ 每一层都能看**<br>
+先看整个应用，再双击进一块、一组文件、一个文件，以及它的接口。每一层都标着谁在用它、它在用谁。
 
 </td>
 <td width="50%" valign="top">
 
-**💬 Plain English everywhere**<br>
-"Takes card payments at checkout", not "Stripe API wrapper". Technical terms are explained on hover, and one switch shows the developer view.
+**💬 到处都是人话**<br>
+写「结账时刷卡收款」，不写「Stripe API 包装」。术语鼠标停上去会解释。有一个开关可以换成开发者看法。
 
 </td>
 </tr>
 <tr>
 <td valign="top">
 
-**🔌 Real connections, across repos**<br>
-It follows imports, and matches each web request in your frontend to the server endpoint that answers it, even across separate repos.
+**🔌 真的连上了，仓库分开也行**<br>
+它顺着代码里的引用走，并把页面前端发出的每个网页请求对上应答它的服务器接口，仓库不在一起也能对上。
 
 </td>
 <td valign="top">
 
-**🖥️ Start from a screen**<br>
-Pick a page you know and see everything behind it: its parts, the requests it makes, the server code, the data, and outside services.
-
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-**🧭 Ask the map**<br>
-"How does a refund reach the customer's card?" comes back as an answer plus a mini-map of just the pieces involved, with a step-by-step walkthrough.
-
-</td>
-<td valign="top">
-
-**🩺 Health check**<br>
-Catches the classic mistakes in AI-built apps: keys in the code or sent to the browser, Supabase tables anyone can read, open Firebase rules, Stripe webhooks anyone could fake, and endpoints with no sign-in. Each comes with a ready-to-paste fix. A check, not an audit.
+**🖥️ 从一个你认识的页面看起**<br>
+选一个你知道的页面，看它背后的一切：里面有什么、它发出哪些请求、服务器上的代码、数据，以及外面的服务。
 
 </td>
 </tr>
 <tr>
 <td valign="top">
 
-**🟢 Recent work**<br>
-The cards your AI just changed light up green, each with a note on how the change serves what you asked for.
+**🧭 向地图提问**<br>
+「退款怎么回到顾客的卡上？」会得到一段回答，加上只含相关几块的小地图，还有一步一步的讲解。
 
 </td>
 <td valign="top">
 
-**⚡ Stays current, stays yours**<br>
-Updates re-read only what changed, and an open map reloads itself. Everything runs on your machine, and nothing is committed to git.
+**🩺 健康检查**<br>
+抓住 AI 做出来的应用里那些老毛病：密钥写在代码里或发给了浏览器、谁都能读的 Supabase 表、敞开的 Firebase 规则、谁都能伪造的 Stripe 到账通知、没人登录也能用的接口。每条都附一段可以直接贴走的改法。这是一次检查，不是安全审计。
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**🟢 最近改动**<br>
+AI 刚改过的卡片会亮成绿色，每张都写着这次改动是怎么对着你的要求来的。
+
+</td>
+<td valign="top">
+
+**⚡ 跟着变，而且还是你的**<br>
+更新时只重读有变化的部分，已经打开的地图会自己刷新。全部在你自己的电脑上跑，不会提交进 git。
 
 </td>
 </tr>
 </table>
 
-Plus guided **flows** you can request in plain words, a one-minute **Start here** tour, **Export** to send a copy to anyone as one HTML file, a layout for **phones and tablets** with drag and pinch, search, keyboard shortcuts, and right-click actions on every card.
+另外还有：用大白话就能请它串起来的**流程**、一分钟的**新手导览**、把地图收成一个 HTML 文件就能发给别人的**导出**、手机和平板上能拖、能捏合缩放的布局、搜索、键盘快捷键，以及每张卡片上的右键菜单。
 
-### Also: blueprints, for apps you haven't built yet
+<a id="also-blueprints-for-apps-you-havent-built-yet"></a>
 
-Floorplan is made for mapping code you already have. It can also start from a PRD, a spec or a description of something you want to build, and draw a **blueprint**: the same kind of map, showing every part, file, endpoint and screen you'd need and how they'd fit together. Cards are dashed to show it's a plan. Instead of a Health check you get a review of what the plan still leaves open, each part has a ready request to build it, and you can reshape the plan from the map ("also plan out refunds"). Once the code exists, the blueprint becomes a map of the real thing. See [Plan something you haven't built yet](docs/getting-started.md#plan-something-you-havent-built-yet).
+### 还有：代码还没写，也可以先画规划蓝图
 
-## See it in action
+Floorplan 主要是给已经有的代码画地图。它也可以从一份 PRD（产品需求文档，写清楚要做什么）、规格或一段描述出发，画出一张**规划蓝图**：同样的地图，标出将来需要的每一块、每个文件、每个接口和每个页面，以及它们怎么拼。卡片是虚线，表示这还是计划。健康检查换成对计划还没定下来的事的审查，每一块都有一段现成的「请帮我做这块」的请求，你也可以在地图上改计划（「把退款也规划进去」）。代码写出来之后，蓝图就变成真实代码的地图。见[还没写代码，先画一张规划](docs/getting-started.md#plan-something-you-havent-built-yet)。
 
-Want to click around yourself? Open the [live demo](https://haydenschmitty.github.io/floorplan-demo/): the real Brewline map beside a scripted conversation, in Claude Code or Codex.
+<a id="see-it-in-action"></a>
+
+## 实际长什么样
+
+想自己点一点？打开[在线演示](https://haydenschmitty.github.io/floorplan-demo/)：一边是真实的 Brewline 地图，一边是写好的对话，Claude Code 和 Codex 里都能看。演示站是上游原作者放的。
 
 <table>
 <tr>
 <td width="50%" valign="top">
-<img src="docs/images/ask.png" alt="An answer board: the gift subscription traced from the gift page to the friend's inbox, with numbered cards and a written walkthrough">
-<p><b>Ask the map.</b> A real answer, from the Claude Code CLI in 31 seconds. It traced the gift from form to inbox across two repos, and spotted two bugs along the way.</p>
+<img src="docs/images/ask.png" alt="一张回答板：礼品订阅从礼品页一直追到朋友的收件箱，卡片上有编号，旁边有文字讲解">
+<p><b>向地图提问。</b> 这是 Claude Code 命令行里 31 秒给出的真实回答。它跨两个仓库，把礼物从表单追到收件箱，路上还发现了两个毛病。</p>
 </td>
 <td width="50%" valign="top">
-<img src="docs/images/screens.png" alt="Everything behind the Gift page: its form, the requests it makes, the server code, the database, Stripe and SendGrid">
-<p><b>Start from a screen.</b> Pick any page and see everything behind it, from the button down to the database and outside services.</p>
+<img src="docs/images/screens.png" alt="礼品页背后的一切：表单、它发出的请求、服务器代码、数据库、Stripe 和 SendGrid">
+<p><b>从一个页面看起。</b> 任选一页，从按钮一直看到数据库和外面的服务。</p>
 </td>
 </tr>
 <tr>
 <td valign="top">
-<img src="docs/images/recent.png" alt="The Recent work board for a gift subscriptions feature: what was asked, what was done, and a note on every changed card">
-<p><b>Recent work.</b> What you asked for, what changed, and why each change was needed, on one board.</p>
+<img src="docs/images/recent.png" alt="礼品订阅功能的最近改动板：你要求了什么、做了什么、每张改过的卡片上有一句说明">
+<p><b>最近改动。</b> 你要求了什么、改了什么、为什么要改，都在一块板上。</p>
 </td>
 <td valign="top">
-<img src="docs/images/health.png" alt="The Health panel listing a secret key written into the code and an endpoint anyone can use, each with Show on map and a Fix button">
-<p><b>Health check.</b> A password left in the code and an endpoint anyone can call, each with a one-click fix prompt.</p>
+<img src="docs/images/health.png" alt="健康检查面板：一条是写进代码的密钥，一条是谁都能用的接口，每条都有「在地图上标出来」和修复按钮">
+<p><b>健康检查。</b> 留在代码里的密码，和谁都能调用的接口，每条都能一键复制改法。</p>
 </td>
 </tr>
 <tr>
 <td valign="top">
-<img src="docs/images/inside.png" alt="Inside the Business rules part of the server: its files in the middle, what uses them on the left, and outside services on the right">
-<p><b>Zoom in.</b> Inside any part: what's in it, what uses it, and what it relies on. Green tags mark what just changed.</p>
+<img src="docs/images/inside.png" alt="服务器里「业务规则」这一块的内部：中间是它的文件，左边是谁在用它们，右边是外面的服务">
+<p><b>放大看。</b> 任一块里面有什么、谁在用它、它靠什么。绿色标签标出刚改过的。</p>
 </td>
 <td valign="top">
-<img src="docs/images/flow.png" alt="A guided flow, step 4 of 6, showing the main server emailing the gift code through SendGrid">
-<p><b>Guided flows.</b> Watch a request travel through the app step by step, or ask for a new one to be traced.</p>
+<img src="docs/images/flow.png" alt="一条引导流程，6 步里的第 4 步：主服务器通过 SendGrid 把礼品码发出去">
+<p><b>引导流程。</b> 看一个请求在应用里一步一步怎么走，或者请它再追一条新的。</p>
 </td>
 </tr>
 </table>
 
-## Install
+<a id="install"></a>
 
-You need [Node.js 18+](https://nodejs.org) and either Claude Code or Codex. Floorplan runs on the plan you already have, with no API keys.
+## 安装
+
+你需要 [Node.js 18 或更新](https://nodejs.org)（跑 Floorplan 自带脚本的运行环境），以及 Claude Code 或 Codex 里的一个。Floorplan 用你已经有的套餐，不用另外配 API 密钥。
+
+给人复制的命令指向这份中文版：`Aondle/floorplan`。插件名仍是 `floorplan`。上游仓库 [haydenschmitty/floorplan](https://github.com/haydenschmitty/floorplan) 是出处，从那里安装会得到英文原版。
 
 ### Claude Code
 
-In the desktop app's Code tab or the CLI:
+Claude Code 是 Anthropic 的编程助手，能在你电脑上读项目。在桌面应用的 Code 标签页，或在命令行里：
 
 ```bash
-claude plugin marketplace add haydenschmitty/floorplan
+claude plugin marketplace add Aondle/floorplan
 claude plugin install floorplan@floorplan
 ```
 
-Start a new session and it's ready. Installing the Claude Code CLI is recommended even if you use the desktop app, because it lets the map's Ask bar read your real code. More in [Getting started](docs/getting-started.md).
+第一行把这份仓库登记成插件来源（marketplace，就是「去哪个仓库找插件」）。第二行安装，插件名是 `floorplan`。
+
+**新开一轮对话**之后就能用。就算你主要用桌面应用，也建议装上 Claude Code 命令行：有了它，地图的提问栏才能去读你的真实代码。详见[上手](docs/getting-started.md)。
 
 ### Codex
 
-Signed in with ChatGPT. No terminal needed:
+Codex 是 OpenAI 的编程助手，用 ChatGPT 账号登录。不用打开终端：
 
-1. In the Codex app, open **Plugins** and choose **Add a marketplace**.
-2. For **Source**, enter `haydenschmitty/floorplan` and click **Add marketplace**.
-3. Find **Floorplan** and click **+** to install it.
+1. 在 Codex 应用里打开 **Plugins**，选 **Add a marketplace**。
+2. **Source** 填 `Aondle/floorplan`，点 **Add marketplace**。
+3. 找到 **Floorplan**，点 **+** 安装。
 
-Or, from a terminal:
+或者在终端里：
 
 ```bash
-codex plugin marketplace add haydenschmitty/floorplan
+codex plugin marketplace add Aondle/floorplan
 codex plugin add floorplan@floorplan
 ```
 
-Start a new chat and ask for a floorplan, or type `$floorplan`. The map's Ask bar runs on your own Codex sign-in, with no API key. More in [Floorplan in Codex](docs/codex.md).
+新开一个聊天，说要一张 floorplan，或输入 `$floorplan`。地图的提问栏用的是你自己的 Codex 登录，不用 API 密钥。详见[在 Codex 里用 Floorplan](docs/codex.md)。
 
-## Quick start
+<a id="quick-start"></a>
 
-1. Open your project in Claude Code or Codex. For a frontend and backend in separate repos, open the folder that holds both.
-2. Ask:
-   > Make me a floorplan of this app.
+## 三分钟上手
 
-   (In Codex you can also type `$floorplan`.)
-3. Explore. The map opens on its own, starting with a short tour.
+1. 用 Claude Code 或 Codex 打开你的项目。页面和服务器分在不同仓库时，打开那个把它们都放在里面的文件夹。
+2. 说：
+   > 给这个应用画一张 floorplan。
 
-When you've done more work, ask:
+   （在 Codex 里也可以输入 `$floorplan`。）
+3. 逛一逛。地图会自己打开，并先带你做一段短导览。
 
-> Update the floorplan.
+之后又改过代码，就说：
 
-Only what changed is re-read, and what you just worked on lights up under **Recent work**.
+> 更新 floorplan。
 
-**No code yet?** Floorplan can plan an app from a PRD or spec instead. Share the document and ask:
+只有变过的部分会重读。你刚动过的，会在 **最近改动** 里亮起来。
 
-> Here's my PRD. Make me a floorplan of what we'd need to build.
+**还没有代码？** Floorplan 也可以按 PRD 或规格来规划一个应用。把文档给它，然后说：
 
-You get a [blueprint](#also-blueprints-for-apps-you-havent-built-yet) of the planned system, clearly marked as a plan.
+> 这是我的 PRD。画一张 floorplan，看看我们要做些什么。
 
-### Things to try
+你会得到一张[规划蓝图](#also-blueprints-for-apps-you-havent-built-yet)，清清楚楚标成「还是计划」。
 
-| Ask Claude Code or Codex | Ask the map |
+### 可以试试这些
+
+| 对 Claude Code 或 Codex 说 | 对地图说 |
 |---|---|
-| "Make me a floorplan of this app" | "What happens when someone places an order?" |
-| "Update the floorplan" | "Where do we talk to Stripe?" |
-| "Fix the important issues from the floorplan's Health check" | "If I change the users table, what breaks?" |
-| "Add a flow showing how a new user signs up" | "Which files handle login?" |
-| "Rewrite the floorplan for developers" | "What did we change for refunds?" |
-| "Export the floorplan so I can send it to the team" | |
+| 「给这个应用画一张 floorplan」 | 「有人下单之后发生了什么？」 |
+| 「更新 floorplan」 | 「我们在哪里跟 Stripe 说话？」 |
+| 「把 floorplan 健康检查里要紧的问题改掉」 | 「我要是改用户表，哪里会坏？」 |
+| 「加一条流程，看看新用户怎么注册」 | 「哪些文件在管登录？」 |
+| 「把 floorplan 改成给开发者看的」 | 「为了退款我们改了什么？」 |
+| 「导出 floorplan，我好发给团队」 | |
 
-## How it works
+<a id="how-it-works"></a>
+
+## 它怎么干活
 
 ```mermaid
 flowchart LR
-    code["Your codebase<br/>one repo or several"] --> scan["Scan<br/>files, imports, routes, requests"]
-    scan --> agent["Claude or Codex<br/>names the parts, describes every file"]
-    agent --> build["Build<br/>map, health, screens, recent work"]
-    build --> map["floorplan/index.html<br/>opens in your browser"]
-    map -. "update the floorplan" .-> scan
+    code["你的代码<br/>一个仓库或好几个"] --> scan["扫描<br/>文件、引用、接口、请求"]
+    scan --> agent["Claude 或 Codex<br/>给各块起名，给每个文件写说明"]
+    agent --> build["构建<br/>地图、健康检查、页面、最近改动"]
+    build --> map["floorplan/index.html<br/>在浏览器里打开"]
+    map -. "更新 floorplan" .-> scan
 ```
 
-Scripts do the mechanical work: finding repos, parsing code in a dozen languages, matching web requests to endpoints, laying out the map. They're plain Node with no dependencies. Claude or Codex does the part only a reader can: deciding what the parts of your app *are*, and saying so plainly. Details in [How it works](docs/how-it-works.md).
+脚本干机械的活：找仓库、解析十几种语言的代码、把网页请求对上接口、把地图摆开。它们是不带第三方依赖的普通 Node 脚本。Claude 或 Codex 干只有读过代码的人才能干的那部分：判断你的应用*有哪些块*，并用大白话说出来。细节见[它怎么干活](docs/how-it-works.md)。
 
-**Languages:** TypeScript, JavaScript, Python, Go, Rust, Java, Kotlin, Scala, Swift, C#, PHP, plus Vue, Svelte and Astro files and Shopify themes (Liquid), with lighter support for others.<br>
-**Endpoints:** Express, Fastify, Koa, Hono, NestJS, Next.js, Firebase Cloud Functions, Supabase Edge Functions, Flask, FastAPI, Django, Go's net/http, Gin, Echo and chi, Actix, Axum, Spring, ASP.NET Core, Laravel (with Wayfinder calls), Serverless Framework (`serverless.yml`), `Bun.serve` routes, and route tables keyed by method and path (`"GET /api/orders": listOrders`) in JavaScript and Python, or listed as `{ method, path, handle }` in JavaScript.<br>
-**Screens:** Next.js, React Router, Vue, SvelteKit, Remix, Nuxt, Astro, Expo, Angular, TanStack, Shopify themes, Inertia.
+**语言：** TypeScript、JavaScript、Python、Go、Rust、Java、Kotlin、Scala、Swift、C#、PHP，外加 Vue、Svelte、Astro 文件和 Shopify 主题（Liquid）。其他语言也能扫，只是没这么细。<br>
+**接口：** Express、Fastify、Koa、Hono、NestJS、Next.js、Firebase Cloud Functions、Supabase Edge Functions、Flask、FastAPI、Django、Go 的 net/http、Gin、Echo、chi、Actix、Axum、Spring、ASP.NET Core、Laravel（含 Wayfinder 调用）、Serverless Framework（`serverless.yml`）、`Bun.serve` 的路由，以及按方法和路径当键的路由表（JavaScript 和 Python 里的 `"GET /api/orders": listOrders`，或 JavaScript 里写成 `{ method, path, handle }` 的列表）。<br>
+**页面：** Next.js、React Router、Vue、SvelteKit、Remix、Nuxt、Astro、Expo、Angular、TanStack、Shopify 主题、Inertia。
 
-## What it adds to your project
+## 它会往你的项目里放什么
 
-A `floorplan/` folder holding the map. In Claude Code, if you say yes, it also adds a short section to `CLAUDE.local.md` so future sessions know the map is there. **Neither is committed:** the folder ignores itself in git, and `CLAUDE.local.md` goes in your clone's private ignore list. In Codex, only the `floorplan/` folder is added. Your `.gitignore` and other tracked files are never touched. See [What's in your project](docs/project-files.md).
+一个 `floorplan/` 文件夹，里面是地图。在 Claude Code 里，如果你点头，它还会往 `CLAUDE.local.md` 加一小段，让以后的对话知道地图在哪。**这两样都不会提交：** 这个文件夹自己让 git 忽略它，`CLAUDE.local.md` 写进你这份克隆的私人忽略名单。在 Codex 里只加 `floorplan/` 文件夹。你的 `.gitignore` 和其他已经被 git 跟踪的文件，一概不动。见[项目里有什么](docs/project-files.md)。
 
-## Privacy
+## 隐私
 
-- The scan, the map and its small local server all run on your computer. The server only accepts connections from your own machine.
-- No dependencies or install scripts, and the map works offline: its layout engine and fonts are built in.
-- Questions on the map go to your own account, through the Claude Code CLI or Codex, which can read your code but not change it.
-- The Health check never stores or shows secret values, only where they are.
-- No analytics or tracking. The map may ask once whether you'd like an email when Floorplan Cloud launches. Nothing is sent unless you sign up, and then only your email and "just me" or "with my team".
+- 扫描、地图和那个小小的本地服务器都在你的电脑上跑。服务器只接受从你这台机器来的连接。
+- 没有第三方依赖，也没有安装脚本。地图离线也能用：排版引擎和字体都做在文件里。
+- 在地图上提问，走的是你自己的账号，经过 Claude Code 命令行或 Codex。它们能读你的代码，不能改。
+- 健康检查不保存、也不显示密钥的值，只说它在哪。
+- 没有统计，也没有追踪。地图可能会问一次：Floorplan Cloud 上线时要不要发邮件给你。你不报名，什么都不会发出去；报名也只发你的邮箱，以及「就我自己」还是「和团队一起」。
 
-More in [Privacy and security](docs/privacy-and-security.md). Wondering whether a plugin is safe to install? [Is it safe to install?](docs/is-it-safe.md) lists everything Floorplan does on your computer, how a test checks that on every change, and how to verify your copy.
+更多见[隐私与安全](docs/privacy-and-security.md)。装一个插件放不放心？[装上安全吗？](docs/is-it-safe.md) 列出 Floorplan 在你电脑上会做的每一件事、每次改动怎么用测试盯着，以及怎么核对你装到的那一份。
 
-## Documentation
+## 文档
 
 | | |
 |---|---|
-| [Getting started](docs/getting-started.md) | Install, first map, updating, planning from a PRD, removing |
-| [Floorplan in Codex](docs/codex.md) | Installing and using it in Codex |
-| [Using the map](docs/using-the-map.md) | Every button, view, shortcut and menu |
-| [How it works](docs/how-it-works.md) | The pipeline, connection matching, refreshes |
-| [What's in your project](docs/project-files.md) | Every file Floorplan creates, and how to edit it |
-| [Privacy and security](docs/privacy-and-security.md) | What runs where, and what leaves your machine |
-| [Is it safe to install?](docs/is-it-safe.md) | No hooks, MCP servers, dependencies or downloads; every program it runs; checking your installed copy |
-| [Troubleshooting](docs/troubleshooting.md) | Common problems and fixes |
-| [Running without an agent session](docs/unattended.md) | In CI, in scripts or from your own tooling, with any model |
-| [Developing Floorplan](docs/development.md) | Repo layout, local installs, releases |
+| [上手](docs/getting-started.md) | 安装、第一张地图、更新、按 PRD 做规划、卸掉 |
+| [在 Codex 里用](docs/codex.md) | 在 Codex 里安装和使用 |
+| [用地图](docs/using-the-map.md) | 每个按钮、每种看法、快捷键和菜单 |
+| [它怎么干活](docs/how-it-works.md) | 流水线、请求怎么对上接口、更新怎么省事 |
+| [项目里有什么](docs/project-files.md) | Floorplan 创建的每个文件，以及怎么改 |
+| [隐私与安全](docs/privacy-and-security.md) | 什么在哪跑，什么会离开你的电脑 |
+| [装上安全吗？](docs/is-it-safe.md) | 没有挂钩、没有 MCP 服务器、没有依赖、也不会下载；它会启动哪些程序；怎么核对你装到的那一份 |
+| [遇到问题](docs/troubleshooting.md) | 常见问题和改法 |
+| [不在对话里跑](docs/unattended.md) | 在自动检查、脚本或你自己的工具里跑，换任何模型都行 |
+| [开发 Floorplan](docs/development.md) | 仓库怎么排、本地安装、怎么发布 |
 
-## FAQ
+<a id="faq"></a>
+
+## 常见问题
 
 <details>
-<summary><b>Is it safe to install?</b></summary>
+<summary><b>装上安全吗？</b></summary>
 
-Floorplan has no hooks, no MCP servers and no dependencies, downloads nothing, and never runs code from the internet. Its only outside request is the opt-in waitlist. A test checks all of that on every change, and every release lists a fingerprint of each file so you can confirm your installed copy is the real thing. Everything is in [Is it safe to install?](docs/is-it-safe.md).
+Floorplan 没有挂钩（hooks，会话里一有事件就自动跑的脚本），没有 MCP 服务器（给 AI 接外部工具的一种插件），没有第三方依赖，什么都不下载，也从不运行网上来的代码。它唯一对外的请求是你自愿加入的候补名单。每次改动都有测试盯着这些，每次发布还列出每个文件的指纹，你可以核对装到的是不是这一份。全写在[装上安全吗？](docs/is-it-safe.md)。
 </details>
 
 <details>
-<summary><b>Does my code leave my computer?</b></summary>
+<summary><b>我的代码会离开这台电脑吗？</b></summary>
 
-Only the way Claude Code and Codex always work: the AI reads the files it needs to describe your app, through your own account. The map itself is a local file and its server only listens on your machine. If you choose to open the map in the Claude app instead, Claude uploads the map (names, descriptions and structure, not your source code) to your private claude.ai account, and asks first. The one thing Floorplan itself ever sends is your email, and only if you sign up for the [Floorplan Cloud waitlist](docs/privacy-and-security.md#floorplan-cloud-waitlist).
+只会按 Claude Code 和 Codex 本来的方式：AI 通过你自己的账号，读它为了描述你的应用而需要的文件。地图本身是本地文件，它的服务器只听你这台机器。如果你改成在 Claude 应用里打开地图，Claude 会先问你，再把地图（名字、说明和结构，不是你的源代码）上传到你私人的 claude.ai 账号。Floorplan 自己会发出去的，只有你的邮箱，而且只有你报名[Floorplan Cloud 候补名单](docs/privacy-and-security.md#floorplan-cloud-waitlist)时才会发。
 </details>
 
 <details>
-<summary><b>How long does it take, and what does it cost?</b></summary>
+<summary><b>要多久，要花多少？</b></summary>
 
-A first map takes a few minutes for a small app and longer for a big one, because every file and endpoint gets described. It uses your Claude or ChatGPT plan like any other task. Big projects are split across parallel helpers. Updates re-read only what changed, so they're quick and cheap.
+第一张地图，小应用几分钟，大的更久，因为每个文件和每个接口都要写说明。它像别的任务一样，用你的 Claude 或 ChatGPT 套餐。大项目会拆给几个帮手并行做。更新只重读有变化的部分，所以又快又省。
 </details>
 
 <details>
-<summary><b>Do I need a CLI for the Ask bar?</b></summary>
+<summary><b>提问栏一定要装命令行吗？</b></summary>
 
-No. The map works without one. The Ask bar answers through the Claude Code CLI or Codex, which can read your real code. Codex's desktop app already includes what it needs. With Claude, without the CLI you can ask from the Claude app instead, using the map alone.
+不用。没有命令行，地图照样能看。提问栏是通过 Claude Code 命令行或 Codex 来回答的，这样才能读你的真实代码。Codex 的桌面应用已经带了它需要的东西。用 Claude 时，如果没装命令行，可以改到 Claude 应用里问，那时只根据地图回答。
 </details>
 
 <details>
-<summary><b>Will it change or commit my files?</b></summary>
+<summary><b>它会改我的文件，或帮我提交吗？</b></summary>
 
-It only writes its own `floorplan/` folder (and, in Claude Code if you say yes, a section in `CLAUDE.local.md`), and neither is committed. It never changes your code, your `.gitignore` or your `CLAUDE.md`.
+它只写自己的 `floorplan/` 文件夹（在 Claude Code 里，如果你点头，还会改 `CLAUDE.local.md` 里的一段）。这两样都不会提交。它从不改你的代码、你的 `.gitignore` 或你的 `CLAUDE.md`。
 </details>
 
 <details>
-<summary><b>The names it picked aren't how we talk about it. Can I change them?</b></summary>
+<summary><b>它起的名字不是我们平时的叫法。能改吗？</b></summary>
 
-Yes. Just ask ("rename 'Main server' to 'Shop API' on the floorplan"), or edit `floorplan/architecture.json` and `floorplan/descriptions/` yourself. Your edits are kept on every update.
+能。直接说（「把 floorplan 上的『主服务器』改成『商店接口』」），或自己改 `floorplan/architecture.json` 和 `floorplan/descriptions/`。你改过的，每次更新都会留着。
 </details>
 
 <details>
-<summary><b>Does it work with Codex as well as Claude Code?</b></summary>
+<summary><b>Codex 和 Claude Code 都能用吗？</b></summary>
 
-Yes. It's the same plugin, the same map and the same Health check. Each app runs it on your own plan: Claude Code on your Claude account, Codex on your ChatGPT sign-in. A map made in one opens fine with the other. See [Floorplan in Codex](docs/codex.md).
+能。同一个插件、同一张地图、同一套健康检查。各自用你自己的套餐：Claude Code 用 Claude 账号，Codex 用 ChatGPT 登录。在一边做的地图，另一边打开也行。见[在 Codex 里用 Floorplan](docs/codex.md)。
 </details>
 
 <details>
-<summary><b>Can I use it before I've written any code?</b></summary>
+<summary><b>代码还没写，能用吗？</b></summary>
 
-Yes, though mapping existing code is what it's mainly for. Share a PRD, a spec or a description of your app and ask for a floorplan, and you get a blueprint: a map of what you'd need to build, marked as a plan, with a review of the decisions still open. You can change it from the map, then switch to a map of the real code once it's built. See [Plan something you haven't built yet](docs/getting-started.md#plan-something-you-havent-built-yet).
+能，不过它主要还是给已有的代码画地图。把 PRD、规格或一段对应用的描述给它，说要一张 floorplan，你就得到一张规划蓝图：要做些什么的地图，标成计划，并审查还有哪些决定没定。你可以在地图上改它，代码做出来后再换成真实代码的地图。见[还没写代码，先画一张规划](docs/getting-started.md#plan-something-you-havent-built-yet)。
 </details>
 
 <details>
-<summary><b>Does it work on monorepos and multi-repo setups?</b></summary>
+<summary><b>一个仓库里有很多项目，或多个仓库并排放，行吗？</b></summary>
 
-Yes. Point it at a monorepo, a subfolder of one, or a plain folder that holds several repos side by side. It finds every repo and connects them.
+行。可以指一个大仓库（monorepo，一个仓库里放好几个子项目）、它的一个子文件夹，或一个普通文件夹里并排放着好几个仓库。它会把每个仓库都找出来，再把它们连上。
 </details>
 
 <details>
-<summary><b>How is this different from Archify or Understand Anything?</b></summary>
+<summary><b>这和 Archify 或 Understand Anything 有什么不同？</b></summary>
 
-Archify draws diagrams of anything, and Understand Anything builds a developer's knowledge graph of a codebase. Floorplan maps the app you built, in plain English, and tells you what's risky and what your AI just changed. See [Floorplan, Archify or Understand Anything?](#floorplan-archify-or-understand-anything)
+Archify 什么都能画成图。Understand Anything 给开发者做代码库的知识图谱。Floorplan 用大白话画出你做的应用，并告诉你哪里有风险、AI 刚改了什么。见[Floorplan、Archify，还是 Understand Anything？](#floorplan-archify-or-understand-anything)
 </details>
 
-## Star history
+## 星标走势
+
+上游仓库的星标，留在这里说明出处：
 
 <a href="https://star-history.com/#haydenschmitty/floorplan&Date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=haydenschmitty/floorplan&type=Date&theme=dark">
-    <img src="https://api.star-history.com/svg?repos=haydenschmitty/floorplan&type=Date" alt="Floorplan's GitHub stars over time" width="100%">
+    <img src="https://api.star-history.com/svg?repos=haydenschmitty/floorplan&type=Date" alt="上游 Floorplan 在 GitHub 上的星标随时间变化" width="100%">
   </picture>
 </a>
 
-## Contributing
+## 参与
 
-Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [Developing Floorplan](docs/development.md).
+欢迎提问题和拉取请求。见 [CONTRIBUTING.md](CONTRIBUTING.md) 和[开发 Floorplan](docs/development.md)。
 
-## License
+## 许可证
 
 [MIT](LICENSE) © 2026 [Hayden Smith](https://github.com/haydenschmitty)

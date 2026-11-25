@@ -215,7 +215,7 @@ test('Health: a Laravel endpoint is protected by its middleware, its groups, its
   const feedback = graph.health.issues.find((i) => i.id === 'open-endpoints:app/Http/Controllers/FeedbackController.php');
   assert.equal(feedback.severity, 'high', 'a form request that allows everyone is no check');
   assert.match(feedback.fix, /POST \/feedback — app\/Http\/Controllers\/FeedbackController\.php:10 \(store\), route registered in routes\/web\.php:\d+/);
-  assert.match(feedback.fix, /the '(auth|staff|can)' middleware|the same check/);
+  assert.match(feedback.fix, /'(auth|staff|can)' 这道检查|同一道检查/);
 });
 
 test("the scan's --json counts Wayfinder calls and Inertia pages, and What was checked counts every Laravel endpoint", () => {
@@ -224,5 +224,5 @@ test("the scan's --json counts Wayfinder calls and Inertia pages, and What was c
   assert.equal(counts.inertiaPages, 5);
   assert.deepEqual(counts.notMapped, { config: 2 }, 'PHP files are code, on the map');
   const endpoints = graph.health.checked.find((c) => c.check === 'endpoints');
-  assert.equal(endpoints.text, `checked ${graph.routes.length} endpoints`);
+  assert.equal(endpoints.text, `查了 ${graph.routes.length} 个接口`);
 });

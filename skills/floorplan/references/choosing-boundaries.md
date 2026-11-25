@@ -1,42 +1,44 @@
-# Choosing boundaries
+# 怎么切边界
 
-The board is useful when each chip is something a person would name in a whiteboard conversation. It's useless when it just mirrors the folder tree. Use these heuristics to get there.
+一块板上的每张卡片，都应该是人在白板前会叫出的名字，这张板才有用。它要是只把文件夹树照搬上来，就没用。用下面这些办法切到那里。
 
-## The top-level board (3–9 chips)
+名称和说明用通俗简体中文。代码路径、变量名、JSON 字段名保持原样。
 
-Ask: *what are the deployable or ownable things, and what do they talk to?*
+## 顶层（3 到 9 张卡片）
 
-- **Multi-repo codebase.** Usually one chip per deployable (frontend, API, worker, a second app like an admin panel or a mobile app), plus shared libraries, plus externals. The repo is not always the unit: a backend repo might hold an API *and* a worker *and* an MCP connector, so give each its own chip.
-- **Monorepo** (`apps/*`, `packages/*`, `services/*`). Apps and services become top-level chips. Group packages as one `Shared libraries` chip with children, unless a package is big and central.
-- **Single monolith.** Use layers or domains as the top level (`Web layer`, `Domain services`, `Data`, `Jobs`), or the 4–8 biggest domains if the code is organized by feature. Choose the one the code actually follows.
-- **Externals.** Add the database(s) and each third-party API the code meaningfully depends on. Use the scan's EXTERNAL PACKAGES and EXTERNAL HOSTS lists; `packages` and `hosts` on external nodes connect them automatically. Skip utility libraries (react, lodash, pytest). They're dependencies, not architecture.
-- **Tests, scripts, migrations.** Give them their own top-level chips (`kind: test`, `script`, `data`) rather than mixing them into the service. Otherwise they bury the real dependency structure: tests import everything.
+问自己：*哪些东西是可以单独发布、或有人负责的，它们又跟谁说话？*
 
-## Second level (3–12 per chip)
+- **好几个仓库并排。** 通常每个可发布的东西一张卡片（给人用的应用、主服务器、后台任务、第二套应用比如店员后台或手机应用），再加上共享的代码、再加上外部服务。仓库不一定就是一块：一个后端仓库里可能同时有接口、后台任务和给 AI 用的连接器，那就各给一张卡片。
+- **一个仓库里分了 apps、packages、services。** 应用和服务成为顶层卡片。各个包收成一张「共用的代码」，下面再分；除非某个包又大又处于中心，那就单独成块。
+- **一个什么都在一起的程序。** 顶层用层次或业务域（「页面这一层」「业务规则」「数据」「定时任务」），或者代码如果按功能分，就用最大的 4 到 8 个功能。选代码真正遵循的那种。
+- **外部。** 加上数据库，以及代码真正依赖的每个第三方服务。用扫描结果里的 EXTERNAL PACKAGES 和 EXTERNAL HOSTS；外部节点上的 `packages` 和 `hosts` 会自动把它们连上。跳过工具库（react、lodash、pytest）。它们是依赖，不是结构。
+- **测试、脚本、数据迁移。** 给它们自己的顶层卡片（`kind: test`、`script`、`data`），不要混进服务里。不然它们会把真正的依赖埋掉：测试什么都引用。
 
-- Prefer **responsibility** over **file type**. "Orders", "Inventory" and "Auth" beat "routes", "services" and "models" when the code is organized that way. But if the code really is layered (routes/ → services/ → models/), mirror the layers. A layered board that shows routes → services → models is honest and readable.
-- A child is worth making when it has a clear one-sentence purpose and enough files (roughly 3+) or importance (a central API client) to matter.
-- Large UI component trees: group by feature area (`products`, `orders`, `checkout`), and keep one chip for the shared building blocks (`components/ui`: buttons, tables, dialogs). That chip will have many incoming traces. That's correct and useful to see.
-- **Don't make one bucket for every component.** If `components/` holds `products/`, `orders/`, `account/` and `nav/`, a single "Screen parts" chip with 30 files tells the reader nothing. Give each feature folder its own child ("Products", "Orders", "Account settings", "Menu and frame"), and keep only the shared kit together. The same goes for any part where most files sit in a few folders of their own.
-- A part with no children and more than ~24 files is too coarse. The build warns about one whose files fall into several folders of 3 or more ("Consider children by feature area"), and lists the folders. Split it along them, or along whatever the code really follows.
-- Don't go deeper than three levels of nodes. The viewer already gives you folder, file and symbol levels below your nodes.
+## Second level（第二层：每个大块里 3 到 12 个）
 
-## Covering the files
+- **按职责分，不要按文件类型分。** 代码如果是按订单、库存、登录来组织的，「订单」「库存」「登录」就比「路由」「服务」「模型」好。但如果代码真的是分层的（routes/ → services/ → models/），就照着层次来。一张分层的板，能看出请求先到路由、再到服务、再到数据，是诚实也好读的。
+- 一个子块值得单独做，是它有一句清楚的用途，并且文件够多（大约 3 个以上）或够重要（一个处于中心的、跟主服务器说话的代码）。
+- 很大的界面部件树：按功能区分组（`products`、`orders`、`checkout`），共用的积木单独一块（`components/ui`：按钮、表格、弹窗）。那一块会有很多线指进来。这是对的，也值得看见。
+- **不要把每个部件都扔进同一个桶。** 如果 `components/` 下面有 `products/`、`orders/`、`account/` 和 `nav/`，一张叫「页面部件」、里面 30 个文件的卡片，读者什么也看不出来。每个功能文件夹给一个孩子（「商品」「订单」「账号设置」「菜单和边框」），只把真正共用的那一套留在一起。任何一块，只要大多数文件自己待在几个文件夹里，都同样处理。
+- 没有孩子、又超过大约 24 个文件的一块，太粗了。构建会提醒：文件落在好几个 3 个以上文件的文件夹里（「Consider children by feature area」），并把文件夹列出来。顺着它们拆，或顺着代码真正的分法拆。
+- 节点不要超过三层。你的节点下面，地图自己还会给出文件夹、文件和符号这几层。
 
-- Write broad globs on parents (`backend/app/**`), then narrower ones on children. The deepest match wins, so you never need `exclude` just to stop a parent stealing a child's files.
-- After building, look at `unassigned, by directory`, and give each sizeable directory a home or an `ignore` entry.
-- `ignore` is for things that aren't the system: generated clients, vendored copies, snapshot fixtures, one-off data dumps. It's not for tests or scripts, which belong on their own chips.
+## 把文件盖住
 
-## Summaries
+- 父节点写宽的通配路径（`backend/app/**`），子节点写更窄的。最深的匹配赢，所以你不需要为了不让父节点抢走子节点的文件而用 `exclude`。
+- 构建之后看 `unassigned, by directory`，给每个不小的目录一个家，或一条 `ignore`。
+- `ignore` 是给不属于这个系统的东西：生成出来的客户端、原样拷进来的第三方代码、快照用的样例、一次性的数据导出。不是给测试或脚本的，它们该在自己的卡片上。
 
-One sentence, about responsibility, in the codebase's own vocabulary. "Syncs product catalog and inventory with Shopify" beats "Contains Shopify-related services". Mention the framework only at the top level: in `project.summary`, or in top-level node summaries when the map's audience is developers. For everyone, node summaries say what a part does, not what it's built with ("Plain language" in writing-descriptions.md). Say what it does today: if a part is mostly placeholders, the summary says so ("Say what it does today" in writing-descriptions.md).
+## 说明
 
-## Flows
+一句话，讲它负责什么，用这个项目自己的说法。「让商品目录和库存跟 Shopify 保持一致」比「包含和 Shopify 相关的服务」好。框架只在最上面提：写在 `project.summary` 里；只有地图是给开发者看时，才写进顶层节点的说明。给所有人看时，节点说明说这一块做什么，不说它用什么做的（writing-descriptions.md 的 "Plain language"）。写它今天做的事：某一块大部分是占位，说明里就这么说（writing-descriptions.md 的 "Say what it does today"）。说明用通俗简体中文。
 
-Pick the 1–3 things the system exists to do (take an order, sync inventory, run a nightly job). Trace them across the board in 3–7 steps from the user or trigger to the final side effect. Check that consecutive steps are actually connected by an import, HTTP or explicit edge; if not, add the missing edge. The flow should make the system's main path obvious to someone seeing it for the first time.
+## 流程
 
-## Sanity checks before you finish
+挑这个系统存在就是为了做的 1 到 3 件事（接下订单、同步库存、跑一个夜里的任务）。在板上从用户或触发点追到最后的副作用，3 到 7 步。检查相邻两步是不是真的有引用、网页请求或你补的边连着；没有就把缺的边补上。第一次看见的人，应该能从这条流程看出系统的主路。步骤讲解用通俗简体中文。
 
-- Does the top-level board, read left to right, tell the system's story (UI → API → services → data/externals)?
-- Is any chip connected to almost everything? That's either a shared kit (fine, label it) or a sign the boundary is wrong.
-- Are there traces you didn't expect, like the frontend importing backend code, or tests that are imported by production code? Mention them to the user; they're often the most valuable finding.
+## 收尾前对一下
+
+- 顶层从左到右读，能不能讲出这个系统的故事（人用的界面 → 主服务器 → 具体的活 → 数据和外部服务）？
+- 有没有一张卡片几乎连着所有东西？那要么是一套共用的积木（可以，把名字写清楚），要么说明边界切错了。
+- 有没有你没想到的线，比如给人用的界面引用了服务器代码，或者正式代码引用了测试？告诉用户；这往往是最有价值的发现。

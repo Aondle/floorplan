@@ -1,183 +1,187 @@
-# Writing names and descriptions
+# 怎么起名字、怎么写说明
 
-Every card on the map shows a **name** and a **description**. The file path and route path are still shown, but in small type underneath. The goal is that someone who has never seen the code can read the board like a system diagram.
+地图上每张卡片都有一个**名字**和一个**说明**。文件路径和接口路径还在，但用小字标在下面。目标是：从没看过代码的人，也能把这块板当成一张系统图来读。
 
-This guide covers the names and descriptions in `descriptions/*.json` and the `label` / `summary` of nodes and `project.summary` in `architecture.json`.
+这份指南管的是 `descriptions/*.json` 里的名字和说明，以及 `architecture.json` 里节点的 `label`、`summary` 和 `project.summary`。
 
-## Who you're writing for: `audience`
+## 输出语言（必须遵守）
 
-`architecture.json` has an optional top-level `"audience"`. Each worksheet header repeats it.
+无论目标项目的代码和注释是什么语言，模块名称、业务功能描述、流程步骤讲解、导览、健康检查里由你来写的风险说明和修复建议，全部用通俗易懂的简体中文。代码路径、变量名、接口 URL、JSON 字段名保持原样。产品名（Stripe、Shopify、Postgres）保持原样。
 
-- **`"everyone"` (default).** Assume the reader is the owner of the app, not an engineer. Often they built it with AI and don't know how it works inside. Write in **plain language**: what the thing does for the business or its users, in everyday words. Stay specific and accurate. See [Plain language](#plain-language) below.
-- **`"developers"`.** The reader is an engineer joining the codebase. Naming frameworks, patterns and mechanics is fine and often useful ("Flask blueprint", "SQLAlchemy model", "Pub/Sub consumer").
+## 写给谁看：`audience`
 
-Use `"developers"` only when the user asks for it, or the map is plainly for an engineering team (a library, an SDK, infrastructure code). If you're unsure, use `"everyone"`.
+`architecture.json` 可以有一个顶层的 `"audience"`。每张工作表的开头都会重复它。
 
-## Where they go
+- **`"everyone"`（默认）。** 读者是这个应用的主人，不是工程师。他们常常是用 AI 做出来的，里面怎么运转并不清楚。用**大白话**写：这件事对生意或对用户有什么用，用日常的词，但要具体、要准。见下面的 [Plain language](#plain-language)。
+- **`"developers"`。** 读者是刚加入这个代码库的工程师。点出框架、套路和机制是可以的，而且常常有用（「Flask 的一组路由」「SQLAlchemy 的数据模型」「Pub/Sub 的消费者」）。句子仍然用中文。
 
-`describe.mjs` writes one worksheet per module (`floorplan/.cache/worksheets/<key>.md`) and a matching skeleton (`floorplan/descriptions/<key>.json`):
+只有用户明确要求，或者这张地图明显是给工程团队的（一个库、一个 SDK、基础设施代码），才用 `"developers"`。拿不准就用 `"everyone"`。
+
+## 写到哪里
+
+`describe.mjs` 为每个模块写一张工作表（`floorplan/.cache/worksheets/<key>.md`），以及一份对应的骨架（`floorplan/descriptions/<key>.json`）：
 
 ```json
 {
   "files": {
-    "api/app/services/inventory_bulk_service.py": { "name": "Bulk stock updates", "description": "Applies stock changes from an uploaded spreadsheet in the background, checking every row before anything changes." }
+    "api/app/services/inventory_bulk_service.py": { "name": "批量改库存", "description": "把上传的表格里的库存改动放在后台逐行检查，全部通过之后才真正改。" }
   },
   "routes": {
-    "GET /api/products/<int:product_id>/activity": { "name": "Product history", "description": "Shows who changed a product and when, most recent first." }
+    "GET /api/products/<int:product_id>/activity": { "name": "商品改动记录", "description": "列出谁在什么时候改过这个商品，最近的排在最前。" }
   }
 }
 ```
 
-Fill in every `description` and improve every `name`. **Don't change, add or remove keys.** The keys are how `build.mjs` matches entries to files and routes. Keep the JSON valid.
+把每条 `description` 填上，并把每个 `name` 改得更像人话。**不要改、加、删键。** 键是 `build.mjs` 把条目对上文件和接口的办法。JSON 要保持合法。
 
-## Names
+## 名字
 
-- 2–5 words in sentence case, naming what the thing *is* or *does* in the business's own words. Short and concrete: "Staff app", "Main server", "Gift cards", "Refunds".
-- Don't just restate the filename. `inventory_bulk_service.py` becomes "Bulk stock updates", not "Inventory bulk service". `page.tsx` under `dashboard/products/` becomes "Products page".
-- UI components get the name a user would recognise: "Product photo editor", "Discount rules table".
-- Tests: "<subject> tests", e.g. "Bulk stock update tests".
-- Migrations and scripts say what they do: "Add gift-card balances", "Backfill Stripe customer links".
-- Routes are named from the caller's point of view: "Product history", "Mark orders shipped", "Stripe payment alerts".
-- Product names stay as they are (Stripe, Shopify, Postgres, SendGrid). People know them, and the glossary in the viewer explains the technical ones.
+- 2 到 5 个词，用业务自己的说法，点出它**是什么**或**做什么**。短、具体：「店员用的应用」「主服务器」「礼品卡」「退款」。
+- 不要只把文件名翻译一遍。`inventory_bulk_service.py` 写成「批量改库存」，不要写成「库存批量服务」。`dashboard/products/` 下面的 `page.tsx` 写成「商品页」。
+- 界面部件用用户认得出来的名字：「商品图片编辑」「折扣规则表」。
+- 测试写成「〈对象〉的自动检查」，例如「批量改库存的自动检查」。
+- 迁移和脚本说它们做了什么：「加上礼品卡余额」「补上 Stripe 的顾客编号」。
+- 接口从调用方的角度起名：「商品改动记录」「把订单标成已发货」「Stripe 的付款通知」。
+- 产品名保持原样（Stripe、Shopify、Postgres、SendGrid）。人们认识它们，地图上的术语解释会说明那些技术词。
 
-## Descriptions
+## 说明
 
-- **One sentence, ideally under 140 characters**, present tense, starting with a verb: "Keeps…", "Shows…", "Sends…", "Checks…".
-- Say what it's responsible for and anything notable: a side effect (changes prices on Shopify, emails the customer), a constraint (staff only, safe to retry), or a role (the one place X is decided).
-- Use concrete domain nouns: "gift card", "pick list", "Shopify listing", not "data", "items", "stuff".
-- Don't say "This file…", don't hedge, and don't repeat the name.
-- For routes, describe the effect, not the HTTP mechanics. "Marks an order as shipped and emails the customer their tracking link" beats "POST endpoint for shipping".
+- **一句话，最好不超过 140 个字**，用现在时，以动词开头：「保管着……」「显示……」「发出……」「检查……」。
+- 说它负责什么，以及值得注意的地方：副作用（改了 Shopify 上的价格、给顾客发了邮件）、限制（只有店员能用、跑两遍也没事）、或角色（只有这里决定 X）。
+- 用具体的业务名词：「礼品卡」「拣货单」「Shopify 上的商品」，不要用「数据」「项目」「东西」。
+- 不要说「这个文件……」，不要打太极，也不要把名字再说一遍。
+- 写接口时写效果，不要写 HTTP 的机制。「把订单标成已发货，并把物流单号用邮件发给顾客」比「一个用来发货的 POST 接口」好。
 
 ## Say what it does today
 
-A map is only useful if it's true. Describe what the code does now, not what its name, its folder or the rest of the app suggest it ought to do. Half-built apps are full of placeholders, and a map that says they work is worse than no map. This goes for node summaries, flow notes and the tour too.
+地图只有真实才有用。写代码现在做的事，不要写它的名字、文件夹或应用的其余部分暗示它「应该」做的事。做到一半的应用里到处是占位，一张说它们已经能用的地图，比没有地图更糟。节点说明、流程备注和导览也一样。
 
-1. **Behaviour the code shows.** If a handler only replies with a fixed answer, deletes nothing, stores nothing or moves no money, say so plainly: "for now it only…", "…without keeping it anywhere yet". A one-line handler deserves one honest clause, not the feature its name promises.
-2. **Placeholders, stubs and unfinished code are news.** An owner wants to know that the refund button does nothing yet. Say it in the description, in plain words, not as a hedge.
-3. **Don't claim who or what uses it unless the code shows it.** "Run by hand", "run every night", "used by the release tools", "called by the mobile app", "saved to the database": each needs evidence in the worksheet (its `imported by`, `sent web requests by` and `named in` lines) or in code you read. If nothing uses a file, leave its users out, or say that nothing uses it yet.
-4. **Never invent examples.** "Such as active, pending or paid", "local or live": only values that appear in the code. If you don't know them, describe the thing without examples.
-5. **When unsure, open the file.** The worksheet quotes the code of every endpoint it lists and the whole of very short files. For anything else, read the file (the top ~80 lines, or the handler) before writing a claim you can't see.
+1. **代码里看得到的行为。** 如果一个处理函数只回复一句固定的话、什么都不删、什么都不存、钱也不动，就直说：「眼下它只是……」「……还没有存到任何地方」。一行的处理函数就配一句老实话，不要写成它的名字许诺的那个功能。
+2. **占位、空壳和没做完的代码本身就是消息。** 主人想知道退款按钮现在还什么都不做。写进说明里，用明白的话，不要写成一句含糊的保留。
+3. **代码没写的，不要声称谁在用它、什么在跑它。** 「人手动跑」「每天夜里跑」「发布工具在用」「手机应用在调用」「存进了数据库」：每一句都要在工作表里有依据（它的 `imported by`、`sent web requests by`、`named in`）或在你读过的代码里。没有谁用一个文件，就不要写使用者，或者说现在还没有谁用它。
+4. **绝不编造例子。** 「比如进行中、待处理或已付款」「本地或线上」：只有代码里出现的值才能写。不知道就不要举例，直接描述这件事。
+5. **拿不准就打开文件。** 工作表会引用它列出的每条接口的代码，以及很短的文件的全文。别的，先读文件（开头大约 80 行，或那个处理函数），再写你看不到依据的判断。
 
 | | |
 |---|---|
-| ✗ | `POST /api/notes`: "Saves a note so staff can keep track of what was said about a customer." |
-| ✓ | "Replies that a note was saved, without checking who sent it and without keeping it anywhere yet." |
-| ✗ | `DELETE /admin/users/:id`: "Removes a customer's account for good. Only staff can ask for this." |
-| ✓ | "Removes a customer's account, for staff only; for now it only confirms and deletes nothing." |
-| ✗ | `create_owner.py`: "Run by hand once to set up the owner's account." (the worksheet says it's `named in: scripts/start.sh`) |
-| ✓ | "Creates the owner's account each time the server starts, unless it already exists." |
-| ✗ | `export-prices.mjs`: "Exports the price list, used by the nightly sync." (`imported by: nothing`) |
-| ✓ | "Writes the price list to a spreadsheet file. Nothing in the code runs it yet." |
-| ✗ | `status-pill.tsx`: "Shows an order's status, such as paid, shipped or refunded." (the code has none of these) |
-| ✓ | "Shows a small coloured label with whatever status it's given, in one of three colours." |
+| ✗ | `POST /api/notes`：「把一条备注存下来，方便店员记住关于这个顾客说过什么。」 |
+| ✓ | 「回复说备注已经保存，既不核对是谁发的，也还没有存到任何地方。」 |
+| ✗ | `DELETE /admin/users/:id`：「永久删掉一个顾客的账号。只有店员能请求这个。」 |
+| ✓ | 「删掉一个顾客的账号，只有店员能用；眼下它只是确认一下，实际上什么都不删。」 |
+| ✗ | `create_owner.py`：「人手动跑一次，用来建主人的账号。」（工作表写的是 `named in: scripts/start.sh`） |
+| ✓ | 「每次服务器启动时建立主人的账号，已经有了就跳过。」 |
+| ✗ | `export-prices.mjs`：「导出价格表，给每天夜里的同步用。」（`imported by: nothing`） |
+| ✓ | 「把价格表写成一个表格文件。代码里现在还没有谁去跑它。」 |
+| ✗ | `status-pill.tsx`：「显示订单状态，比如已付款、已发货或已退款。」（代码里一个都没有） |
+| ✓ | 「用一个小色块显示传给它的状态，一共三种颜色。」 |
 
 ## Plain language
 
-The default audience is `"everyone"`. Write as if explaining the app to its owner over coffee: they know the business inside out, but not the code.
+默认读者是 `"everyone"`。就像坐下来给应用的主人讲这个应用：他们对生意了如指掌，对代码不熟。
 
-**You don't need to carry the technical identity.** The real path is printed under every card, and endpoint cards show the method and URL (`POST /api/orders/<id>/ship`). "Show technical detail" in the viewer reveals exports, line counts and developer terms. So the description is free to say only what the thing is *for*.
+**你不用把技术身份扛在说明里。** 真正的路径印在每张卡片下面，接口卡片上有方法和 URL（`POST /api/orders/<id>/ship`）。地图里的「显示技术细节」会露出导出了什么、行数和开发者用语。所以说明只要说这东西是**干什么的**。
 
-### Rules
+### 规则
 
-1. **Lead with the job, not the mechanism.** What does it do for staff, customers or the business? "Takes card payments at checkout", not "Stripe Payments API wrapper".
-2. **Everyday words.** Swap jargon for the plain phrase in the table below. If a technical word really is the clearest (a "database", a "login"), it's fine. The viewer underlines common terms and explains them on hover.
-3. **Keep it specific.** Plain doesn't mean vague. "Handles orders" is plain *and* useless. "Holds an online order's stock while payment is checked, then releases or ships it" is plain and tells you something.
-4. **Name the outside services.** "Sends new prices to Shopify and Amazon" beats "Syncs with external channels".
-5. **No framework or library names in descriptions** (Flask, SQLAlchemy, React, Radix, Pydantic…) unless the thing exists *because* of that tool. Labels can keep a product name the owner chose and knows (e.g. "Stripe", "Google Cloud").
-6. **No counts of code, file names or code identifiers** ("~6.7k lines", "product_routes.py", `ApiClient`) in summaries. Those belong in `annotations` or are shown elsewhere.
-7. **Warnings in plain terms.** "Run by hand against live data; double-check before using" rather than "non-idempotent prod script".
+1. **先说它的工作，不说它的机制。** 它对店员、顾客或生意做了什么？「在结账时用银行卡收款」，不要写「Stripe 付款接口的包装」。
+2. **用日常的词。** 行话换成下面表里的说法。某个技术词确实最清楚时（「数据库」「登录」）可以用。地图会给常见术语加下划线，悬停有解释。
+3. **保持具体。** 人话不等于含糊。「处理订单」既人话又没用。「付款核对期间先留住一笔网单的库存，然后放行或发出」既人话又告诉你一件事。
+4. **点出外部服务的名字。** 「把新价格发给 Shopify 和 Amazon」比「和外部渠道同步」好。
+5. **说明里不要出现框架或库的名字**（Flask、SQLAlchemy、React、Radix、Pydantic……），除非这东西之所以存在就是因为那个工具。标签可以保留主人选过、也认得的产品名（例如 Stripe、Google Cloud）。
+6. **说明里不要写代码的数量、文件名或代码里的标识符**（「大约 6700 行」「product_routes.py」、`ApiClient`）。那些放进 `annotations`，或地图别处已经显示。
+7. **提醒也用人话。** 「要对着正式数据手动跑，用之前再核对一遍」，不要写「非幂等的生产脚本」。
+
+检测脚本认的是英文行话（API、webhook、middleware 这些词）。表的左列保持英文，右列是你要换成的中文说法。给所有人看的地图上，`build.mjs` warns when a part's `label` or `summary` 用了这张表里的词或点了框架名，并点名那一块，你按右列改成通俗中文。它只查几乎不可能是业务自己的词（清单在 `scripts/lib/names.mjs`），Stripe、Postgres 这类产品名不查。这是提醒，不是错误。
 
 ### Jargon → plain
 
-| Instead of | Say |
+| 不要写 | 改成 |
 |---|---|
-| API | the way programs talk to each other; for your own, "the main server" (e.g. "asks Shippo for shipping rates") |
-| endpoint, route (backend) | a request the app can receive (e.g. "the request that marks an order shipped") |
-| page, route (frontend) | a screen / page |
-| webhook | a message another service sends your app when something happens ("Stripe tells us a payment went through") |
-| REST, HTTP, GET/POST | (leave out; the method and URL are already on the card) |
-| frontend / client | the app people use / the screens |
-| backend / server / service | the main server, the part that does the work behind the screens |
-| monolith | one main server that does everything |
-| blueprint, router, controller | a group of related requests (e.g. "order requests") |
-| middleware | a check every request passes through (e.g. "makes sure you're signed in") |
-| ORM model, schema, entity | how a kind of record is stored (e.g. "how an order is stored") |
-| table, row | a list of records / a record |
-| query | a lookup / a search of the records |
-| database (Postgres, MySQL, RDS, Cloud SQL) | the database, where all the records are kept |
-| migration | a change to how records are stored (e.g. "adds a place to store gift-card numbers") |
-| seed, fixture | sample data for testing |
-| worker, background job | a task that runs on its own in the background |
-| queue, outbox, Pub/Sub, message bus | a waiting line of tasks / a way to hand work to background tasks |
-| cron, scheduler, scheduled job | runs automatically on a timetable (e.g. "every night at 2am") |
-| cache, snapshot | a saved copy kept so things load faster |
-| SDK, client library, API client | ready-made code for talking to a service (e.g. "talks to Stripe") |
-| integration, sync | keeps X and Y in step / copies changes between X and Y |
-| env var, config | settings (e.g. "which store and password to use") |
-| secret, API key, token | a password for a service / a sign-in pass |
-| auth, authentication | sign-in |
-| authorization, roles, permissions, RBAC | who is allowed to do what |
-| session | staying signed in |
-| hook, context, provider (React) | shared screen logic / keeps the screens in step |
-| component, UI kit, primitives | a building block of the screens (button, table, dialog) |
-| shell, app shell | the frame around the screens (menu, header) |
-| toast, modal, popover | a pop-up message / a pop-up window |
-| state | what the screen currently remembers |
-| deploy, CI/CD | putting a new version live |
-| container, Docker, Docker Compose, Cloud Run, serverless | where the server runs in the cloud / how it's started |
-| storage bucket, S3, GCS, blob | file storage in the cloud (images, uploads, exports) |
-| CDN | a fast delivery network for images and files |
-| idempotent | safe to run twice |
-| rate limit | a cap on how often something can be asked |
-| reconcile | compares two records of the same thing and fixes differences |
-| refactor, tech debt | (leave out) |
-| MCP server | a connection that lets AI assistants (like Claude) look things up in your app |
-| unit tests, test suite | automatic checks that the code still works |
+| API | 程序之间怎么对话；说自己的服务时写「主服务器」（例如「向 Shippo 问运费」） |
+| endpoint, route (backend) | 程序能接到的一种请求（例如「把订单标成已发货的那个请求」） |
+| page, route (frontend) | 一个页面 |
+| webhook | 别的服务有事发生时主动发来的通知（「Stripe 告诉我们钱到了」） |
+| REST, HTTP, GET/POST | 别写，方法和地址已经印在卡片上 |
+| frontend / client | 人在用的那个应用 / 页面 |
+| backend / server / service | 主服务器，页面背后干活的那一块 |
+| monolith | 一个什么都管的主服务器 |
+| blueprint, router, controller | 一组相关的请求（例如「订单相关的请求」） |
+| middleware | 每个请求都要过的一道检查（例如「先确认你登录了」） |
+| ORM model, schema, entity | 某一种记录是怎么存的（例如「订单是怎么存的」） |
+| table, row | 一类记录的清单 / 其中一条 |
+| query | 一次查找 |
+| database (Postgres, MySQL, RDS, Cloud SQL) | 数据库，所有记录放着的地方 |
+| migration | 记录的存法有一次改动（例如「给礼品卡号腾个地方」） |
+| seed, fixture | 测试用的样例数据 |
+| worker, background job | 自己在后台跑的任务 |
+| queue, outbox, Pub/Sub, message bus | 任务排队的地方 / 把活交给后台的办法 |
+| cron, scheduler, scheduled job | 按时间表自动跑（例如「每天凌晨两点」） |
+| cache, snapshot | 先存一份，下次打开更快 |
+| SDK, client library, API client | 别人写好的、用来跟某个服务说话的代码（例如「跟 Stripe 说话」） |
+| integration, sync | 让两边保持一致 / 把一边的改动抄到另一边 |
+| env var, config | 设置（例如「用哪家店、密码是什么」） |
+| secret, API key, token | 跟某个服务对上号的密码 / 登录后拿到的通行证 |
+| auth, authentication | 登录 |
+| authorization, roles, permissions, RBAC | 谁可以做什么 |
+| session | 保持登录 |
+| hook, context, provider (React) | 几个页面共用的那套逻辑 |
+| component, UI kit, primitives | 页面上的积木（按钮、表格、弹窗） |
+| shell, app shell | 页面外面的框（菜单、顶栏） |
+| toast, modal, popover | 冒出来的一句提示 / 弹窗 |
+| state | 这个页面眼下记着什么 |
+| deploy, CI/CD | 把新版本发出去给大家用 |
+| container, Docker, Docker Compose, Cloud Run, serverless | 服务器在云上跑在哪、怎么启动 |
+| storage bucket, S3, GCS, blob | 云上的文件柜（图片、上传的文件、导出的表） |
+| CDN | 让图片和文件传得更快的网络 |
+| idempotent | 跑两遍也没事 |
+| rate limit | 限制多久能问一次 |
+| reconcile | 把两份同一件事的记录对一对，不一样的改过来 |
+| refactor, tech debt | 别写 |
+| MCP server | 让 AI 助手（比如 Claude）能来这个应用里查东西的接口 |
+| unit tests, test suite | 自动检查代码还正不正常 |
 
-On a map for everyone, `build.mjs` warns when a part's `label` or `summary` in architecture.json uses words from this table or names a framework, and names the part, so you can reword it. It checks the words that are almost never the business's own (the list is in `scripts/lib/names.mjs`), and never product names like Stripe or Postgres. It's a warning, never an error.
+### 例子
 
-### Examples
-
-**Modules / subsystems (`architecture.json` `summary`)**
+**模块 / 大块（`architecture.json` 的 `summary`）**
 
 | | |
 |---|---|
-| ✗ | "Flask monolith with route blueprints over a growing service layer and SQLAlchemy models." |
-| ✓ | "The main server: the storefront and the admin app both talk to it, and it keeps stock, prices, orders and gift cards in step across Shopify, Stripe and the warehouse." |
-| ✗ | "Radix-based primitives (components/ui) and the dashboard shell." |
-| ✓ | "The shared building blocks of every screen: buttons, tables, dialogs, and the menu and frame around the staff app." |
-| ✗ | "Long-running Cloud Run workers: bulk inventory, pricing, abandoned-cart emails, Stripe reconcile." |
-| ✓ | "Tasks that run on their own in the background or on a timetable: big stock uploads, price changes, abandoned-cart emails and the nightly Stripe payout check." |
+| ✗ | 「带路由蓝图的 Flask 单体，下面是越来越大的服务层和 SQLAlchemy 模型。」 |
+| ✓ | 「主服务器：店面和店员后台都跟它说话，它让库存、价格、订单和礼品卡在 Shopify、Stripe 和仓库之间保持一致。」 |
+| ✗ | 「基于 Radix 的基础组件（components/ui）和后台的外壳。」 |
+| ✓ | 「每个页面共用的积木：按钮、表格、弹窗，以及店员应用外面的菜单和框。」 |
+| ✗ | 「长时间跑的 Cloud Run 工人：批量库存、定价、弃购邮件、Stripe 对账。」 |
+| ✓ | 「自己在后台或按时间表跑的任务：大批量改库存、改价格、弃购提醒邮件，以及每天夜里核对 Stripe 的到账。」 |
 
-**Files (`descriptions/*.json`)**
-
-| | |
-|---|---|
-| ✗ | name "Stripe gift card service", "Wraps the Stripe customer balance API for ledger projection." |
-| ✓ | name "Gift card balances", "Keeps each customer's gift-card balance in Stripe matching the balance the shop shows them." |
-| ✗ | name "useAuth context", "React context provider exposing auth state and token refresh." |
-| ✓ | name "Staff sign-in", "Remembers which staff member is signed in, keeps them signed in, and hides the dashboard from everyone else." |
-| ✗ | name "Order lock", "Postgres advisory lock keyed by Shopify order id." |
-| ✓ | name "One order at a time", "Stops the same online order being processed twice when Shopify sends duplicate alerts." |
-
-**Routes (endpoints)**
+**文件（`descriptions/*.json`）**
 
 | | |
 |---|---|
-| ✗ | name "POST ship", "POST endpoint that transitions an order to shipped." |
-| ✓ | name "Mark order shipped", "Marks an order as shipped and emails the customer their tracking link." |
-| ✗ | name "Stripe webhook", "Receives and signature-checks Stripe webhook payloads." |
-| ✓ | name "Stripe alerts", "Stripe calls this when a payment, refund or dispute changes; it checks the message is genuine and queues it." |
+| ✗ | 名字「Stripe 礼品卡服务」，「包装 Stripe 顾客余额接口，用来投影账本。」 |
+| ✓ | 名字「礼品卡余额」，「让每个顾客在 Stripe 里的礼品卡余额，和店里显示给他们的余额一致。」 |
+| ✗ | 名字「useAuth context」，「暴露登录状态和刷新令牌的 React context provider。」 |
+| ✓ | 名字「店员登录」，「记住现在登录的是哪位店员，让他们保持登录，并把后台对其他人藏起来。」 |
+| ✗ | 名字「订单锁」，「以 Shopify 订单号为键的 Postgres 咨询锁。」 |
+| ✓ | 名字「同一笔订单一次只处理一回」，「Shopify 把同一条通知发来两次时，避免同一笔网单被处理两遍。」 |
 
-For `"developers"`, the ✗ column is closer to right (minus the filler). Same rules otherwise: one sentence, verb first, specific.
+**接口**
 
-## How to work
+| | |
+|---|---|
+| ✗ | 名字「POST ship」，「把订单状态改成已发货的 POST 接口。」 |
+| ✓ | 名字「把订单标成已发货」，「把订单标成已发货，并把物流单号用邮件发给顾客。」 |
+| ✗ | 名字「Stripe webhook」，「接收并校验 Stripe webhook 载荷的签名。」 |
+| ✓ | 名字「Stripe 的通知」，「付款、退款或争议有变化时 Stripe 会调用这里；它先确认消息是真的，再放进待处理队列。」 |
 
-1. Read the worksheet. It lists each file's definitions, docstrings, what it uses, and which files import it, send it web requests or name it (`imported by`, `sent web requests by`, `named in`). It quotes the code of each endpoint it lists and the whole of very short files. That's enough for most files.
-2. Open the file (the top ~80 lines, or the specific handler) when the digest leaves the purpose unclear, or before you claim anything it doesn't show. Generic names (`utils.py`, `index.ts`, `common.py`) and big files usually need a look.
-3. Write the JSON in one go per worksheet, in the style the worksheet's `Audience:` line asks for.
-4. Be consistent within a module: sibling files should read as a set.
+给 `"developers"` 看时，上面 ✗ 那一列更接近该写的（去掉空话）。其余规则一样：一句话，动词开头，要具体。句子仍然用中文。
 
-## Quality bar
+## 怎么做
 
-A good description lets someone pick the right file to open without opening the others. If two siblings end up with nearly identical descriptions, find what actually distinguishes them and say that. Check every claim against the code: would the owner be surprised to find it does less than it says? For `"everyone"`, also check: would the owner understand every word without asking?
+1. 读工作表。它列出每个文件定义了什么、文档注释、用了什么，以及哪些文件引用了它、给它发网页请求、或点了它的名（`imported by`、`sent web requests by`、`named in`）。它会引用列出的每条接口的代码，以及很短的文件的全文。大多数文件这样就够了。
+2. 摘要看不出用途，或你要写摘要里没有的判断时，打开文件（开头大约 80 行，或那个处理函数）。名字很泛的（`utils.py`、`index.ts`、`common.py`）和大文件通常要看一眼。
+3. 每张工作表一次写成 JSON，风格按工作表 `Audience:` 那一行的要求。
+4. 同一个模块里保持一致：相邻的文件读起来应该像一套。
+
+## 怎样算写好了
+
+好的说明让人不用把别的文件都打开，就能挑中该打开的那一个。两个相邻文件的说明几乎一样时，找出真正不一样的地方并写出来。每句判断都跟代码对一下：主人发现它做的比说明少，会不会吃惊？给 `"everyone"` 看时再对一下：主人是不是每个词都懂，不用再问？

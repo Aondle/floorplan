@@ -80,17 +80,17 @@ test('a map for everyone: developer words in labels and summaries are warnings t
       checked: true,
       count: 2,
       items: [
-        { node: 'api', field: 'summary', term: 'Express server', say: "a framework or library's name: say what the part does instead (it may appear once, in project.summary)" },
-        { node: 'api', field: 'summary', term: 'middleware', say: 'a check every request passes through ("makes sure you\'re signed in")' },
-        { node: 'client', field: 'label', term: 'API client', say: 'ready-made code for talking to a service ("talks to Stripe", "server connection")' },
+        { node: 'api', field: 'summary', term: 'Express server', say: '框架或库的名字：改说这一块是干什么的（整个项目的说明里可以出现一次）' },
+        { node: 'api', field: 'summary', term: 'middleware', say: '每个请求都要过的一道检查（例如「先确认你登录了」）' },
+        { node: 'client', field: 'label', term: 'API client', say: '别人写好的、用来跟某个服务说话的代码（例如「跟 Stripe 说话」「连上服务器」）' },
       ],
     });
-    const warning = json.warnings.find((w) => w.startsWith('plain language: node "client"'));
-    assert.equal(warning, 'plain language: node "client" uses developer words: "API client" in its label (ready-made code for talking to a service ("talks to Stripe", "server connection")). This map is for everyone, so reword them ("Jargon → plain" in references/writing-descriptions.md).');
-    assert.ok(!json.warnings.some((w) => /node "(web|pg)"/.test(w)), 'plain parts, and product names on an outside service, are left alone');
-    assert.match(json.report, /plain language: node "api" uses developer words: "Express server" in its summary/);
+    const warning = json.warnings.find((w) => w.startsWith('plain language: 节点「client」'));
+    assert.equal(warning, 'plain language: 节点「client」用了开发者才懂的词：「API client」写在 label（别人写好的、用来跟某个服务说话的代码（例如「跟 Stripe 说话」「连上服务器」））。这张地图是给所有人看的，按建议的说法改（references/writing-descriptions.md 的「Jargon → plain」）。');
+    assert.ok(!json.warnings.some((w) => /节点「(web|pg)」/.test(w)), 'plain parts, and product names on an outside service, are left alone');
+    assert.match(json.report, /plain language: 节点「api」用了开发者才懂的词：「Express server」写在 summary/);
     // the same in the plain report people read
-    assert.match(run('build.mjs', p, '--no-claude-md', '--check'), /! \d+ warning\(s\):[\s\S]*plain language: node "client"/);
+    assert.match(run('build.mjs', p, '--no-claude-md', '--check'), /! \d+ warning\(s\):[\s\S]*plain language: 节点「client」/);
   } finally { cleanup(p); }
 });
 

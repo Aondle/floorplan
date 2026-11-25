@@ -146,9 +146,9 @@ export function buildPlanHealth({ graph, scan }) {
     return pc ? ridOf.get(routeKey(pc.method, pc.path)) || null : null;
   };
   const line = (r) => `- ${r.m} ${r.p} (${r.f})${r.name ? ` — ${r.name}` : ''}`;
-  const rebuild = 'Then rebuild the blueprint: run plan.mjs and build.mjs from the Floorplan skill, as its instructions say.';
+  const rebuild = '然后按这个技能的说明，从 Floorplan 技能里运行 plan.mjs 和 build.mjs，重新生成规划蓝图。';
   // each item also carries `change`: a request to settle it from the map (the Ask bar's Change mode), for the person to finish or edit
-  const names = (xs, max = 6) => { const l = xs.slice(0, max).concat(xs.length > max ? [`${xs.length - max} more`] : []); return l.length < 2 ? l.join('') : `${l.slice(0, -1).join(', ')} and ${l.at(-1)}`; };
+  const names = (xs, max = 6) => { const l = xs.slice(0, max).concat(xs.length > max ? [`还有 ${xs.length - max} 个`] : []); return l.length < 2 ? l.join('') : `${l.slice(0, -1).join('、')}和${l.at(-1)}`; };
   const ep = (r) => `${r.m} ${r.p}`;
 
   // ---------- who may call each endpoint ----------
@@ -157,24 +157,24 @@ export function buildPlanHealth({ graph, scan }) {
   const openWrites = routes.map((r, i) => ({ r, i })).filter(({ r }) => accessOf(r) === 'public' && WRITE.has(r.m) && !r.publicBecause);
   if (openWrites.length) issues.push({
     id: 'plan-open-writes', kind: 'unprotected-endpoint', severity: 'medium',
-    change: `Review who may use ${names(openWrites.map(({ r }) => ep(r)))}: anyone can change data through ${openWrites.length === 1 ? 'it' : 'them'} now. `,
-    title: openWrites.length === 1 ? 'Anyone could change data through one planned endpoint' : `Anyone could change data through ${openWrites.length} planned endpoints`,
-    detail: `The plan lets ${openWrites.length === 1 ? 'this endpoint' : 'these endpoints'} create, change or delete data with no sign-in. That's right for things like signing up or a guest checkout, but worth a second look before building: ${openWrites.length === 1 ? 'it is' : 'they are'} the easiest thing for a stranger to misuse.`,
+    change: `看一看谁可以用 ${names(openWrites.map(({ r }) => ep(r)))}：现在谁都能用${openWrites.length === 1 ? '它' : '它们'}改数据。 `,
+    title: openWrites.length === 1 ? '谁都能通过一个计划中的接口改数据' : `谁都能通过 ${openWrites.length} 个计划中的接口改数据`,
+    detail: `规划让${openWrites.length === 1 ? '这个接口' : '这些接口'}在不登录的情况下新建、修改或删除数据。注册、游客结账这类可以，但做出来之前值得再看一眼：${openWrites.length === 1 ? '它' : '它们'}是陌生人最容易拿来乱用的。`,
     items: openWrites.slice(0, 24).map(({ i }) => 'r:' + i),
-    notes: Object.fromEntries(openWrites.slice(0, 24).map(({ i }) => ['r:' + i, 'Planned as open to anyone, and changes data'])),
+    notes: Object.fromEntries(openWrites.slice(0, 24).map(({ i }) => ['r:' + i, '规划成谁都能用，而且会改数据'])),
     locations: [],
-    fix: [`Design review of floorplan/plan.json: these planned endpoints change data and are marked "access": "public":`, ...openWrites.map(({ r }) => line(r)), ``, `For each one, tell me in plain words whether a stranger should really be able to use it. Where they shouldn't, change its access to "signed-in" (with "who" if only some users may) in plan.json. Where it must stay public (sign-in, sign-up, guest checkout), set "publicBecause" to why, including what limits abuse (rate limits, a CAPTCHA, email confirmation). Ask me if you're unsure.`, rebuild].join('\n'),
+    fix: [`设计审查 floorplan/plan.json：这些计划中的接口会改数据，并且标了 "access": "public"：`, ...openWrites.map(({ r }) => line(r)), ``, `每一个都用大白话告诉我：陌生人是不是真的该能用它。不该的，在 plan.json 里把 access 改成 "signed-in"（只有一部分人可以用时再写上 "who"）。必须保持公开的（登录、注册、游客结账），用 "publicBecause" 写明原因，包括怎么限制滥用（频率限制、验证码、邮件确认）。拿不准就问我。`, rebuild].join('\n'),
   });
   const unknown = routes.map((r, i) => ({ r, i })).filter(({ r }) => !accessOf(r));
   if (unknown.length) issues.push({
     id: 'plan-no-access', kind: 'unprotected-endpoint', severity: 'medium',
-    change: `Decide who may use ${names(unknown.map(({ r }) => ep(r)))}, going by the PRD. `,
-    title: unknown.length === 1 ? 'The plan doesn’t say who may use one endpoint' : `The plan doesn’t say who may use ${unknown.length} endpoints`,
-    detail: `Deciding who can use each part of the system now (anyone, signed-in customers, only managers, your own team, another service) is much easier than adding sign-in checks after it's built.`,
+    change: `按需求定谁可以用 ${names(unknown.map(({ r }) => ep(r)))}。 `,
+    title: unknown.length === 1 ? '规划没写明一个接口谁可以用' : `规划没写明 ${unknown.length} 个接口谁可以用`,
+    detail: `现在就定下系统里每一块谁可以用（任何人、登录了的顾客、只有管理员、你们自己的团队、另一个服务），比做出来再补登录检查容易得多。`,
     items: unknown.slice(0, 24).map(({ i }) => 'r:' + i),
-    notes: Object.fromEntries(unknown.slice(0, 24).map(({ i }) => ['r:' + i, 'Who may use this isn’t decided'])),
+    notes: Object.fromEntries(unknown.slice(0, 24).map(({ i }) => ['r:' + i, '谁可以用还没定'])),
     locations: [],
-    fix: [`Design review of floorplan/plan.json: these planned endpoints have no "access" set:`, ...unknown.map(({ r }) => line(r)), ``, `For each, choose who may use it: "public" (anyone), "signed-in" (plus "who" when only some users may, such as "managers of that location"), "team" (only the people who run the service), "webhook" (another company's service, which must prove it's them) or "internal" (only our own services). Base it on the PRD; ask me where the PRD doesn't say.`, rebuild].join('\n'),
+    fix: [`设计审查 floorplan/plan.json：这些计划中的接口没有设 "access"：`, ...unknown.map(({ r }) => line(r)), ``, `每一个都选定谁可以用："public"（任何人）、"signed-in"（只有一部分人可以用时再加上 "who"，比如「那个门店的管理员」）、"team"（只有运营这个服务的人）、"webhook"（另一家的服务，而且必须证明是它）或 "internal"（只有我们自己的服务）。按需求来；需求没写的地方问我。`, rebuild].join('\n'),
   });
 
   // ---------- open questions from the PRD ----------
@@ -182,12 +182,12 @@ export function buildPlanHealth({ graph, scan }) {
     const items = [...new Set(q.about.map(refOf).filter(Boolean))];
     issues.push({
       id: 'plan-question:' + k, kind: 'question', severity: 'medium',
-      change: `Open question: "${q.question}" My answer: `,
+      change: `还没定的问题：「${q.question}」我的回答： `,
       title: q.question,
-      detail: 'The PRD doesn’t answer this, and the answer changes what gets built. Decide it before building the parts it touches.',
-      items, notes: Object.fromEntries(items.map((id) => [id, 'Depends on an open question'])),
+      detail: '需求没回答这个，而答案会改变要做出来的东西。做它碰到的那些部分之前，先定下来。',
+      items, notes: Object.fromEntries(items.map((id) => [id, '取决于一个还没定的问题'])),
       locations: [],
-      fix: [`Open question in the blueprint (floorplan/plan.json): ${q.question}`, ``, `Explain the options to me in plain words, with what each would mean for the parts it touches${q.about.length ? ` (${q.about.join(', ')})` : ''}, and recommend one. After I decide, update plan.json and architecture.json to match and remove the question from plan.json's questions.`, rebuild].join('\n'),
+      fix: [`规划蓝图里还没定的问题（floorplan/plan.json）：${q.question}`, ``, `用大白话给我讲选项，以及每种对它碰到的部分意味着什么${q.about.length ? `（${q.about.join('、')}）` : ''}，并推荐一个。我定了之后，按决定更新 plan.json 和 architecture.json，并从 plan.json 的 questions 里删掉这个问题。`, rebuild].join('\n'),
     });
   });
 
@@ -196,13 +196,13 @@ export function buildPlanHealth({ graph, scan }) {
   const unusedRoutes = routes.map((r, i) => ({ r, i })).filter(({ r, i }) => !called.has(i) && !['webhook', 'internal', 'public'].includes(accessOf(r)));
   if (unusedRoutes.length) issues.push({
     id: 'plan-unused-endpoints', kind: 'unused-file', severity: 'low',
-    change: `Nothing calls ${names(unusedRoutes.map(({ r }) => ep(r)))}. Add the screen or service that should use ${unusedRoutes.length === 1 ? 'it' : 'them'}, or remove ${unusedRoutes.length === 1 ? 'it' : 'them'} if not needed. `,
-    title: unusedRoutes.length === 1 ? 'Nothing in the plan uses one endpoint' : `Nothing in the plan uses ${unusedRoutes.length} endpoints`,
-    detail: `No planned page or service calls ${unusedRoutes.length === 1 ? 'it' : 'them'}. Either a screen that needs ${unusedRoutes.length === 1 ? 'it is' : 'them is'} missing from the plan, or ${unusedRoutes.length === 1 ? 'it isn’t' : 'they aren’t'} needed.`,
+    change: `规划里没有人调用 ${names(unusedRoutes.map(({ r }) => ep(r)))}。补上应该用${unusedRoutes.length === 1 ? '它' : '它们'}的页面或服务，不需要的话就去掉。 `,
+    title: unusedRoutes.length === 1 ? '规划里没有人用到一个接口' : `规划里没有人用到 ${unusedRoutes.length} 个接口`,
+    detail: `没有计划中的页面或服务会调用${unusedRoutes.length === 1 ? '它' : '它们'}。要么是需要${unusedRoutes.length === 1 ? '它' : '它们'}的页面没写进规划，要么${unusedRoutes.length === 1 ? '它' : '它们'}其实不需要。`,
     items: unusedRoutes.slice(0, 24).map(({ i }) => 'r:' + i),
-    notes: Object.fromEntries(unusedRoutes.slice(0, 24).map(({ i }) => ['r:' + i, 'No planned caller'])),
+    notes: Object.fromEntries(unusedRoutes.slice(0, 24).map(({ i }) => ['r:' + i, '没有计划中的调用方'])),
     locations: [],
-    fix: [`Design review of floorplan/plan.json: nothing in the plan calls these endpoints:`, ...unusedRoutes.map(({ r }) => line(r)), ``, `For each, find which planned screen or service should call it and add it to that file's "calls", or tell me it isn't needed and remove it.`, rebuild].join('\n'),
+    fix: [`设计审查 floorplan/plan.json：规划里没有人调用这些接口：`, ...unusedRoutes.map(({ r }) => line(r)), ``, `每一个都找出应该调用它的计划中页面或服务，加进那个文件的 "calls"；或者告诉我它不需要，然后删掉。`, rebuild].join('\n'),
   });
   const linked = new Set();
   for (const l of graph.links) { linked.add(l.a); linked.add(l.b); }
@@ -211,13 +211,13 @@ export function buildPlanHealth({ graph, scan }) {
   const loose = graph.files.filter((f) => !linked.has('f:' + f.p) && !screenFiles.has(f.p) && !routeFiles.has(f.p));
   if (loose.length) issues.push({
     id: 'plan-loose-files', kind: 'unused-file', severity: 'low',
-    change: `${names(loose.map((f) => f.p))} ${loose.length === 1 ? 'isn’t' : 'aren’t'} connected to anything. Connect ${loose.length === 1 ? 'it' : 'them'} to what should use ${loose.length === 1 ? 'it' : 'them'}, or remove ${loose.length === 1 ? 'it' : 'them'}. `,
-    title: loose.length === 1 ? 'One planned file isn’t connected to anything' : `${loose.length} planned files aren’t connected to anything`,
-    detail: `Nothing in the plan uses ${loose.length === 1 ? 'it' : 'them'}, and ${loose.length === 1 ? 'it doesn’t' : 'they don’t'} use anything. That usually means a connection is missing from the plan.`,
+    change: `${names(loose.map((f) => f.p))} 什么都没连上。把${loose.length === 1 ? '它' : '它们'}连到该用${loose.length === 1 ? '它' : '它们'}的地方，或者删掉。 `,
+    title: loose.length === 1 ? '有一个计划中的文件什么都没连上' : `${loose.length} 个计划中的文件什么都没连上`,
+    detail: `规划里没有人用${loose.length === 1 ? '它' : '它们'}，${loose.length === 1 ? '它' : '它们'}也没用任何东西。通常是规划里少了一条连接。`,
     items: loose.slice(0, 24).map((f) => 'f:' + f.p),
-    notes: Object.fromEntries(loose.slice(0, 24).map((f) => ['f:' + f.p, 'Not connected to anything in the plan'])),
+    notes: Object.fromEntries(loose.slice(0, 24).map((f) => ['f:' + f.p, '在规划里什么都没连上'])),
     locations: [],
-    fix: [`Design review of floorplan/plan.json: these planned files aren't connected to anything:`, ...loose.map((f) => `- ${f.p}`), ``, `Add the missing "uses", "calls", "services" or "data" entries, or remove files that aren't needed.`, rebuild].join('\n'),
+    fix: [`设计审查 floorplan/plan.json：这些计划中的文件什么都没连上：`, ...loose.map((f) => `- ${f.p}`), ``, `补上缺的 "uses"、"calls"、"services" 或 "data"，或者删掉不需要的文件。`, rebuild].join('\n'),
   });
 
   const ORDER = { high: 0, medium: 1, low: 2 };

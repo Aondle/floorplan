@@ -185,7 +185,7 @@ test('a whole app: tables a loop covers are protected, ones it can’t name are 
     scanAndBuild(root);
     let issues = readGraph(root).health.issues.filter((i) => i.kind === 'database-rules');
     // the loop that only grants access leaves notes open
-    assert.deepEqual(issues.map((i) => [i.severity, i.title]), [['high', 'Anyone can read and change your notes table']]);
+    assert.deepEqual(issues.map((i) => [i.severity, i.title]), [['high', '谁都能读、改你的 notes 表']]);
 
     // a later migration that switches it on for whatever pg_tables lists: notes can't be told either way, and a
     // table created after it is still never switched on
@@ -200,9 +200,9 @@ test('a whole app: tables a loop covers are protected, ones it can’t name are 
     scanAndBuild(root);
     issues = readGraph(root).health.issues.filter((i) => i.kind === 'database-rules');
     const byId = Object.fromEntries(issues.map((i) => [i.id.split(':')[0], i]));
-    assert.equal(byId.rls.title, 'Anyone can read and change your payouts table');
+    assert.equal(byId.rls.title, '谁都能读、改你的 payouts 表');
     assert.equal(byId['rls-unsure'].severity, 'medium');
-    assert.equal(byId['rls-unsure'].title, 'Floorplan can’t tell whether your notes table is protected');
+    assert.equal(byId['rls-unsure'].title, 'Floorplan 看不出你的 notes 表有没有保护');
     assert.deepEqual(byId['rls-unsure'].locations, [{ file: 'supabase/migrations/20250103000000_all.sql', line: 3 }]);
     assert.match(byId['rls-unsure'].fix, /- public\.notes: created in supabase\/migrations\/20250101000000_init\.sql:3/);
   } finally { cleanup(root); }
@@ -247,41 +247,41 @@ test('a whole app: each mistake becomes one plain-English issue with a fix to pa
     // Supabase: only notes is open (profiles was locked later, old_stuff was dropped, waitlist has RLS)
     const [rls] = byId('rls:');
     assert.equal(rls.severity, 'high');
-    assert.equal(rls.title, 'Anyone can read and change your notes table');
+    assert.equal(rls.title, '谁都能读、改你的 notes 表');
     assert.deepEqual(rls.locations, [{ file: 'supabase/migrations/20250101000000_init.sql', line: 2 }]);
     assert.match(rls.fix, /alter table <table> enable row level security/);
     // the waitlist's open insert rule is worth a look, not an alarm
     const [policy] = byId('open-policy:');
     assert.equal(policy.severity, 'medium');
-    assert.match(policy.detail, /public form/);
+    assert.match(policy.detail, /公开表单/);
 
     // Firebase: test mode with its date, open storage, and a database anyone can read
     const fb = Object.fromEntries(byId('firebase-rules:').map((i) => [i.id.split(':')[1], i]));
     assert.equal(fb['firestore.rules'].severity, 'high');
-    assert.match(fb['firestore.rules'].title, new RegExp(`open to anyone until March 1, ${NEXT_YEAR}`));
+    assert.match(fb['firestore.rules'].title, new RegExp(`在 ${NEXT_YEAR}年3月1日 之前谁都能进`));
     assert.match(fb['firestore.rules'].fix, /firebase deploy --only firestore:rules/);
     assert.equal(fb['storage.rules'].severity, 'high');
-    assert.equal(fb['storage.rules'].title, 'Anyone can upload, replace or delete your Firebase files');
+    assert.equal(fb['storage.rules'].title, '谁都能上传、换掉或删掉你的 Firebase 文件');
     assert.equal(fb['database.rules.json'].severity, 'medium');
-    assert.equal(fb['database.rules.json'].title, 'Anyone can read everything in your Firebase Realtime Database');
+    assert.equal(fb['database.rules.json'].title, '谁都能读光你的 Firebase Realtime Database');
 
     // Stripe: one specific issue, and the same webhook isn't also reported as an open endpoint
     const [stripe] = byId('stripe-webhook:');
     assert.equal(stripe.severity, 'high');
-    assert.match(stripe.title, /fake a Stripe payment/);
+    assert.match(stripe.title, /伪造一笔 Stripe 付款/);
     assert.match(stripe.fix, /await req\.text\(\)/);
     assert.ok(!openEndpoints(graph).includes('POST /api/webhooks/stripe'), openEndpoints(graph).join(', '));
 
     // the OpenAI key in a VITE_ variable: set in .env.local and read by browser code
     const [pub] = byId('public-env');
     assert.equal(pub.severity, 'high');
-    assert.equal(pub.title, 'VITE_OPENAI_API_KEY is sent to every visitor’s browser');
+    assert.equal(pub.title, 'VITE_OPENAI_API_KEY 会被发到每个访客的浏览器里');
     assert.deepEqual(pub.locations.map((l) => l.file).sort(), ['.env.local', 'src/chat.ts']);
 
     // CORS that echoes any origin with cookies
     const [cors] = byId('cors');
     assert.equal(cors.severity, 'medium');
-    assert.equal(cors.title, 'Any website could act as your signed-in users');
+    assert.equal(cors.title, '任何网站都能冒充你已登录的用户');
 
     // important issues come first, and no key value reaches anything Floorplan writes
     assert.equal(issues[0].severity, 'high');
@@ -319,6 +319,6 @@ test('plain Postgres migrations without Supabase are not held to Supabase’s ru
     assert.ok(!issues.some((i) => i.id.startsWith('rls:')), 'no row-level security issue without Supabase');
     const [fb] = issues.filter((i) => i.id === 'firebase-rules:firestore.rules');
     assert.equal(fb.severity, 'medium');
-    assert.equal(fb.title, 'Your Firebase Firestore test-mode rules ran out on January 1, 2020');
+    assert.equal(fb.title, '你的 Firebase Firestore 测试模式规则已在 2020年1月1日 到期');
   } finally { cleanup(root); }
 });

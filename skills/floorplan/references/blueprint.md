@@ -1,24 +1,27 @@
-# Blueprints: a floorplan of a system that isn't built yet
+# 规划蓝图：还没做出来的系统，先画一张地图
 
-A blueprint is the same map, drawn from a plan instead of code. Someone has a PRD, a spec or just a long description of what they want to build, and the map shows every piece they'd need, how the pieces connect, what each screen relies on, and what still has to be decided.
+规划蓝图是同一张地图，依据计划来画，而不是依据代码。对方有一份需求文档、一份说明，或只是一大段想做的东西，地图就展示需要哪些块、块与块怎么连、每个页面靠什么、还有什么没定。
 
-You write two files in `floorplan/`:
-- `plan.json`: the files, endpoints and connections the system would have (this file).
-- `architecture.json`: the parts, outside services, flows and tour, exactly as for a code map ([schema.md](schema.md)).
+名字、说明、流程讲解和设计审查里由你来写的话，用通俗简体中文。代码路径、字段名、接口 URL 保持原样。
 
-`plan.mjs` turns `plan.json` into the scan `build.mjs` expects, so everything after that works as for real code. Cards are drawn with dashed outlines and a **Blueprint** label, Health becomes a **design review** of the plan, and every part has a **Build this with Claude** (or Codex) button with a ready request to build it.
+你在 `floorplan/` 里写两个文件：
 
-Contents: [Planning well](#planning-well) · [plan.json](#planjson) · [Checks](#what-the-design-review-checks)
+- `plan.json`：这个系统将会有的文件、接口和连线（就是本文件说的这份）。
+- `architecture.json`：各个部分、外部服务、流程和导览，写法和代码地图完全一样（[schema.md](schema.md)）。
 
-## Planning well
+`plan.mjs` 把 `plan.json` 变成 `build.mjs` 期望的那份扫描结果，所以后面的步骤和真实代码一样。卡片画成虚线，并标上**规划蓝图**；健康检查变成对这份计划的**设计审查**；每一块都有**让 Claude 来做**（或 Codex），里面是一段可以直接拿去只做这一块的请求。
 
-- **Plan to the level of files and endpoints**, not just boxes. Screens, the design review and the build prompts all depend on it. A small product is typically 15–60 files and 10–40 endpoints. Don't plan every helper: one file per page, per group of endpoints, per outside service and per kind of saved data is about right. Where the stack puts one handler per URL (Next.js `route.ts`, SvelteKit `+server.ts`), plan it that way; more files are fine.
-- **Pick a sensible, common stack** unless the PRD names one, and list it in `stack`. Prefer what a solo builder working with AI would choose: a Next.js or React website, a Node or Python server, Postgres, Stripe, a hosted email service. Use real, conventional paths for that stack (`web/app/checkout/page.tsx`, `api/src/routes/orders.ts`).
-- **Every screen the PRD describes is a file with a `screen` URL.** Give each screen `calls` for the endpoints it uses and `uses` for the parts it's built from.
-- **Every endpoint gets `access`**, and `who` when only some signed-in people may use it ("managers of that location", "the account owner"). Decide it from the PRD. If the PRD is silent and it matters, leave it out (the review will flag it) or add a question. An endpoint that must be open to anyone and changes data (sign-in codes, sign-up, guest checkout) gets `publicBecause`: why, and what stops abuse.
-- **Don't invent requirements.** Where the PRD doesn't say and you had to choose, write the choice in `assumptions`. Where the answer changes what gets built and you can't reasonably choose, add it to `questions` with the parts it affects. Carry every open question the PRD lists into `questions` unless the PRD settles it elsewhere; if you planned around the likely answer, say so in `assumptions` too. Ask the user 2–3 questions up front only if the PRD leaves something fundamental open (who uses it, web or mobile, does anyone sign in, does money change hands).
-- **Outside services and data stores are `external` nodes** in architecture.json (Stripe, the database, an email service). Files reach them through `services` and `data` in plan.json. Put `data` on the files that talk to the database directly (a database helper, or each data-access file), not on every file that uses them: Screens follow `uses` down to them.
-- **Background work** (scheduled emails, nightly jobs, queue workers) gets its own files and a `worker` node.
+目录：[怎样规划才有用](#怎样规划才有用) · [plan.json](#planjson) · [设计审查查什么](#设计审查查什么)
+
+## 怎样规划才有用
+
+- **规划到文件和接口这一层**，不要只画几个框。页面、设计审查和「让 AI 来做」的提示都靠这个。一个小产品通常是 15 到 60 个文件、10 到 40 条接口。不要把每个小辅助函数都规划出来：每个页面一个文件、每一组接口一个文件、每个外部服务一个文件、每一种要存的数据一个文件，大约就对了。技术组合规定一个地址一个处理文件时（Next.js 的 `route.ts`、SvelteKit 的 `+server.ts`），就按那个来规划；文件再多一点也没关系。
+- **选一套常见、好用的技术组合**，除非需求点了名，并写进 `stack`。优先一个靠 AI 干活的个人会选的：Next.js 或 React 网站、Node 或 Python 服务器、Postgres、Stripe、一家托管的邮件服务。用这套技术里真实、常规的路径（`web/app/checkout/page.tsx`、`api/src/routes/orders.ts`）。
+- **需求里描述的每个页面，都是一个带 `screen` 地址的文件。** 每个页面用 `calls` 写它用到的接口，用 `uses` 写它由哪些部分拼成。
+- **每条接口都要有 `access`**；只有一部分登录的人能用时再写 `who`（「那个门店的店长」「账号的主人」）。从需求里定。需求没说、而这事又要紧，就先空着（审查会标出来）或加一个问题。必须对所有人开放、又会改数据的接口（登录验证码、注册、游客结账）要写 `publicBecause`：为什么必须开放，以及什么挡住滥用。
+- **不要编造需求。** 需求没说、你不得不选的，把选择写进 `assumptions`。答案会改变做什么、而你没法合理替对方选的，放进 `questions`，并写上它影响哪些部分。需求里列出的每个未决问题都带进 `questions`，除非需求在别处已经定了；如果你按比较可能的答案规划了，也在 `assumptions` 里说一声。只有需求把根本性的事留空（谁在用、网页还是手机、要不要登录、钱会不会过手），才在一开始问用户 2 到 3 个问题。
+- **外部服务和存放数据的地方，是 architecture.json 里的 `external` 节点**（Stripe、数据库、邮件服务）。文件通过 plan.json 里的 `services` 和 `data` 连到它们。`data` 写在直接跟数据库说话的文件上（一个数据库帮手，或每个取数据的文件），不要写在每个用到它们的文件上：页面会顺着 `uses` 找到它们。
+- **后台的活**（定时邮件、夜里的任务、排队的工人）有自己的文件，以及一个 `worker` 节点。
 
 ## plan.json
 
@@ -26,61 +29,61 @@ Contents: [Planning well](#planning-well) · [plan.json](#planjson) · [Checks](
 {
   "$schema": "floorplan/plan@1",
   "source": "docs/prd.md",
-  "stack": ["Next.js website", "Node.js + Express server", "Postgres", "Stripe"],
-  "assumptions": ["Staff and customers share one sign-in, with staff marked as such."],
-  "questions": [{ "question": "Can customers cancel for free?", "about": ["POST /api/orders/:id/cancel"] }],
-  "files": [ { "path": "web/app/checkout/page.tsx", "name": "Checkout page", "description": "…", "screen": "/checkout", "uses": ["web/lib/api.ts"], "calls": ["POST /api/orders"] } ],
-  "endpoints": [ { "method": "POST", "path": "/api/orders", "file": "api/src/routes/orders.ts", "name": "Place an order", "description": "…", "access": "signed-in" } ]
+  "stack": ["Next.js 网站", "Node.js 加 Express 服务器", "Postgres", "Stripe"],
+  "assumptions": ["店员和顾客共用一套登录，店员会被标出来。"],
+  "questions": [{ "question": "顾客可以免费取消吗？", "about": ["POST /api/orders/:id/cancel"] }],
+  "files": [ { "path": "web/app/checkout/page.tsx", "name": "结账页", "description": "…", "screen": "/checkout", "uses": ["web/lib/api.ts"], "calls": ["POST /api/orders"] } ],
+  "endpoints": [ { "method": "POST", "path": "/api/orders", "file": "api/src/routes/orders.ts", "name": "提交订单", "description": "…", "access": "signed-in" } ]
 }
 ```
 
-| field | meaning |
+| 字段 | 含义 |
 |---|---|
-| `source` | what it was planned from: the PRD's path in the project, or a few words such as "a description in chat" |
-| `stack` | the technology choices, in plain words |
-| `assumptions` | choices you made where the PRD didn't say. Shown on the map's overview |
-| `questions` | `{ question, about }`: decisions the PRD leaves open. `about` lists node ids, file paths or `"METHOD /path"`. Each one shows in the design review until it's answered and removed |
-| `files` | every planned file (see below) |
-| `endpoints` | every planned endpoint (see below) |
+| `source` | 根据什么规划的：项目里需求文档的路径，或几个字，比如「对话里的一段描述」 |
+| `stack` | 选了哪些技术，用人话写 |
+| `assumptions` | 需求没说、由你定下来的选择。显示在地图的总览上 |
+| `questions` | `{ question, about }`：需求留着没定的决定。`about` 列出节点 id、文件路径或 `"METHOD /path"`。每一条会留在设计审查里，直到被回答并删掉 |
+| `files` | 每一个计划中的文件（见下） |
+| `endpoints` | 每一条计划中的接口（见下） |
 
 **files[]**
 
-| field | meaning |
+| 字段 | 含义 |
 |---|---|
-| `path` | where it would live, relative to the project folder. Required, unique |
-| `name`, `description` | a human name and one plain sentence, written like a description of real code ([writing-descriptions.md](writing-descriptions.md)) |
-| `screen` | for a page people open: its URL (`/checkout`, `/orders/:id`). Makes it a screen in **Screens** |
-| `uses` | other planned files it is built from or calls directly (becomes "uses" connections) |
-| `calls` | endpoints it calls, as `"METHOD /path"`, exactly as in `endpoints` |
-| `services` | ids of `external` nodes it talks to (Stripe, an email service) |
-| `data` | ids of nodes for the data stores it reads or writes (usually the database) |
+| `path` | 它会放在哪，相对于项目文件夹。必填，且不能重复 |
+| `name`、`description` | 人话名字和一句通俗中文，写法跟描述真实代码一样（[writing-descriptions.md](writing-descriptions.md)） |
+| `screen` | 给人打开的页面：它的地址（`/checkout`、`/orders/:id`）。有了它，**页面**里就会出现这一屏 |
+| `uses` | 它由哪些别的计划文件拼成，或直接调用哪些（变成「用到」的连线） |
+| `calls` | 它调用的接口，写成 `"METHOD /path"`，和 `endpoints` 里完全一致 |
+| `services` | 它说话的 `external` 节点的 id（Stripe、一家邮件服务） |
+| `data` | 它读或写的数据存放处的节点 id（通常是数据库） |
 
 **endpoints[]**
 
-| field | meaning |
+| 字段 | 含义 |
 |---|---|
-| `method` | GET, POST, PUT, PATCH, DELETE, or CALL for a callable function (for example Firebase `onCall`) |
-| `path` | the URL, starting with `/`. Use `:name` for parts that change (`/api/orders/:id`) |
-| `file` | the planned file that handles it. Required |
-| `name`, `description` | as for files |
-| `access` | who may use it: `public` (anyone), `signed-in`, `team` (only the people who run the service, for its own admin pages, not the app's users), `webhook` (another company's service, which must prove it's them) or `internal` (only your own services) |
-| `who` | with `signed-in`: which signed-in people, in a few words ("managers of that location", "the account owner"). Leave it out when any signed-in user may |
-| `publicBecause` | with `public`: why it has to be open, and what limits abuse ("sign-in has to work before anyone is signed in; 5 codes per number per hour"). The design review stops flagging an open endpoint that has one |
+| `method` | GET、POST、PUT、PATCH、DELETE，或 CALL（可调用函数，例如 Firebase 的 `onCall`） |
+| `path` | 地址，以 `/` 开头。会变的部分用 `:name`（`/api/orders/:id`） |
+| `file` | 处理它的那个计划文件。必填 |
+| `name`、`description` | 和文件一样 |
+| `access` | 谁可以用：`public`（任何人）、`signed-in`（登录了的人）、`team`（只给运营这个服务的人，给他们自己的管理页，不是这个应用的用户）、`webhook`（另一家公司的服务，必须证明是他们）或 `internal`（只有你自己的服务） |
+| `who` | 配 `signed-in`：哪些登录的人，几个字（「那个门店的店长」「账号的主人」）。任何登录用户都可以时就不要写 |
+| `publicBecause` | 配 `public`：为什么必须开放，以及什么限制滥用（「登录必须在任何人登录之前就能用；每个号码每小时 5 个验证码」）。有了这一句，设计审查就不再把这条开放接口标成问题 |
 
-Node `paths` globs in architecture.json assign planned files to parts, the same as for code. Aim for no unassigned files. Folder names in brackets (`app/orders/[id]/**`) match literally.
+architecture.json 里节点的 `paths` 通配路径，把计划文件分到各个部分，和代码一样。目标是没有没分进去的文件。方括号里的文件夹名（`app/orders/[id]/**`）按字面匹配。
 
-plan.mjs's "calls to planned endpoints" counts each call; the build's "http" links count each caller-to-file connection plus links to outside services, so the two numbers differ.
+plan.mjs 的「calls to planned endpoints」按每次调用计数；构建的 "http" 连线按「调用方到文件」再加到外部服务的连线计数，所以两个数字不一样。
 
-## Changes from the map
+## 在地图上改
 
-When the map is open through its server (open.mjs), the Ask bar has an **Ask / Change** switch. A change request ("also plan out refunds", "drop the admin page") goes to the same agent, read-only. It replies with the complete updated plan.json and architecture.json, and the server checks them with plan.mjs and build.mjs. If the checks fail, or new files fall under no part, it sends the problems back once. Then it saves the files, redraws the map (open tabs reload), and highlights the new and changed cards as recent work, with **Undo**. The replaced files are kept in `floorplan/.cache/history/`. Each design review item has **Resolve on the map**, which puts a ready request in Change mode: an open question's request ends with "My answer:" for the person to finish, and the agent then removes the question and builds the answer into the plan. Changes you make by hand or through this skill work the same way: edit the files and run refresh.mjs.
+地图是通过它的服务器打开的（open.mjs）时，提问栏有一个**提问 / 改规划**开关。一句修改请求（「把退款也规划进去」「不要管理页了」）会交给同一个助手，只读。它回复完整的、更新后的 plan.json 和 architecture.json，服务器用 plan.mjs 和 build.mjs 检查。检查失败，或新文件没有落到任何一块下面，它会把问题退回一次。然后保存文件、重画地图（开着的标签会刷新），并把新增和改过的卡片标成最近改动，带**撤销**。被换掉的文件留在 `floorplan/.cache/history/`。设计审查的每一条都有**在地图上处理**（地图由服务器打开时，见上），它会在「改规划」里放好一段请求：没定的问题，这段请求以「我的回答：」结尾，等人补完；助手随后删掉这个问题，并把答案做进计划。你手工改，或通过这个技能改，是同一条路：改文件，再运行 refresh.mjs。
 
-## What the design review checks
+## 设计审查查什么
 
-- endpoints that change data and are open to anyone, unless `publicBecause` explains why;
-- endpoints with no `access` decided;
-- every open question, pointing at the parts it affects;
-- endpoints no planned screen or service calls;
-- planned files connected to nothing.
+- 会改数据、又对任何人开放的接口，除非 `publicBecause` 说明了为什么；
+- 没有定 `access` 的接口；
+- 每一个还没定的问题，并指向它影响的部分；
+- 没有任何计划中的页面或服务去调用的接口；
+- 什么都没连上的计划文件。
 
-Each has **Resolve on the map** when the map is served (see above), and otherwise **Resolve with Claude/Codex**, a request to paste into the agent.
+地图由服务器打开时，每条都有**在地图上处理**（见上）；否则是**让 Claude 或 Codex 来处理**，一段可以粘贴给助手的请求。

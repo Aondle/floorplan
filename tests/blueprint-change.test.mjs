@@ -99,7 +99,7 @@ test('a change is checked, saved and drawn, with what changed highlighted', asyn
   // the agent only read: no editing tools, and it was asked for the change schema
   const [call] = s.calls();
   assert.ok(!call.args.join(' ').match(/\b(Edit|Write)\b/), 'the agent gets no editing tools');
-  assert.match(call.args[call.args.indexOf('--append-system-prompt') + 1], /You change a blueprint/);
+  assert.match(call.args[call.args.indexOf('--append-system-prompt') + 1], /你在改一张规划蓝图/);
   assert.equal(call.input, 'also plan out refunds');
 
   // undo puts the plan and the map back

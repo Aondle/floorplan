@@ -1,4 +1,4 @@
 interface:
   display_name: "Floorplan"
-  short_description: "Draw an interactive, plain-English map of this codebase"
-  default_prompt: "Use $floorplan to draw a floorplan of this codebase, or update the existing one, and open it."
+  short_description: "给这个项目画一张能点开的中文结构地图"
+  default_prompt: "用 $floorplan 给这个项目画一张结构地图，或者更新已有的那张，并打开它。"

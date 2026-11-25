@@ -71,7 +71,7 @@ test('Express: app-wide login checks still protect the routes behind them', () =
 test('Health names no repo "." when the project is a single repo at the root (#72)', () => {
   const issue = mapWith(`app.use(cors());`).health.issues.find((i) => i.id.startsWith('no-auth:'));
   assert.ok(issue, 'expected the no-login-check issue');
-  assert.equal(issue.title, 'None of your endpoints check who is calling');
+  assert.equal(issue.title, '你的接口都没检查是谁在调用');
   assert.doesNotMatch(issue.fix, /in \.\s/);
 });
 

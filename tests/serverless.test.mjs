@@ -64,7 +64,7 @@ test('Health: an authorizer, an API key, a check handed to the wrapper or one in
   assert.deepEqual(openEndpoints(graph), ['DELETE /account', 'DELETE /tasks/{id}', 'POST /admin/tasks/import']);
   const checked = graph.health.checked.find((c) => c.check === 'endpoints');
   assert.equal(checked.checked, true, checked.text);
-  assert.match(checked.text, /11 endpoints/);
+  assert.match(checked.text, /11 个接口/);
 });
 
 test('background functions are listed in the scan summary', () => {

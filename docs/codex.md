@@ -1,65 +1,71 @@
-# Floorplan in Codex
+# 在 Codex 里用 Floorplan
 
-Floorplan works in [Codex](https://developers.openai.com/codex) the same way it works in Claude Code: the same skill, scripts and map, on your own ChatGPT sign-in. There are no API keys to set up.
+Floorplan 在 [Codex](https://developers.openai.com/codex) 里和在 Claude Code 里是同一套：同一个技能、同一批脚本、同一张地图，用的是你自己的 ChatGPT 登录。不用另外配 API 密钥。
 
-## What you need
+## 你需要什么
 
-- Codex: the desktop app or the CLI, signed in with your ChatGPT account.
-- [Node.js](https://nodejs.org) 18 or newer.
+- Codex：桌面应用或命令行，用你的 ChatGPT 账号登录。
+- [Node.js](https://nodejs.org) 18 或更新。
 
-## Install
+<a id="install"></a>
 
-**In the Codex app** (no terminal needed):
+## 安装
 
-1. Open **Plugins** and choose **Add a marketplace**.
-2. For **Source**, enter `haydenschmitty/floorplan`. Leave **Git ref** empty, and click **Add marketplace**.
-3. Find **Floorplan** in the list and click **+** to install it.
-4. Start a new chat.
+**在 Codex 应用里**（不用终端）：
 
-**From a terminal**, with the [Codex CLI](https://developers.openai.com/codex/cli):
+1. 打开 **Plugins**，选 **Add a marketplace**。
+2. **Source** 填 `Aondle/floorplan`。**Git ref** 留空，点 **Add marketplace**。
+3. 在列表里找到 **Floorplan**，点 **+** 安装。
+4. 新开一个聊天。
+
+这是中文版。上游 [haydenschmitty/floorplan](https://github.com/haydenschmitty/floorplan) 是出处，从那里装到的是英文原版。插件名仍是 `floorplan`。
+
+**在终端里**，用 [Codex 命令行](https://developers.openai.com/codex/cli)：
 
 ```bash
-codex plugin marketplace add haydenschmitty/floorplan
+codex plugin marketplace add Aondle/floorplan
 codex plugin add floorplan@floorplan
 ```
 
-The app and the CLI share their plugins, so installing in one makes Floorplan available in both.
+应用和命令行共用插件，在一边装好，另一边也能用。
 
-## Make your first map
+## 做第一张地图
 
-Open your project in Codex and ask in plain words:
+用 Codex 打开你的项目，用大白话说：
 
-> Draw a floorplan of this codebase
+> 给这个代码库画一张 floorplan
 
-To call the skill by name, type `$floorplan`. Everything after that is the same as in Claude Code ([Getting started](getting-started.md#make-your-first-map)): Codex scans the code, describes every part, file and web request, builds the map and opens it. Later, "update the floorplan" re-reads only what changed.
+要按名字调用这个技能，输入 `$floorplan`。后面就和 Claude Code 一样（[上手](getting-started.md#make-your-first-map)）：Codex 扫描代码，给每一块、每个文件和每个网页请求写说明，建好地图并打开它。之后说「更新 floorplan」，只会重读有变化的部分。
 
-When Codex opens the map, it asks to run the map's server outside its sandbox. The server has to keep running after the command ends, and the Ask bar needs to reach Codex. If you'd rather not allow it, run the server yourself from the project folder:
+Codex 打开地图时，会问能不能在沙箱外面跑地图的服务器。服务器得在命令结束后还留着，提问栏也得够得到 Codex。如果你不想允许，就自己在项目文件夹里跑：
 
 ```bash
 node floorplan/serve.mjs
 ```
 
-## Asking questions on the map
+## 在地图上提问
 
-The map's Ask bar runs your own Codex on your computer: `codex exec` in Codex's **read-only** sandbox, in your project folder, with your ChatGPT sign-in. It reads the map and your source to answer, and can't change any files. These runs aren't saved to your Codex history; a follow-up question brings the last few questions and answers along instead.
+地图的提问栏在你的电脑上跑你自己的 Codex：在项目文件夹里用你的 ChatGPT 登录，执行 `codex exec`，关在 Codex 的**只读**沙箱里。它读地图和你的源代码来回答，不能改任何文件。这些运行不会写进你的 Codex 历史；追问时，它会把最近几问几答带上。
 
-The server uses whichever agent built the map, and falls back to the other one if that one isn't installed. To choose:
+服务器用的是做这张地图的那个助手。那个没装时，就退到另一个。要自己指定：
 
 ```bash
 node floorplan/serve.mjs --engine codex
 ```
 
-It finds `codex` on your PATH, and on Windows the CLI that comes with the Codex desktop app. If yours is somewhere else, pass `--codex /path/to/codex`. `--model <name>` picks the model; otherwise your Codex settings decide.
+它在 PATH 上找 `codex`，在 Windows 上也会找 Codex 桌面应用自带的命令行。你的装在别处，就传 `--codex /path/to/codex`。`--model <名字>` 指定模型；不写的话，按你的 Codex 设置来。
 
-## What's different from Claude Code
+## 和 Claude Code 有什么不同
 
-- **No notes file.** In Claude Code, Floorplan can keep a short note in `CLAUDE.local.md` (personal and never committed, and only if you say yes) that points future sessions at the map. Codex has no personal, uncommitted equivalent (`AGENTS.md` is shared with your team), so in Codex Floorplan leaves your project's notes alone.
-- **No Claude app.** Publishing the map to the Claude app is a Claude feature. In Codex the map opens in your browser, served from your computer.
-- **"Fix with Codex".** The Health panel's ready-made fix prompts are for pasting into Codex. On a [blueprint](getting-started.md#plan-something-you-havent-built-yet), the same goes for **Build this with Codex**, and the Ask bar's **Change** switch runs Codex in its read-only sandbox too: Codex replies with the updated plan, and the map's server saves it.
+- **没有笔记文件。** 在 Claude Code 里，Floorplan 可以在 `CLAUDE.local.md` 里留一小段笔记（私人的、从不提交，而且只有你点头才写），让以后的对话知道地图在哪。Codex 没有这种私人的、不提交的对应物（`AGENTS.md` 是跟团队共享的），所以在 Codex 里 Floorplan 不动你项目的笔记。
+- **没有 Claude 应用。** 把地图发到 Claude 应用是 Claude 的功能。在 Codex 里，地图在你的浏览器里打开，由你的电脑提供。
+- **「让 Codex 来改」。** 健康检查面板上现成的修复请求，是贴进 Codex 用的。在[规划蓝图](getting-started.md#plan-something-you-havent-built-yet)上，**让 Codex 来做** 也一样。提问栏的 **改规划** 开关同样在只读沙箱里跑 Codex：Codex 回复更新后的计划，地图的服务器负责保存。
 
-## Update or remove it
+<a id="update-or-remove-it"></a>
 
-In the app, open **Plugins**, find the Floorplan marketplace and choose **Upgrade** to get the latest version, or **Remove marketplace** to take it out. From a terminal:
+## 更新或卸掉
+
+在应用里打开 **Plugins**，找到 Floorplan 这个来源，选 **Upgrade** 拿最新版，或选 **Remove marketplace** 把它去掉。在终端里：
 
 ```bash
 codex plugin marketplace upgrade floorplan
@@ -71,15 +77,17 @@ codex plugin remove floorplan@floorplan
 codex plugin marketplace remove floorplan
 ```
 
-Your maps stay in each project's `floorplan/` folder until you delete them.
+各地图还在各自项目的 `floorplan/` 文件夹里，直到你自己删。
 
-## Trying a working copy
+<a id="trying-a-working-copy"></a>
 
-Point Codex at your local clone instead of GitHub:
+## 试用手头这份副本
+
+让 Codex 指向你本地的克隆，而不是 GitHub：
 
 ```bash
 codex plugin marketplace add /path/to/floorplan
 codex plugin add floorplan@floorplan
 ```
 
-Codex copies a local plugin into its cache when you add it (unlike Claude Code, which runs a local plugin straight from the folder). After you change the plugin, run `codex plugin add floorplan@floorplan` again and start a new session.
+你加一个本地插件时，Codex 会把它复制进自己的缓存（Claude Code 不一样，它直接从那个文件夹跑）。你改完插件之后，再跑一次 `codex plugin add floorplan@floorplan`，并新开一轮对话。

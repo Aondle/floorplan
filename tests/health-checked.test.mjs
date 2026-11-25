@@ -25,13 +25,13 @@ test('a server whose endpoints the scan can’t see: the endpoint check says it 
     assert.deepEqual(Object.keys(c), ['endpoints', 'supabase', 'firebase', 'stripe', 'secrets']);
     assert.equal(c.endpoints.checked, false);
     assert.equal(c.endpoints.loud, true);
-    assert.match(c.endpoints.text, /no endpoints found, but server\.js looks like it runs a server \(it calls http\.createServer\)/);
+    assert.match(c.endpoints.text, /没找到接口，但 server\.js 看起来在跑服务器（调用了 http\.createServer）/);
     for (const k of ['supabase', 'firebase', 'stripe']) { assert.equal(c[k].checked, false, k); assert.equal(c[k].loud, undefined, k); }
-    assert.equal(c.supabase.text, 'no Supabase found');
-    assert.match(c.secrets.text, /^read \d+ files$/);
+    assert.equal(c.supabase.text, '没找到 Supabase');
+    assert.match(c.secrets.text, /^读了 \d+ 个文件$/);
     // the report says so next to HEALTH, so the agent passes it on
-    assert.match(out, /HEALTH {2}nothing found\n {2}what was checked:\n {2}! Endpoint sign-in: not checked: no endpoints found, but server\.js/);
-    assert.match(out, / {2}· Supabase table rules: no Supabase found/);
+    assert.match(out, /HEALTH {2}nothing found\n {2}what was checked:\n {2}! 接口有没有验登录: 没查：没找到接口，但 server\.js/);
+    assert.match(out, / {2}· Supabase 表规则: 没找到 Supabase/);
     const json = JSON.parse(run('build.mjs', root, '--no-claude-md', '--json'));
     assert.deepEqual(json.health.checked, graph.health.checked);
   } finally { cleanup(root); }
@@ -64,13 +64,13 @@ test('each check says what it read: endpoints, Supabase tables, Firebase rules f
     const out = scanAndBuild(root);
     const c = byCheck(readGraph(root));
     assert.deepEqual(Object.values(c).map((x) => [x.check, x.checked, x.text, !!x.loud]), [
-      ['endpoints', true, 'checked 3 endpoints', false],
-      ['supabase', true, 'checked 2 tables in the migrations', false],
-      ['firebase', true, 'checked 1 rules file', false],
-      ['stripe', true, 'checked 1 file that receives Stripe events', false],
+      ['endpoints', true, '查了 3 个接口', false],
+      ['supabase', true, '查了迁移里的 2 张表', false],
+      ['firebase', true, '查了 1 份规则文件', false],
+      ['stripe', true, '查了 1 个接收 Stripe 通知的文件', false],
       ['secrets', true, c.secrets.text, false],
     ]);
-    assert.match(out, / {2}✓ Endpoint sign-in: checked 3 endpoints\n/);
+    assert.match(out, / {2}✓ 接口有没有验登录: 查了 3 个接口\n/);
   } finally { cleanup(root); }
 });
 
@@ -85,10 +85,10 @@ test('nothing to look at, without a server in sight: said plainly, not loudly; a
     scanAndBuild(root);
     const c = byCheck(readGraph(root));
     assert.equal(c.endpoints.loud, undefined, c.endpoints.text);
-    assert.match(c.endpoints.text, /^not checked: no endpoints found\. If your app has a server/);
+    assert.match(c.endpoints.text, /^没查：没找到接口。如果应用有服务器/);
     assert.equal(c.supabase.loud, true);
-    assert.match(c.supabase.text, /^not checked: the app uses Supabase, but no migrations that create tables were found/);
-    assert.equal(c.stripe.text, 'the app uses Stripe, but no code that receives its events was found');
+    assert.match(c.supabase.text, /^没查：应用用了 Supabase，但没找到建表的迁移/);
+    assert.equal(c.stripe.text, '应用用了 Stripe，但没找到接收它通知的代码');
   } finally { cleanup(root); }
 });
 
@@ -100,7 +100,7 @@ test('a Supabase Edge Function with no endpoints the scan can see makes the endp
     scanAndBuild(root);
     const c = byCheck(readGraph(root));
     assert.equal(c.endpoints.loud, true);
-    assert.match(c.endpoints.text, /supabase\/functions\/send-invite\/index\.ts looks like it runs a server \(it’s a Supabase Edge Function\)/);
+    assert.match(c.endpoints.text, /supabase\/functions\/send-invite\/index\.ts 看起来在跑服务器（它是 Supabase Edge Function）/);
   } finally { cleanup(root); }
 });
 
@@ -112,15 +112,15 @@ test('PHP that answers requests itself, with no endpoints the scan can see, make
   };
   let c = loud({ 'app/contact.php': page(`if ($_SERVER['REQUEST_METHOD'] === 'POST') { save($_POST['email']); }`) });
   assert.equal(c.loud, true);
-  assert.match(c.text, /app\/contact\.php looks like it runs a server \(it reads \$_SERVER\['REQUEST_METHOD'\]\)/);
+  assert.match(c.text, /app\/contact\.php 看起来在跑服务器（读了 \$_SERVER\['REQUEST_METHOD'\]）/);
   // under a document root the same script is a page: an endpoint, found though Health can't judge it yet, so not loud
   c = loud({ 'public/contact.php': page(`if ($_SERVER['REQUEST_METHOD'] === 'POST') { save($_POST['email']); }`) });
   assert.equal(c.loud, undefined, c.text);
-  assert.match(c.text, /^not checked: 1 endpoint found, but set up in a way Floorplan can’t check for a login yet/);
+  assert.match(c.text, /^没查：找到了 1 个接口，但写法是 Floorplan 还不会检查登录的那种/);
   c = loud({ 'src/Controller/OrderController.php': `<?php\nclass OrderController {\n    #[Route('/orders', methods: ['GET'])]\n    public function list() { return []; }\n}\n` });
-  assert.match(c.text, /OrderController\.php looks like it runs a server \(it declares routes with #\[Route\]\)/);
+  assert.match(c.text, /OrderController\.php 看起来在跑服务器（用它声明接口： #\[Route\]）/);
   c = loud({ 'index.php': `<?php\n$app = AppFactory::create();\n$app->get('/orders', fn ($req, $res) => $res);\n$app->run();\n` });
-  assert.match(c.text, /index\.php looks like it runs a server \(it calls \$app->get\)/);
+  assert.match(c.text, /index\.php 看起来在跑服务器（调用了 \$app->get）/);
   // only mentioned in a comment or a string, a container's $app->get('config'), a template showing a value, or a test: quiet
   c = loud({
     'src/notes.php': page(`// read $_POST here later\n$help = 'use $_GET and $_SERVER["REQUEST_METHOD"]';\n$config = $app->get('config');`),
@@ -128,7 +128,7 @@ test('PHP that answers requests itself, with no endpoints the scan can see, make
     'tests/Feature/ContactTest.php': page(`$_POST['email'] = 'a@example.com';`),
   });
   assert.equal(c.loud, undefined, c.text);
-  assert.match(c.text, /^not checked: no endpoints found\. If your app has a server/);
+  assert.match(c.text, /^没查：没找到接口。如果应用有服务器/);
 });
 
 // ---------- the Health panel ----------
@@ -163,15 +163,15 @@ test('the Health panel lists what was checked, the gaps standing out, with file 
     ],
   };
   const { list, overview } = panel(health);
-  assert.match(list, /<h3>What was checked<\/h3>/);
-  assert.match(list, /class="k loud"[^>]*>.*<b>Endpoint sign-in:<\/b> not checked: no endpoints found, but &lt;img src=x onerror=alert\(1\)&gt;\.js/);
+  assert.match(list, /<h3>查过什么<\/h3>/);
+  assert.match(list, /class="k loud"[^>]*>.*<b>Endpoint sign-in：<\/b> not checked: no endpoints found, but &lt;img src=x onerror=alert\(1\)&gt;\.js/);
   assert.doesNotMatch(list, /<img/);
-  assert.match(list, /<div class="k"><span class="dot" style="background:var\(--ok\)"><\/span><span><b>Secrets in code:<\/b> read 12 files/);
+  assert.match(list, /<div class="k"><span class="dot" style="background:var\(--ok\)"><\/span><span><b>Secrets in code：<\/b> read 12 files/);
   // "nothing stood out" doesn't read as all clear while a check had nothing to look at
-  assert.match(list, /Nothing stood out, but one check had nothing to look at/);
-  assert.match(overview, /Endpoint sign-in: nothing found to check/);
+  assert.match(list, /没有特别扎眼的，但有 1 项检查没有东西可看/);
+  assert.match(overview, /Endpoint sign-in：没有东西可查/);
   // a map built before this, with no list, looks as it did
   const old = panel({ summary: { high: 0, medium: 0, low: 0 }, issues: [] });
-  assert.doesNotMatch(old.list, /What was checked/);
-  assert.match(old.list, /Nothing stood out\./);
+  assert.doesNotMatch(old.list, /查过什么/);
+  assert.match(old.list, /没有特别扎眼的。/);
 });

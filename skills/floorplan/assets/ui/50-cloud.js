@@ -46,52 +46,52 @@
   const never = () => { api('dismiss', { forever: true }).catch(() => {}); close(); };
 
   function view(html, bind) {
-    card.innerHTML = `<button class="btn icon cx" data-x title="Close">${SC.iconI('x')}</button>${html}`;
+    card.innerHTML = `<button class="btn icon cx" data-x title="关闭">${SC.iconI('x')}</button>${html}`;
     card.querySelector('[data-x]').onclick = card.dataset.done ? close : later;
     bind?.(card);
   }
 
   function pitch() {
-    view(`<div class="ce">Coming soon</div><h3>Floorplan Cloud</h3>
-      <p>One shared map for your whole team: notes everyone can see, kept in sync with GitHub and updated on every push.</p>
-      <p>Want an email when it launches?</p>
-      <div class="ca"><button class="btn primary" data-yes>Let me know</button><button class="btn soft" data-later>Not now</button><button class="cl" data-never>Don't ask again</button></div>`,
+    view(`<div class="ce">即将推出</div><h3>Floorplan Cloud</h3>
+      <p>给整个团队一张共用的地图：大家都能看到的备注，跟着 GitHub 走，每次推送都更新。</p>
+      <p>上线时要不要发邮件告诉你？</p>
+      <div class="ca"><button class="btn primary" data-yes>告诉我</button><button class="btn soft" data-later>以后再说</button><button class="cl" data-never>别再问了</button></div>`,
     (el) => { el.querySelector('[data-yes]').onclick = use; el.querySelector('[data-later]').onclick = later; el.querySelector('[data-never]').onclick = never; });
   }
 
   function use() {
-    view(`<div class="ce">Floorplan Cloud</div><h3>How would you use it?</h3>
-      <div class="co"><button data-use="solo"><b>Just me</b><span>A map of my own projects</span></button><button data-use="team"><b>With my team</b><span>One shared map we all work from</span></button></div>`,
+    view(`<div class="ce">Floorplan Cloud</div><h3>你打算怎么用？</h3>
+      <div class="co"><button data-use="solo"><b>就我自己</b><span>给我自己的项目画地图</span></button><button data-use="team"><b>和团队一起</b><span>一张大家一起用的地图</span></button></div>`,
     (el) => el.querySelectorAll('[data-use]').forEach((b) => b.onclick = () => { answer.use = b.dataset.use; email(); }));
   }
 
   function email() {
-    view(`<div class="ce">Floorplan Cloud</div><h3>Where should we email you?</h3>
+    view(`<div class="ce">Floorplan Cloud</div><h3>邮件发到哪里？</h3>
       <input type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false" maxlength="254">
       <div class="cm"></div>
-      <div class="ca"><button class="btn primary" data-send>Notify me</button>${S.cli && S.engine !== 'codex' ? '<button class="btn soft" data-claude>Use my Claude email</button>' : ''}</div>
-      <div class="cf">Only this email and your answer (${answer.use === 'team' ? 'with my team' : 'just me'}) are sent, to a private Google Sheet kept by Floorplan's maker. It's used only to tell you when Floorplan Cloud launches. <a href="${PRIVACY}" target="_blank" rel="noopener">Details</a></div>`,
+      <div class="ca"><button class="btn primary" data-send>有消息通知我</button>${S.cli && S.engine !== 'codex' ? '<button class="btn soft" data-claude>用我的 Claude 邮箱</button>' : ''}</div>
+      <div class="cf">发出去的只有这个邮箱，以及你的选择（${answer.use === 'team' ? '和团队一起' : '就我自己'}），记在 Floorplan 作者私有的一份 Google 表格里。只用它在 Floorplan Cloud 上线时告诉你。<a href="${PRIVACY}" target="_blank" rel="noopener">详情</a></div>`,
     (el) => {
       const input = el.querySelector('input'), msg = el.querySelector('.cm'), send = el.querySelector('[data-send]');
       const say = (t, err) => { msg.textContent = t || ''; msg.classList.toggle('err', !!err); };
       const mine = el.querySelector('[data-claude]');
       if (mine) mine.onclick = async () => {
-        mine.disabled = true; say('Looking up your Claude Code account…');
+        mine.disabled = true; say('正在查你的 Claude Code 账号…');
         try {
           const r = await api('claude-email', {});
-          if (r.email) { input.value = r.email; say(''); input.focus(); } else say('Claude Code isn\'t signed in with a Claude account here. Type an email instead.');
-        } catch { say('Couldn\'t ask Claude Code. Type an email instead.'); }
+          if (r.email) { input.value = r.email; say(''); input.focus(); } else say('这里的 Claude Code 没有用 Claude 账号登录。请自己填一个邮箱。');
+        } catch { say('问不了 Claude Code。请自己填一个邮箱。'); }
         mine.disabled = false;
       };
       const submit = async () => {
         const v = input.value.trim();
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { say('That doesn\'t look like an email address.', true); input.focus(); return; }
-        send.disabled = true; say('Sending…');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { say('这看起来不像邮箱地址。', true); input.focus(); return; }
+        send.disabled = true; say('正在发送…');
         try {
           const r = await api('join', { email: v, use: answer.use });
           if (r.ok) return done(v);
-          say(r.error === 'bad_email' ? 'That doesn\'t look like an email address.' : r.error === 'rate_limited' ? 'Too many sign-ups right now. Try again in a little while.' : 'Couldn\'t send that. Check your connection and try again.', true);
-        } catch { say('Couldn\'t send that. Check your connection and try again.', true); }
+          say(r.error === 'bad_email' ? '这看起来不像邮箱地址。' : r.error === 'rate_limited' ? '现在报名的人太多了。过一会儿再试。' : '没发出去。检查一下网络再试。', true);
+        } catch { say('没发出去。检查一下网络再试。', true); }
         send.disabled = false;
       };
       send.onclick = submit;
@@ -102,7 +102,7 @@
 
   function done(v) {
     card.dataset.done = '1';
-    view(`<div class="ce">Floorplan Cloud</div><h3>You're on the list</h3><p>We'll email <b>${h(v)}</b> when Floorplan Cloud launches. Thanks!</p>`);
+    view(`<div class="ce">Floorplan Cloud</div><h3>你已在名单上</h3><p>Floorplan Cloud 上线时，我们会发邮件到 <b>${h(v)}</b>。谢谢！</p>`);
     setTimeout(close, 8000);
   }
 

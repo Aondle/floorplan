@@ -1,85 +1,91 @@
-# Privacy and security
+# 隐私与安全
 
-For what the plugin itself can and can't do on your computer (no hooks, MCP servers, dependencies or downloads, and how to verify your copy), see [Is it safe to install?](is-it-safe.md).
+插件本身在你电脑上能做什么、不能做什么（没有挂钩、没有 MCP 服务器、没有依赖、也不会下载，以及怎么核对你的副本），见[装上安全吗？](is-it-safe.md)。
 
-## What runs where
+## 什么在哪跑
 
-| Part | Where it runs | What it sends |
+| 部分 | 在哪跑 | 它发出去什么 |
 |---|---|---|
-| Scan, build, updates | your computer (Node.js) | nothing |
-| Writing names and descriptions | Claude or Codex, through your session | the files it reads, the same as any other task you give it |
-| The map | your browser | nothing. Its layout engine and fonts are bundled into the file, so it works offline |
-| The map's server (`serve.mjs`) | your computer, listening on `127.0.0.1` only | nothing on its own |
-| Asking questions (Claude Code CLI) | a `claude -p` session on your computer, with your account | your question, and the files Claude chooses to read |
-| Asking questions (Codex) | a `codex exec` run on your computer, with your ChatGPT sign-in, not saved to your Codex history | your question, and the files Codex chooses to read |
-| Changing a blueprint from the map | the same as asking questions, with Claude Code or Codex; the map's server then writes only the plan's files in `floorplan/` | your request, and the files the AI chooses to read |
-| Asking questions (Claude app) | your claude.ai account | the map (names, descriptions, structure), never your source code. Claude asks before publishing it there |
-| Exporting a copy | your computer: the map's server writes one HTML file | nothing. You decide who gets the file. It holds the map, plus Health or recent work only if you tick them, and never your folder path, git remotes or source code |
-| Floorplan Cloud waitlist (only if you sign up) | the map's server, to Floorplan's waitlist service | the email you typed or chose, and "just me" or "with my team". See [below](#floorplan-cloud-waitlist) |
+| 扫描、构建、更新 | 你的电脑（Node.js） | 什么都不发 |
+| 写名字和说明 | Claude 或 Codex，通过你的对话 | 它读到的文件，和你交给它的其他任务一样 |
+| 地图 | 你的浏览器 | 什么都不发。排版引擎和字体都打包在文件里，所以离线也能用 |
+| 地图的服务器（`serve.mjs`） | 你的电脑，只听 `127.0.0.1` | 它自己什么都不发 |
+| 提问（Claude Code 命令行） | 你电脑上的一次 `claude -p`，用你的账号 | 你的问题，以及 Claude 选择去读的文件 |
+| 提问（Codex） | 你电脑上的一次 `codex exec`，用你的 ChatGPT 登录，不写入你的 Codex 历史 | 你的问题，以及 Codex 选择去读的文件 |
+| 在地图上改规划蓝图 | 和提问一样，用 Claude Code 或 Codex；然后地图的服务器只写 `floorplan/` 里计划的那几个文件 | 你的请求，以及 AI 选择去读的文件 |
+| 提问（Claude 应用） | 你的 claude.ai 账号 | 地图（名字、说明、结构），绝不是你的源代码。发到那里之前 Claude 会先问 |
+| 导出一份副本 | 你的电脑：地图的服务器写出一个 HTML 文件 | 什么都不发。谁拿到这个文件由你决定。里面是地图；健康检查或最近改动只有你勾了才放进去；绝没有你的文件夹路径、git 远程地址或源代码 |
+| Floorplan Cloud 候补名单（只有你报名才有） | 地图的服务器，发到 Floorplan 的候补服务 | 你填的或选的邮箱，以及「就我自己」还是「和团队一起」。见[下面](#floorplan-cloud-waitlist) |
 
-Floorplan has no analytics or telemetry, no dependencies to install, and no install scripts. Its only outside connection is the opt-in waitlist below, and nothing reaches it unless you sign up. The map's few links to documentation open only when you click them.
+Floorplan 没有统计或遥测，没有要安装的依赖，也没有安装脚本。它唯一对外的连接是下面这个自愿加入的候补名单，你不报名，什么都到不了那里。地图上那几条文档链接，只有你点了才打开。
 
-The layout engine ([elkjs](https://github.com/kieler/elkjs) 0.9.3, EPL-2.0) and fonts (Inter and JetBrains Mono, SIL Open Font License) are bundled in `skills/floorplan/assets/vendor/` with their licenses, and every build copies them into the map.
+排版引擎（[elkjs](https://github.com/kieler/elkjs) 0.9.3，EPL-2.0）和字体（Inter 和 JetBrains Mono，SIL Open Font License）连同它们的许可证一起放在 `skills/floorplan/assets/vendor/`，每次构建都复制进地图。
 
-## The local server
+## 本地服务器
 
-- It listens on `127.0.0.1` only, so other machines on your network can't reach it.
-- Every start creates a random token, which only the map page it serves receives. Asking questions and saving flows require that token, and those requests are refused when they come from another website.
-- It answers only to `127.0.0.1` and `localhost` at its own port, so a website that points its own domain at your computer (DNS rebinding) can't load the map or its token.
-- Questions run Claude with **read-only** tools: reading files, searching, and the map's own lookup script. It can't edit files or run other commands.
-- With Codex, questions run in Codex's **read-only** sandbox: it can read and search, but not write files.
-- On a blueprint (a map planned from a PRD), **Change** requests run the same read-only way. The agent replies with the updated plan, and the server itself writes only `floorplan/plan.json`, `floorplan/architecture.json` and `floorplan/recent-work.json`, after checking them, keeping the old copies for Undo.
-- It stops by itself two hours after the last tab closes, and `node floorplan/serve.mjs --stop` stops it immediately.
+- 它只听 `127.0.0.1`，你网络上的其他机器够不着。
+- 每次启动都生成一个随机令牌，只有它送出的地图页面拿得到。提问和保存流程都要这个令牌，从别的网站来的这类请求会被拒绝。
+- 它只应答打到自己这个端口上的 `127.0.0.1` 和 `localhost`。所以一个把自家域名指到你电脑的网站（DNS 重绑定）没法加载地图或它的令牌。
+- 提问时，Claude 只用**只读**工具：读文件、搜索，以及地图自己的查询脚本。它不能改文件，也不能跑别的命令。
+- 用 Codex 时，提问跑在 Codex 的**只读**沙箱里：能读、能搜，不能写文件。
+- 在规划蓝图上（按 PRD 规划出来的地图），**改规划** 的请求也按同样的只读方式跑。助手回复更新后的计划，服务器自己在检查之后，只写 `floorplan/plan.json`、`floorplan/architecture.json` 和 `floorplan/recent-work.json`，旧副本留着给撤销用。
+- 最后一个标签页关掉两小时后它自己停。`node floorplan/serve.mjs --stop` 立刻停掉。
 
-## Floorplan Cloud waitlist
+<a id="floorplan-cloud-waitlist"></a>
 
-Once a map has been open for two minutes, a card in its bottom-left corner asks whether you'd like an email when **Floorplan Cloud** launches. It's a hosted version with one shared map per team, kept in sync with GitHub. It asks once:
-- **Not now** asks again in two weeks.
-- **Don't ask again** and signing up both stop it for good, in every project.
+## Floorplan Cloud 候补名单
 
-Nothing is sent unless you click **Notify me**.
+地图打开两分钟后，左下角一张卡片会问：你想不想在 **Floorplan Cloud** 上线时收到邮件。那是一个托管版本，每个团队一张共用的地图，跟着 GitHub 保持同步。它只问一次：
 
-**What's sent:** only the email address in the box, and whether you'd use Floorplan Cloud just yourself or with a team. Nothing about you, your project or your code goes with it.
+- **以后再说** 两周后再问。
+- **别再问了** 和报名成功，都会在所有项目里永久停掉。
 
-**Use my Claude email:** this button fills the box with the email of the Claude account your Claude Code is signed in with. Claude Code is asked only at that moment, and you see the address before anything is sent. Nothing is read when you don't click it.
+你不点 **有消息通知我**，什么都不会发出去。
 
-**Where it goes:**
-- The map's local server sends it to a small service on Google Cloud Run. You can read its code [here](https://github.com/haydenschmitty/floorplan/blob/4cb4ff9337b2d021abbd52148e25a1e0016f099d/services/waitlist/server.mjs). It's kept in this repo's history rather than in the plugin, so it isn't downloaded when you install Floorplan.
-- That service adds a row to a private Google Sheet that only Floorplan's maker, [Hayden Smith](https://github.com/haydenschmitty), can see. The row holds the date, the email and your answer.
+**发出去什么：** 只有框里的邮箱地址，以及你打算自己用 Floorplan Cloud，还是和团队一起用。界面上是「就我自己」和「和团队一起」，程序发出去的字段是 `solo` 或 `team`。你本人、你的项目、你的代码，一概不跟着走。
 
-**What it's used for:** only to email you when Floorplan Cloud launches, and to gauge whether it's worth building. The list is never sold or shared. Every email on it will include a way to unsubscribe, and you can ask to be removed at any time by emailing [hismith142@gmail.com](mailto:hismith142@gmail.com).
+**用我的 Claude 邮箱：** 这个按钮把框填成你的 Claude Code 当前登录的 Claude 账号邮箱。只有在你点下去的那一刻才会问 Claude Code，发出去之前你看得到这个地址。你不点，什么都不会去读。
 
-**Your IP address** is used briefly to rate-limit sign-ups and is never written to the sheet. Google Cloud keeps its standard request logs, which include IP addresses, for 30 days.
+**发到哪：**
 
-**Turning it off:**
-- Click **Don't ask again**, or
-- set the environment variable `FLOORPLAN_NO_PROMPTS=1`.
+- 地图的本地服务器把它发给 Google Cloud Run 上的一个小服务。代码可以[在这里读](https://github.com/haydenschmitty/floorplan/blob/4cb4ff9337b2d021abbd52148e25a1e0016f099d/services/waitlist/server.mjs)。它留在这个仓库的历史里，不放进插件，所以你安装 Floorplan 时不会把它下载下来。这条链接指向上游仓库里的那次提交，是这段服务代码的出处。
+- 那个服务往一张私人 Google 表格加一行。只有 Floorplan 的作者 [Hayden Smith](https://github.com/haydenschmitty) 能看。这一行是日期、邮箱和你的选择。
 
-Your answer is kept in `~/.floorplan/settings.json`.
+**用来做什么：** 只为了 Floorplan Cloud 上线时发邮件给你，以及估一估值不值得做。这份名单从不出售、也不分享。每封邮件都会带退订办法。你随时可以发邮件到 [hismith142@gmail.com](mailto:hismith142@gmail.com) 要求删掉。
 
-**How the service is protected:** its address is in Floorplan's public code, so it's built to be harmless if abused.
-- It only accepts new sign-ups, and never returns anything from the list.
-- A repeat sign-up looks the same as a new one, so nobody can check whether an address is on the list.
-- Input is checked strictly and saved as plain text.
-- Sign-ups are limited per IP address and overall, and the list has a size cap.
-- It runs as a single small instance, so a flood of requests can't run up costs.
+**你的 IP 地址** 只短暂用来限制报名频率，从不写进表格。Google Cloud 按它的常规保留请求日志，日志里有 IP 地址，保留 30 天。
 
-## Secrets
+**关掉它：**
 
-The Health check looks for passwords, API keys and private keys in your code, and for `.env` files that would be committed. When it finds one, it records only the file, the line, the kind of secret, and a masked hint like "starts AKIA…, 20 characters". **Secret values are never stored in the map, printed, or sent anywhere**, and Claude is instructed never to repeat them.
+- 点 **别再问了**，或
+- 设置环境变量 `FLOORPLAN_NO_PROMPTS=1`。
 
-Text written about your code is checked too. If a description, label, summary, note or recent-work entry (in `architecture.json`, `descriptions/`, `recent-work.json` and the other files in `floorplan/`), or a comment the scan picked up, holds something that looks like a secret, the build puts it in the map as «hidden» and warns, naming the file and the field but never the value, so you can take it out. Your files are left as they are. It looks for well-known key formats, passwords in database addresses, quoted values given a secret-sounding name, `NAME=value` settings, and long generated-looking strings; ordinary words, file paths, commit hashes and IDs are left alone.
+你的选择保存在 `~/.floorplan/settings.json`。
 
-The check is a helpful first pass, not a security audit.
+**这个服务怎么防着被滥用：** 它的地址写在 Floorplan 的公开代码里，所以它被做成就算被人拿去折腾也无害。
 
-## Maps of code you didn't write
+- 它只接受新的报名，从不把名单上的任何东西返回来。
+- 重复报名看起来和新报名一样，所以没人能查某个地址在不在名单上。
+- 输入查得很严，按纯文本保存。
+- 报名按 IP 地址限制，也有总的限制，名单还有大小上限。
+- 它以一个很小的实例跑，所以一涌而来的请求也堆不起费用。
 
-A map shows text Floorplan didn't write: file names, endpoint paths and comments from the code, and descriptions written by an AI or a person. All of it is treated as text, never as part of the page: it's escaped wherever it's shown, it goes into the page's data in a form the browser can't mistake for markup, and characters that are invisible or reverse the text around them (which can make one file name read as another) are shown as a visible marker such as `[U+202E]`. Every map carries a Content-Security-Policy that lets only its own scripts run and keeps an exported copy from contacting anything (see [Is it safe to install?](is-it-safe.md#the-network)). A pattern in `architecture.json` that isn't valid is reported as a build error, and the scan skips config files over 1 MB and reads large files without slowing down.
+## 密钥
+
+健康检查在你的代码里找密码、API 密钥和私钥，也找那些会被提交的 `.env` 文件。找到一个时，它只记下文件、行号、密钥的种类，以及一条打码的提示。这条提示仍是程序写出的英文，例如 `starts "AKIA…", 20 characters`（开头几个字符和总长度）；短的就只写长度，例如 `20 characters`。**密钥的值从不写进地图、从不打印、也从不发到任何地方**，并且吩咐 Claude 绝不要把它们复述出来。
+
+写关于你代码的文字时也会查。如果一段说明、标签、摘要、备注或最近改动的条目（在 `architecture.json`、`descriptions/`、`recent-work.json` 和 `floorplan/` 里的其他文件中），或扫描带上的一条注释，里面有看起来像密钥的东西，构建会在地图里写成 «hidden»，并给出警告，点名文件和字段，但绝不写出那个值，好让你自己拿掉。你的文件保持原样。它找的是常见的密钥格式、数据库地址里的密码、起了像密钥的名字的引号值、`NAME=value` 这种设置，以及一长串看起来像生成出来的字符串。普通词、文件路径、提交哈希和各种 ID 会放过。
+
+这次检查是有用的第一遍，不是安全审计。
+
+## 不是你写的代码的地图
+
+地图上有 Floorplan 没写过的文字：代码里的文件名、接口路径和注释，以及 AI 或人写的说明。这些全部当文字对待，绝不当地图页面的一部分：显示的地方都做了转义，放进页面数据时用一种浏览器不会当成标记的形式；看不见的字符、以及会把周围文字顺序倒过来的字符（能让一个文件名看起来像另一个），会显示成看得见的标记，例如 `[U+202E]`。每张地图都带一份内容安全策略，只让它自己的脚本跑，并让导出的副本什么都不能联系（见[装上安全吗？](is-it-safe.md#the-network)）。`architecture.json` 里不合法的匹配模式会报成构建错误。扫描会跳过超过 1 MB 的配置文件，读大文件时也不会突然变慢。
 
 ## Git
 
-Nothing Floorplan creates is committed. See [What's in your project](project-files.md#staying-out-of-git).
+Floorplan 创建的东西都不会提交。见[项目里有什么](project-files.md#staying-out-of-git)。
 
-## Reporting a vulnerability
+## 报告一个漏洞
 
-Please report security problems privately, as described in [SECURITY.md](../SECURITY.md), rather than in a public issue.
+请私下报告安全问题，按 [SECURITY.md](../SECURITY.md) 里写的做，不要发公开议题。

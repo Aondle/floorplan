@@ -1,184 +1,193 @@
-# Running Floorplan without an agent session
+# 不在对话里跑 Floorplan
 
-Floorplan is made to run inside Claude Code or Codex, with you there. It can also run on its own: in CI, in a script, or from your own tooling, with any model that can read files and return JSON. This guide covers the three things that make that work:
+Floorplan 是做来在 Claude Code 或 Codex 里跑的，你在旁边。它也可以自己跑：在自动检查（CI，每次提交后自动跑的那套）里、在脚本里，或从你自己的工具，用任何能读文件并返回 JSON 的模型。这份指南讲让这件事成立的三样东西：
 
-- **Unattended mode**, which keeps Floorplan to its own folder and makes failures fail;
-- **`--json`**, which gives each script's result as data instead of a report;
-- **the workflow file**, `skills/floorplan/workflow.json`, which describes every step as data so a small program can follow it.
+- **无人值守模式**，把 Floorplan 限制在它自己的文件夹里，并让失败真的失败；
+- **`--json`**，把每个脚本的结果做成数据，而不是一篇报告；
+- **工作流文件** `skills/floorplan/workflow.json`，把每一步写成数据，好让一个小程序跟着走。
 
-The scripts never call a model, here or anywhere else. They do everything mechanical. A model only ever writes three kinds of JSON file: `floorplan/architecture.json`, `floorplan/descriptions/<key>.json` and `floorplan/recent-work.json`. In an agent session the agent does that; without one, your program asks a model and writes its answer.
+脚本在这里、在别处，都从不调用模型。它们干一切机械的事。模型只会写出三种 JSON 文件：`floorplan/architecture.json`、`floorplan/descriptions/<key>.json` 和 `floorplan/recent-work.json`。在对话里，是助手来写；没有对话时，你的程序去问模型，再把答案写下来。
 
-## Unattended mode
+## 无人值守模式
 
-Switch it on with an environment variable:
+用一个环境变量打开：
 
 ```bash
 export FLOORPLAN_UNATTENDED=1
 ```
 
-(in Windows PowerShell: `$env:FLOORPLAN_UNATTENDED = "1"`), or pass `--unattended` to a script, which sets the same thing for it and for the scripts it runs (`refresh.mjs` runs `scan.mjs` and `build.mjs`). In unattended mode:
+（Windows PowerShell：`$env:FLOORPLAN_UNATTENDED = "1"`），或给脚本传 `--unattended`。这会给它自己、以及它再去跑的脚本设上同一件事（`refresh.mjs` 会跑 `scan.mjs` 和 `build.mjs`）。无人值守模式下：
 
-- **Nothing is written outside `floorplan/`.** No `CLAUDE.local.md`, no line in `.git/info/exclude`, no moving an old Floorplan section out of `CLAUDE.md`, and an old `show-code/` map is left where it is. Git is run with `--no-optional-locks`, so even `git status` leaves the repo's own files alone.
-- **The map names no agent.** It records `"agent": "none"`, so its Health and blueprint buttons say "Fix with AI" and "paste it into your AI coding agent" instead of naming Claude or Codex. You can also set `FLOORPLAN_AGENT=none` on its own. Naming an agent (`--agent claude`, `FLOORPLAN_AGENT=codex`) still wins. If the map's server is running, it names the CLI it found, as it always has.
-- **`open.mjs` starts nothing.** Nobody is there to look, so it starts no server and opens no browser.
-- **Failures fail.** See [Exit codes](#exit-codes).
+- **`floorplan/` 以外什么都不写。** 没有 `CLAUDE.local.md`，不往 `.git/info/exclude` 加行，不把旧的 Floorplan 段落从 `CLAUDE.md` 里挪走，旧的 `show-code/` 地图留在原地。Git 带着 `--no-optional-locks` 跑，所以连 `git status` 也不动仓库自己的文件。
+- **地图不点名任何助手。** 它记下 `"agent": "none"`，所以按钮说「让 AI 来改」（规划蓝图上是「让 AI 来处理」），贴进去的对象是「你的 AI 编程助手」，而不点 Claude 或 Codex 的名。你也可以单独设 `FLOORPLAN_AGENT=none`。点名一个助手（`--agent claude`、`FLOORPLAN_AGENT=codex`）仍然优先。地图的服务器如果在跑，它会点出自己找到的命令行，跟一直以来一样。
+- **`open.mjs` 什么都不启动。** 旁边没有人看，所以它不启动服务器，也不打开浏览器。
+- **失败就是失败。** 见[退出码](#exit-codes)。
 
-Everything else is the same: the scan, the map, Health, the descriptions. Without unattended mode, nothing about how Floorplan behaves changes.
+别的都一样：扫描、地图、健康检查、说明。不开无人值守模式，Floorplan 的行为没有任何变化。
 
-### When git can't list a repo's files
+### git 列不出一个仓库的文件时
 
-The scan finds files with `git ls-files`. If git isn't installed, or refuses a checkout because a different user owns the folder ("dubious ownership", common in containers), that repo used to add nothing to the map without a word. Now the scan says so, for everyone:
+扫描用 `git ls-files` 找文件。如果没装 git，或因为文件夹的主人是另一个用户而拒绝这份检出（"dubious ownership"，容器里很常见），那个仓库以前会一声不吭地什么都不加进地图。现在扫描会说出来，对谁都说。打印出来的仍是英文，例如：
 
 ```
 ! PROBLEMS (1): the map will be missing files until these are fixed
   ! shop-web adds no files to the map: git refuses this checkout because a different user owns the folder ("dubious ownership"), which is common in containers. Mark it safe, then scan again: git config --global --add safe.directory "/work/shop-web"
 ```
 
-In unattended mode it's an error instead: the scan exits 1 without writing anything, naming the repo and the likely fix. Finding no files at all is an error there too.
+`PROBLEMS` 和这几句是程序里的固定字。意思是：地图会缺文件，直到这些修好；`shop-web` 一个文件都加不进来，因为另一个用户拥有这个文件夹，git 拒绝了（容器里常见）。把它标成安全的再扫一次，命令就写在那一行里。
 
-## Results as JSON
+无人值守模式下，这变成错误：扫描以退出码 1 结束，什么都不写，并点出仓库和大概的改法。一个文件都找不到，在那里也是错误。
 
-`scan.mjs`, `build.mjs`, `describe.mjs`, `refresh.mjs`, `recent.mjs` and `status.mjs` take `--json`. With it, a script prints exactly one JSON object on stdout and nothing else there. Anything for a person goes to stderr.
+## 结果用 JSON
 
-Every object has:
-- `schema`: what it is, e.g. `"floorplan/build-result@1"`;
-- `ok`: whether it worked;
-- `errors` (a list of messages) when it didn't.
+`scan.mjs`、`build.mjs`、`describe.mjs`、`refresh.mjs`、`recent.mjs` 和 `status.mjs` 接受 `--json`。带上它，脚本在标准输出上恰好打印一个 JSON 对象，那里没有别的。给人看的东西去标准错误。
 
-Most also carry the human report as text (`report`, `summary` or `text`), which is what a model needs to see when it has something to fix. Paths are relative to the codebase root, with forward slashes. `--json` and `--unattended` never take a value, so `--json /path/to/project` works.
+每个对象都有：
 
-### scan.mjs: `floorplan/scan-result@1`
+- `schema`：它是什么，例如 `"floorplan/build-result@1"`；
+- `ok`：成没成；
+- 没成时有 `errors`（一列消息）。
 
-| Field | What it is |
+大多数还带着给人读的报告原文（`report`、`summary` 或 `text`）。模型有东西要修时，需要看到的就是这个。路径相对于代码库根，用正斜杠。`--json` 和 `--unattended` 从不带值，所以 `--json /path/to/project` 是对的。
+
+### scan.mjs：`floorplan/scan-result@1`
+
+| 字段 | 它是什么 |
 |---|---|
-| `repos[]` | `path`, `name`, `branch`, `head`, `files`, and `listed`: false when git couldn't list it |
-| `counts` | `files`, `outsideRepos`, `byCategory` (code, config, docs…), `notMapped` (the files of each kind the map won't show: those architecture.json's `include` leaves out, or all but code before it's written), `code` ({ files, loc }), `byLanguage`, `routes`, `httpMatches`, `importEdges`, `autoImportLinks` (Nuxt components and composables used without an import), `wayfinderLinks` (Laravel Wayfinder calls matched to their endpoints), `inertiaPages` (Inertia pages linked to the endpoint that opens them), `unresolvedImports`, `externalPackages`, `notRead` |
-| `problems[]` | `{ code, message }`: `git_failed` (with `repo` and git's own `error`) or `no_files` |
-| `warnings[]` | the problems' messages, when they aren't errors |
-| `summary` | the summary a model maps from: the same text the scan prints |
-| `scanFile` | where the scan was saved (`floorplan/.cache/scan.json`) |
+| `repos[]` | `path`、`name`、`branch`、`head`、`files`，以及 `listed`：git 列不出来时为 false |
+| `counts` | `files`、`outsideRepos`、`byCategory`（code、config、docs……）、`notMapped`（地图不会显示的每一类文件：`architecture.json` 的 `include` 留在外面的，或还没写 `include` 时除了代码以外的全部）、`code`（{ files, loc }）、`byLanguage`、`routes`、`httpMatches`、`importEdges`、`autoImportLinks`（没用 import 就用到的 Nuxt 组件和组合函数）、`wayfinderLinks`（对上了接口的 Laravel Wayfinder 调用）、`inertiaPages`（连到打开它们的接口的 Inertia 页面）、`unresolvedImports`、`externalPackages`、`notRead` |
+| `problems[]` | `{ code, message }`：`git_failed`（带 `repo` 和 git 自己的 `error`）或 `no_files` |
+| `warnings[]` | 这些问题的消息，在它们还不是错误的时候 |
+| `summary` | 模型用来画地图的摘要：和扫描打印出来的是同一段文字 |
+| `scanFile` | 扫描存到了哪（`floorplan/.cache/scan.json`） |
 
-### build.mjs: `floorplan/build-result@1`
+### build.mjs：`floorplan/build-result@1`
 
-| Field | What it is |
+| 字段 | 它是什么 |
 |---|---|
-| `errors[]`, `warnings[]` | everything the build found wrong with architecture.json or the descriptions, in the words it prints |
-| `files` | `total`, `unassigned`, `unassignedPercent` (one decimal), `include` |
-| `notMapped` | `byCategory`: how many files of each kind `include` leaves off the map, biggest first, e.g. `{ "docs": 52, "config": 38, "asset": 140 }`; `ignored`: files of an included kind that `ignore` leaves out. The report says the same on its `NOT MAPPED` line |
-| `unassignedByDirectory[]` | `{ dir, files }`, biggest first |
-| `nodes[]` | the top-level parts: `id`, `kind`, `files`, `loc` |
-| `links` | `total` and `byKind` (import, http, …) |
-| `descriptions` | `files` and `routes` as `{ described, total }`, `modules` ({ withSummary, total, missing }), `review` (entries still flagged), and `complete`: every file and endpoint described and nothing left to review |
-| `plainLanguage` | developer words in node labels and summaries on a map for everyone: `checked` (false when `audience` is `developers`), `count` (parts with any) and `items[]` ({ node, field: `label` or `summary`, term, say }). Each part also gets a `plain language:` line in `warnings[]`. Never an error |
-| `partsToSplit[]` | parts with no children and more than 24 files that sit in several folders of their own: `{ id, files, folders: [{ dir, files }] }`, also in `warnings[]` |
-| `secretsHidden[]` | `{ file, field }` for each piece of written text that looked like it held a secret and went into the map as «hidden», e.g. `{ "file": "descriptions/api.json", "field": "files[\"api/server.js\"].description" }`. Never the value. Each file also gets a `secret-looking text in …` line at the top of `warnings[]`. A warning, never an error; the files themselves are left as they are |
-| `health` | `kind` (`health`, or `design-review` for a blueprint), `high`, `medium`, `low`, and `important[]` ({ severity, kind, title }), and `checked[]` ({ check, label, checked, text, loud? }): one per check (`endpoints`, `supabase`, `firebase`, `stripe`, `secrets`), saying what it read or that it found nothing to read; `loud` marks a gap that matters, like code that runs a server with no endpoints found. `null` when there's none |
-| `screens` | how many screens were found |
-| `recentWork` | `cards` and `tasks` highlighted, and whether `recent-work.json` exists |
-| `agent`, `audience`, `blueprint`, `unattended`, `check` | how it was built |
-| `notes` | `claudeLocalMd`: what happened to `CLAUDE.local.md`, if anything (never anything in unattended mode); `git`: a warning when git already tracks files in `floorplan/` |
-| `wrote[]` | the files written in the map folder; empty when there were errors or with `--check` |
-| `report` | the build's report |
+| `errors[]`、`warnings[]` | 构建在 architecture.json 或说明里发现的所有问题，用它打印出来的原话 |
+| `files` | `total`、`unassigned`、`unassignedPercent`（一位小数）、`include` |
+| `notMapped` | `byCategory`：`include` 留在地图外的每一类有多少文件，大的在前，例如 `{ "docs": 52, "config": 38, "asset": 140 }`；`ignored`：本该算进去、却被 `ignore` 留在外面的文件。报告在它的 `NOT MAPPED` 那一行说同一件事。`NOT MAPPED` 是固定英文 |
+| `unassignedByDirectory[]` | `{ dir, files }`，大的在前 |
+| `nodes[]` | 最顶上的那些块：`id`、`kind`、`files`、`loc` |
+| `links` | `total` 和 `byKind`（import、http……） |
+| `descriptions` | `files` 和 `routes` 是 `{ described, total }`，`modules` 是 { withSummary, total, missing }，`review` 是仍被标出来要复查的条目，`complete`：每个文件和接口都有说明，而且没有剩下要复查的 |
+| `plainLanguage` | 给所有人看的地图上，节点标签和摘要里的开发者用词：`checked`（`audience` 是 `developers` 时为 false）、`count`（有这种词的块数）和 `items[]`（{ node, field: `label` 或 `summary`, term, say }）。每一块还会在 `warnings[]` 里得到一行以 `plain language:` 开头的提醒。这几个英文词是固定的。从不是错误 |
+| `partsToSplit[]` | 没有子块、文件超过 24 个、而且这些文件待在各自好几个文件夹里的块：`{ id, files, folders: [{ dir, files }] }`，也在 `warnings[]` 里 |
+| `secretsHidden[]` | 每一段看起来含着密钥、因而在地图里写成 «hidden» 的文字，是 `{ file, field }`，例如 `{ "file": "descriptions/api.json", "field": "files[\"api/server.js\"].description" }`。绝不是那个值。每个文件还会在 `warnings[]` 最上面得到一行 `secret-looking text in …`（固定英文）。这是警告，从不是错误；文件本身保持原样 |
+| `health` | `kind`（`health`，规划蓝图是 `design-review`）、`high`、`medium`、`low`，以及 `important[]`（{ severity, kind, title }），还有 `checked[]`（{ check, label, checked, text, loud? }）：每一项检查一条（`endpoints`、`supabase`、`firebase`、`stripe`、`secrets`），说明它读了什么，或没什么可读；`loud` 标出要紧的缺口，比如代码在跑服务器却没找到接口。没有时是 `null` |
+| `screens` | 找到了多少个页面 |
+| `recentWork` | 标出来的 `cards` 和 `tasks`，以及 `recent-work.json` 在不在 |
+| `agent`、`audience`、`blueprint`、`unattended`、`check` | 它是怎么构建的 |
+| `notes` | `claudeLocalMd`：`CLAUDE.local.md` 发生了什么，如果有的话（无人值守模式下永远什么都没有）；`git`：git 已经在跟踪 `floorplan/` 里的文件时的一条警告 |
+| `wrote[]` | 写进地图文件夹的文件；有错误时，或带了 `--check` 时，是空的 |
+| `report` | 构建的报告 |
 
-If the build stops on something it didn't expect (a file it can't write, say), it still prints one object and exits 1: `ok` is false, and `errors` holds one line like `build stopped unexpectedly (EACCES); see stderr`, with `warnings` (empty) and `report` and none of the other fields. The details are on stderr only, because they can quote your files.
+报告里这几个标题是固定英文，不要当成可以改的文案：**HEALTH**、**DESIGN REVIEW**、**what was checked:**，以及 **ASSIGNMENT**。
 
-### describe.mjs: `floorplan/describe-result@1`
+构建停在它没料到的事上时（比如一个写不了的文件），它仍然打印一个对象并以退出码 1 结束：`ok` 是 false，`errors` 里有一行，像 `build stopped unexpectedly (EACCES); see stderr`，还有 `warnings`（空的）和 `report`，没有其他字段。细节只在标准错误上，因为它们可能引用你的文件。
 
-| Field | What it is |
+### describe.mjs：`floorplan/describe-result@1`
+
+| 字段 | 它是什么 |
 |---|---|
-| `nothingToDo` | true when every file and endpoint already has a description (still `ok`, exit 0) |
-| `worksheets[]` | one per worksheet: `key`, `node` (its label), `nodeId`, `part` and `parts` when a big part was split, `files`, `routes`, `loc`, `worksheet` (the worksheet's path) and `descriptions` (the file to fill in) |
-| `totals` | `worksheets`, `files`, `routes` |
-| `audience`, `style` | who the descriptions are for, and the style line each worksheet starts with |
+| `nothingToDo` | 每个文件和接口都已经有说明时为 true（仍然 `ok`，退出码 0） |
+| `worksheets[]` | 一张工作表一条：`key`、`node`（它的标签）、`nodeId`、大块被拆开时的 `part` 和 `parts`、`files`、`routes`、`loc`、`worksheet`（工作表的路径）和 `descriptions`（要填的那个文件） |
+| `totals` | `worksheets`、`files`、`routes` |
+| `audience`、`style` | 说明是写给谁的，以及每张工作表开头的那句风格。工作表里的输入名仍是英文，例如 Scan summary、Worksheet；那句固定英文是 `Say what it does today` |
 
-### refresh.mjs: `floorplan/refresh-result@1`
+### refresh.mjs：`floorplan/refresh-result@1`
 
-| Field | What it is |
+| 字段 | 它是什么 |
 |---|---|
-| `map` | false when there's no map to refresh |
-| `changes` | `files` ({ new, deleted, moved, edited, digestChanged }), `routes` ({ new, removed, repathed }), `descriptions` ({ carried, removed, flagged }), `large`, and `fingerprints` (false for a map too old to compare edits) |
+| `map` | 没有地图可刷新时为 false |
+| `changes` | `files`（{ new, deleted, moved, edited, digestChanged }）、`routes`（{ new, removed, repathed }）、`descriptions`（{ carried, removed, flagged }）、`large`，以及 `fingerprints`（地图太旧、没法比较编辑时为 false） |
 | `newFilesByDirectory[]` | `{ dir, files }` |
-| `build` | the build's own `--json` result, in full |
-| `next[]` | what's left to do, in order, each `{ code, text }` plus details |
-| `report` | the refresh's report |
+| `build` | 构建自己的 `--json` 结果，完整的一份 |
+| `next[]` | 还要做的事，按顺序，每一项是 `{ code, text }` 再加细节 |
+| `report` | 这次刷新的报告 |
 
-The NEXT codes are stable, so a program can act on them:
+NEXT 的 `code` 是稳定的，程序可以照着行动：
 
-| Code | Means | Details |
+| 代码 | 意思 | 细节 |
 |---|---|---|
-| `fix_build` | the build failed; fix architecture.json | `errors` |
-| `assign_new_files` | files landed outside every part; add globs or a part | `directories` |
-| `describe` | run describe.mjs and fill in what it lists | `missing` ({ files, routes }), `review` |
-| `review_structure` | a large change; check the summaries and flows | |
-| `recent_work` | always last: mark recent work | |
-| `first_map` | there's no map yet; make one | |
-| `fix_scan` | the scan stopped (unattended mode only); see `errors` | |
-| `fix_plan`, `blueprint` | blueprints only (see [How it works](how-it-works.md#blueprints)) | |
+| `fix_build` | 构建失败了；去修 architecture.json | `errors` |
+| `assign_new_files` | 文件落在每一块的外面；加上通配路径或一块 | `directories` |
+| `describe` | 跑 describe.mjs，把列出的填上 | `missing`（{ files, routes }）、`review` |
+| `review_structure` | 改动很大；看一眼摘要和流程 | |
+| `recent_work` | 永远在最后：标出最近改动 | |
+| `first_map` | 还没有地图；去做一张 | |
+| `fix_scan` | 扫描停了（只在无人值守模式）；看 `errors` | |
+| `fix_plan`、`blueprint` | 只有规划蓝图（见[它怎么干活](how-it-works.md#blueprints)） | |
 
-### recent.mjs: `floorplan/recent-result@1`
+### recent.mjs：`floorplan/recent-result@1`
 
-`changedSinceMap` (new, edited, moved and deleted files and endpoints since the previous map, or `null`), `since`, `current` (the recent-work.json there now), and `repos[]` with `uncommitted[]` (`status`, `path`) and `commits[]` (`hash`, `date`, `subject`, `files[]`). Every path comes with the `card` it shows up as on the map (`name`, `node`, `nodeLabel`, `endpoints`), or `null` when it isn't on the map. `nothingRecent` is true when there's nothing at all, and `text` is the report a model reads.
+`changedSinceMap`（上一张地图之后新的、改过的、移动的和删掉的文件与接口，或 `null`）、`since`、`current`（现在这份 recent-work.json），以及 `repos[]`，里面有 `uncommitted[]`（`status`、`path`）和 `commits[]`（`hash`、`date`、`subject`、`files[]`）。每条路径都带着它在地图上显示成的 `card`（`name`、`node`、`nodeLabel`、`endpoints`），不在地图上时是 `null`。什么都没有时 `nothingRecent` 为 true，`text` 是模型读的那份报告。
 
-### status.mjs: `floorplan/status-result@1`
+### status.mjs：`floorplan/status-result@1`
 
-`state` is `none`, `unbuilt` (architecture.json but no map), `map`, `blueprint`, `blueprint-started` or `unknown` (the map couldn't be read). For a map: `builtAt`, `files`, `nodes`, `agent`, and `repos[]` with `sameCommit`, `changedFiles` and `uncommitted` (or `compared: false` when there's no commit to compare). `status.mjs` never fails.
+`state` 是 `none`、`unbuilt`（有 architecture.json 但没有地图）、`map`、`blueprint`、`blueprint-started` 或 `unknown`（地图读不了）。这些状态名保持英文。有地图时：`builtAt`、`files`、`nodes`、`agent`，以及 `repos[]`，里面有 `sameCommit`、`changedFiles` 和 `uncommitted`（没有可比较的提交时是 `compared: false`）。`status.mjs` 从不失败。
 
-## Exit codes
+<a id="exit-codes"></a>
 
-`0` means the step worked, including when there was nothing to do (the JSON says so: `nothingToDo`, `nothingRecent`). Anything else means it failed.
+## 退出码
 
-| Script | Without unattended mode | In unattended mode |
+`0` 表示这一步成了，包括没什么可做的时候（JSON 会说：`nothingToDo`、`nothingRecent`）。别的都表示失败了。
+
+| 脚本 | 没有无人值守模式 | 无人值守模式下 |
 |---|---|---|
-| `scan.mjs` | 1 only on a crash; git problems are reported, not failed | also 1 when git can't list a repo, or no files are found |
-| `build.mjs` | 1 on errors, or no scan or architecture.json | the same |
-| `describe.mjs` | 1 without a map; 0 when there's nothing to describe | the same |
-| `refresh.mjs` | 0, even with no map or a failed build (the NEXT list says what to do) | 1 when there's no map, the scan fails or the build fails |
-| `recent.mjs` | 1 without a map | the same |
-| `status.mjs` | always 0 | the same |
+| `scan.mjs` | 只有崩溃才是 1；git 的问题会报告，不算失败 | git 列不出一个仓库，或一个文件都找不到，也是 1 |
+| `build.mjs` | 有错误，或没有扫描、没有 architecture.json，是 1 | 一样 |
+| `describe.mjs` | 没有地图是 1；没什么可描述时是 0 | 一样 |
+| `refresh.mjs` | 是 0，哪怕没有地图或构建失败（NEXT 列表说下一步做什么） | 没有地图、扫描失败或构建失败时是 1 |
+| `recent.mjs` | 没有地图是 1 | 一样 |
+| `status.mjs` | 永远是 0 | 一样 |
 
-`--json` changes only what's printed, never the exit code.
+`--json` 只改变打印出来的东西，从不改变退出码。
 
-## The workflow file
+<a id="the-workflow-file"></a>
 
-`skills/floorplan/workflow.json` (`"schema": "floorplan/workflow@1"`) is SKILL.md's process as data: everything a program needs to make a map, or bring one up to date, with any model. It has:
+## 工作流文件
 
-- **`conventions`**: how to run a script, what exit codes mean, how results are saved and read, how answers are checked and written, and the four tools a model gets: `read_file`, `list_files`, `grep` (all read-only, inside the codebase) and `submit` (its answer).
-- **`format`**: what each kind of step means. A step runs a script, runs a model job (once, or once per item, possibly in parallel), writes a fixed file, repeats some steps until a check passes (at least `minAttempts` times when given), or follows refresh's NEXT list. A job or repeat step marked `optional: true` may fail without failing the run: the driver puts the files in its `restore` list back as they were, runs its `onFail` steps, records `{ step, reason }` in the run's notes and carries on. A job with `onlyChange: { file, fields }` may change only those fields of that file (`nodes[].label` means every node's label); any other difference is sent back to the model like a schema problem.
-- **`start`**: run `status.mjs --json` and pick `first_map` or `refresh`.
-- **`workflows`** and **`procedures`**: the steps.
-- **`jobs`**: one per kind of model work: `architecture`, `plain_language`, `update_architecture`, `descriptions` and `recent_work`. Each lists the reference files to give the model, its instructions (written for a model with only those tools and nobody to ask), its inputs, the file its answer becomes, and the name of its answer's schema.
-- **`schemas`**: a JSON Schema for each kind of answer.
+`skills/floorplan/workflow.json`（`"schema": "floorplan/workflow@1"`）是 SKILL.md 的过程做成的数据：一个程序做一张地图、或把一张地图更新到最新，所需要的一切，换任何模型都行。它有：
 
-The jobs point at the reference files in `skills/floorplan/references/` rather than repeating them, so the format and the style guide have one source, shared with SKILL.md.
+- **`conventions`**：怎么跑一个脚本、退出码是什么意思、结果怎么保存和读取、答案怎么检查和写下，以及模型拿到的四种工具：`read_file`、`list_files`、`grep`（都是只读，在代码库里面）和 `submit`（它的答案）。
+- **`format`**：每一种步骤是什么意思。一步可以跑一个脚本、跑一个模型作业（一次，或每一项一次，可以并行）、写一个固定的文件、重复一些步骤直到一项检查通过（给了 `minAttempts` 时至少那么多次），或跟着刷新的 NEXT 列表走。标了 `optional: true` 的作业或重复步骤可以失败而不让整次运行失败：驱动把 `restore` 名单里的文件放回原样，跑它的 `onFail` 步骤，在这次运行的笔记里记下 `{ step, reason }`，然后继续。带 `onlyChange: { file, fields }` 的作业只能改那个文件的那些字段（`nodes[].label` 表示每个节点的标签）；任何别的差别都像不符合结构一样退回给模型。
+- **`start`**：跑 `status.mjs --json`，然后选 `first_map` 或 `refresh`。
+- **`workflows`** 和 **`procedures`**：步骤。
+- **`jobs`**：每种模型工作一个：`architecture`、`plain_language`、`update_architecture`、`descriptions` 和 `recent_work`。每一个列出要给模型的参考文件、它的指示（写给一个只有那些工具、旁边没有人可问的模型）、它的输入、答案变成的文件，以及答案结构的名字。输入名仍是英文，例如 Scan summary、Worksheet。
+- **`schemas`**：每种答案的一份 JSON Schema。
 
-### How a first map goes
+这些作业指向 `skills/floorplan/references/` 里的参考文件，而不是把它们再抄一遍，所以格式和文风指南只有一处来源，和 SKILL.md 共用。
 
-1. `scan.mjs --json`. The model gets its `summary`.
-2. The `architecture` job: the model reads `schema.md`, `choosing-boundaries.md` and `writing-descriptions.md`, looks around the code with its tools, and submits architecture.json. Then `build.mjs --json`. Until `build.ok` is true and `files.unassignedPercent` is under 10, the job runs again, now also given its last architecture.json and the build's `report`. Up to 4 attempts. Then, if `plainLanguage.count` is above 0, the `plain_language` job gets architecture.json and that report, to reword only the labels and summaries its `plain language:` warnings name; the driver rejects an answer that changes anything else (`onlyChange`), and the build checks it still passes. This step is `optional`: if the model gives no valid answer, or the reworded file doesn't build cleanly after 2 attempts, the driver puts back the architecture.json that built, rebuilds, notes it and carries on. Words left after that stay warnings: they never fail the run.
-3. `describe.mjs --json`, then one `descriptions` job per worksheet, in parallel if you like: the model gets the worksheet (which quotes the code of each endpoint and of very short files) and the file to fill in, and submits it filled in. Then build. This repeats until `descriptions.complete` is true (describe.mjs lists only what's still missing). Up to 3 attempts.
-4. `recent.mjs --json`. If `nothingRecent`, write `{ "tasks": [] }`; otherwise the `recent_work` job turns its `text` into recent-work.json. There's no conversation to go on, so the input is what changed since the last map, uncommitted changes and recent commits. Then build.
+### 第一张地图怎么走
 
-### How a refresh goes
+1. `scan.mjs --json`。模型拿到它的 `summary`。
+2. `architecture` 作业：模型读 `schema.md`、`choosing-boundaries.md` 和 `writing-descriptions.md`，用它的工具在代码里看看，然后交上 architecture.json。接着 `build.mjs --json`。直到 `build.ok` 为 true，并且 `files.unassignedPercent` 低于 10，这个作业会再跑，这一次还拿到它上一份 architecture.json 和构建的 `report`。最多 4 次。然后，如果 `plainLanguage.count` 大于 0，`plain_language` 作业拿到 architecture.json 和那份报告，只改写它的 `plain language:` 提醒点名的那些标签和摘要；驱动拒绝一份还改了别的东西的答案（`onlyChange`），构建再检查它仍然能过。这一步是 `optional`：模型没有给出合法答案，或改写后的文件试了 2 次还构建不干净，驱动就把当初能构建的那份 architecture.json 放回去，重新构建，记一笔，然后继续。那之后还留着的词仍是警告：它们从不让这次运行失败。
+3. `describe.mjs --json`，然后每张工作表一个 `descriptions` 作业，你愿意的话并行：模型拿到工作表（里面引用了每个接口的代码，以及很短的文件）和要填的文件，交上填好的。然后构建。这样重复，直到 `descriptions.complete` 为 true（describe.mjs 只列出还缺的）。最多 3 次。
+4. `recent.mjs --json`。如果 `nothingRecent`，就写 `{ "tasks": [] }`；否则 `recent_work` 作业把它的 `text` 变成 recent-work.json。没有对话可以接着，所以输入是上次地图之后改了什么、还没提交的改动和最近的提交。然后构建。
 
-`refresh.mjs --json`, then, for each item in `next`, the procedure for its code: `fix_build` and `assign_new_files` run the `update_architecture` job until the build passes its check, `describe` and `recent_work` run as in a first map, and so on. A code the file doesn't know fails the run, so a newer Floorplan can't be silently half-followed.
+### 一次刷新怎么走
 
-### A worked example
+`refresh.mjs --json`，然后对 `next` 里的每一项，走它的代码对应的过程：`fix_build` 和 `assign_new_files` 跑 `update_architecture` 作业，直到构建通过它的检查，`describe` 和 `recent_work` 像第一张地图那样跑，以此类推。文件不认识的一个代码会让这次运行失败，所以更新的 Floorplan 不会被静静地只跟着走一半。
 
-With a two-repo shop in `/work/shop`:
+### 一个走通的例子
+
+`/work/shop` 里有一个两个仓库的商店：
 
 ```bash
 export FLOORPLAN_UNATTENDED=1
 S=/path/to/floorplan/skills/floorplan
 
-node $S/scripts/status.mjs /work/shop --json      # "state": "none", so first_map
-node $S/scripts/scan.mjs /work/shop --json        # hand "summary" to the architecture job
-# ... write the model's answer to /work/shop/floorplan/architecture.json ...
+node $S/scripts/status.mjs /work/shop --json      # "state" 是 "none"，所以走 first_map
+node $S/scripts/scan.mjs /work/shop --json        # 把 "summary" 交给 architecture 作业
+# ... 把模型的答案写到 /work/shop/floorplan/architecture.json ...
 node $S/scripts/build.mjs /work/shop --json
 ```
 
-In Windows PowerShell the first two lines are `$env:FLOORPLAN_UNATTENDED = "1"` and `$S = "C:\path\to\floorplan\skills\floorplan"`; the `node` lines are the same. Write each JSON file as UTF-8; a byte order mark at the start (which `Set-Content` and `Out-File` add in Windows PowerShell 5.1) is fine.
+在 Windows PowerShell 里，前两行是 `$env:FLOORPLAN_UNATTENDED = "1"` 和 `$S = "C:\path\to\floorplan\skills\floorplan"`；`node` 那几行一样。每个 JSON 文件写成 UTF-8；开头有一个字节顺序标记也行（Windows PowerShell 5.1 的 `Set-Content` 和 `Out-File` 会加上）。
 
-The build answers, in part:
+构建的回答，节选：
 
 ```json
 {
@@ -191,7 +200,7 @@ The build answers, in part:
 }
 ```
 
-25% is over the limit, so the driver runs the architecture job again with that `report`, and builds again. Then:
+25% 超过了限度，所以驱动带着那份 `report` 再跑一次 architecture 作业，再构建一次。然后：
 
 ```bash
 node $S/scripts/describe.mjs /work/shop --json
@@ -209,31 +218,31 @@ node $S/scripts/describe.mjs /work/shop --json
 }
 ```
 
-Two `descriptions` jobs, one per worksheet, each writing its `descriptions` file. Build again until `descriptions.complete`, then recent work, and the map is `floorplan/index.html`.
+两个 `descriptions` 作业，一张工作表一个，各自写下它的 `descriptions` 文件。再构建，直到 `descriptions.complete`，然后是最近改动，地图就是 `floorplan/index.html`。例子里的 `"Main server"` 和 `"Website"` 只是示意；真正的标签按那份指南用中文来写。
 
-[`tests/unattended.test.mjs`](../tests/unattended.test.mjs) has a complete driver in about a hundred lines, following the file with canned answers in place of a model. It's a good place to start your own.
+[`tests/unattended.test.mjs`](../tests/unattended.test.mjs) 里有一个大约一百行的完整驱动，跟着这个文件走，用准备好的答案代替模型。从那里开始做你自己的，很合适。
 
-### What a driver is responsible for
+### 驱动要负责什么
 
-- Running each model job with only the tools the file lists, inside the codebase, read-only, and no network.
-- Checking each answer against its schema (and its job's `onlyChange`), sending the problems back, and writing the accepted answer itself. The model never writes files.
-- Honouring `optional` steps: a failed one puts its `restore` files back, runs `onFail`, and is noted, never fatal.
-- Keeping secrets out of what it writes. The model reads the code, secrets included, so a fooled or careless one can copy a key into a description. The build masks such text before it reaches the map (see `secretsHidden` above), but the answer files keep what was written. To keep them clean too, run each answer's text through the same check before writing it:
+- 每个模型作业只用文件列出的那些工具，在代码库里面，只读，并且不上网。
+- 拿每个答案对它的结构检查（以及它的作业的 `onlyChange`），把问题退回去，并自己写下被接受的答案。模型从不写文件。
+- 尊重 `optional` 步骤：失败的一步把它的 `restore` 文件放回去，跑 `onFail`，并记一笔，从不致命。
+- 不把密钥写进它写下的东西。模型读代码，密钥也包括在内，所以一个被骗了或粗心的模型会把一把密钥抄进说明。构建在这种文字到达地图之前会打码（见上面的 `secretsHidden`），但答案文件里留着写下的内容。想让它们也干净，写下之前先把每份答案的文字过同一项检查：
   ```js
   import { maskSecrets } from '/path/to/floorplan/skills/floorplan/scripts/lib/health.mjs';
-  const safe = maskSecrets(text);        // text written by a person or a model
-  if (safe !== text) { /* it held something secret-looking: write `safe`, or send it back as a problem */ }
+  const safe = maskSecrets(text);        // 人或模型写下的文字
+  if (safe !== text) { /* 里面有看起来像密钥的东西：写下 `safe`，或把它当成问题退回去 */ }
   ```
-  `maskSecrets(text)` returns the text with every value that is or might be a secret replaced with `«hidden»`, and the same text when there's none. It's a stable export, checked by the tests. (With a second argument, `{ path, lang, category }`, it treats the text as that file's source code instead.)
-- Patterns in architecture.json (`paths`, `exclude`, `ignore`, `packages`, `hosts`) that aren't valid, are over 300 characters, have more than 12 wildcards or 8 `{…}` groups, or number over 500 in one list, are build errors that name them (`nodes[3] ("web").paths[0] "[evil" is not a valid pattern: …`), so they go back to the model like any other.
-- Limits: time, cost and how many tool calls a job may make (each job suggests a `toolCalls` budget).
-- What happens to the map afterwards. `floorplan/.cache/` holds digests of the code (the scan, the worksheets, which quote short pieces of it with secrets masked), so don't publish it. `graph.json` includes this machine's folder path and the repos' remotes. To share a map, make an export, which leaves those out: `node floorplan/serve.mjs --export [file] [--include flows,notes,recent,health]`.
+  `maskSecrets(text)` 返回那段文字，其中每个是密钥或可能是密钥的值都换成 `«hidden»`；一个都没有时，返回原文。这是一个稳定的导出，测试盯着。（带上第二个参数 `{ path, lang, category }` 时，它把这段文字当成那个文件的源代码来对待。）
+- architecture.json 里的模式（`paths`、`exclude`、`ignore`、`packages`、`hosts`）不合法、超过 300 个字符、通配符多于 12 个或 `{…}` 组多于 8 个，或一份名单里超过 500 个，都是构建错误，并且点名它们（`nodes[3] ("web").paths[0] "[evil" is not a valid pattern: …`），所以它们像别的问题一样退回给模型。
+- 限度：时间、费用，以及一个作业可以做多少次工具调用（每个作业建议一个 `toolCalls` 预算）。
+- 地图之后怎么办。`floorplan/.cache/` 里有代码的摘要（扫描、工作表，工作表引用了代码的短片段，密钥已打码），所以不要把它公开。`graph.json` 含这台机器的文件夹路径和仓库的远程地址。要分享一张地图，做一份导出，那些会被去掉：`node floorplan/serve.mjs --export [文件] [--include flows,notes,recent,health]`。
 
-## What isn't covered
+## 没覆盖的
 
-- **Blueprints**, maps planned from a PRD, need a person to answer questions, so the workflow file doesn't make them. A refresh of an existing blueprint still works.
-- **Asking questions on the map**, requesting flows and changing a blueprint from the map need the map's server and Claude Code or Codex, as usual.
+- **规划蓝图**，按 PRD 规划的地图，需要有人回答问题，所以工作流文件不做它们。刷新一张已经有的规划蓝图仍然可以。
+- **在地图上提问**、请流程，以及在地图上改规划蓝图，需要地图的服务器，以及 Claude Code 或 Codex，跟平时一样。
 
-## Keeping it working
+## 让它一直能用
 
-[`tests/unattended.test.mjs`](../tests/unattended.test.mjs) runs a whole first map and a refresh by following `workflow.json`, using only `--json` output and exit codes, and checks that unattended mode writes nothing outside `floorplan/`, that the map names no agent, and that git failures fail loudly. When you change how SKILL.md makes a map, change `workflow.json` to match. A new NEXT code in `refresh.mjs` needs a handler in `workflow.json` and a line in the table above; the test fails until it has one.
+[`tests/unattended.test.mjs`](../tests/unattended.test.mjs) 跟着 `workflow.json` 跑完整的第一张地图和一次刷新，只用 `--json` 输出和退出码，并检查无人值守模式不往 `floorplan/` 以外写任何东西、地图不点名助手，以及 git 失败会大声失败。你改了 SKILL.md 做地图的方式，就要把 `workflow.json` 改到一致。`refresh.mjs` 里新的一个 NEXT 代码，需要 `workflow.json` 里有一个处理，以及上面那张表里有一行；没有的话测试会失败。

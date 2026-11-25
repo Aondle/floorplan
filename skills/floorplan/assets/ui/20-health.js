@@ -11,8 +11,8 @@
   const issues = (SC.graph.health && SC.graph.health.issues) || [];
   // a blueprint (planned, not built) gets a design review of the plan instead of a code check
   const PLAN = !!SC.graph.meta.blueprint;
-  const FIX = PLAN ? 'Resolve' : 'Fix';
-  const CHECK = PLAN ? 'design review' : 'health check';
+  const FIX = PLAN ? '处理' : '改';
+  const CHECK = PLAN ? '设计审查' : '健康检查';
   const ISSUES_URL = 'https://github.com/haydenschmitty/floorplan/issues/new';
 
   // ---------- "not a problem" ----------
@@ -38,7 +38,7 @@
     const rec = { id: issue.id, severity: issue.severity, locations: locsOf(issue), ...(reason ? { reason } : {}) };
     if (SERVER) {
       const r = await fetch('/api/health/dismissed', { method: 'POST', headers: { 'content-type': 'application/json', 'x-floorplan-token': SERVER.token }, body: JSON.stringify(rec) }).then((x) => x.json()).catch(() => null);
-      if (!r) { SC.toast('Couldn’t reach the map server, so this wasn’t saved.'); return false; }
+      if (!r) { SC.toast('连不上地图的服务器，所以这次没保存。'); return false; }
       dismissed = r.dismissed;
     } else {
       dismissed = [...dismissed.filter((x) => x.id !== issue.id), { ...rec, at: new Date().toISOString() }];
@@ -49,7 +49,7 @@
   async function undoDismissal(issue) {
     if (SERVER) {
       const r = await fetch('/api/health/dismissed', { method: 'DELETE', headers: { 'content-type': 'application/json', 'x-floorplan-token': SERVER.token }, body: JSON.stringify({ id: issue.id }) }).then((x) => x.json()).catch(() => null);
-      if (!r) { SC.toast('Couldn’t reach the map server.'); return; }
+      if (!r) { SC.toast('连不上地图的服务器。'); return; }
       dismissed = r.dismissed;
     } else {
       dismissed = dismissed.filter((x) => x.id !== issue.id);
@@ -59,9 +59,9 @@
   }
 
   const SEV = {
-    high: { color: 'var(--sev-high)', group: 'Fix these first', word: 'important' },
-    medium: { color: 'var(--sev-medium)', group: 'Worth fixing soon', word: 'worth fixing' },
-    low: { color: 'var(--sev-low)', group: 'Good to tidy up', word: 'minor' },
+    high: { color: 'var(--sev-high)', group: '先改这些', word: '重要' },
+    medium: { color: 'var(--sev-medium)', group: '尽快处理', word: '值得处理' },
+    low: { color: 'var(--sev-low)', group: '有空再收拾', word: '小问题' },
   };
   const ORDER = ['high', 'medium', 'low'];
   const active = () => issues.filter((i) => !dismissalOf(i));
@@ -112,7 +112,7 @@
   function closeList() { isOpen = false; SC.closePanel(); }
   function showOnMap(issue) {
     const items = (issue.items || []).filter((id) => SC.exists(id)).map((id) => ({ id, note: (issue.notes && issue.notes[id]) || '' }));
-    if (!items.length) { SC.toast(`This one isn’t on the map. Use “${FIX} with ${A.name}” instead.`); return; }
+    if (!items.length) { SC.toast(`这一条不在地图上。改用「让 ${A.name} 来${FIX}」。`); return; }
     if (isOpen) closeList();
     SC.showBoard({ title: issue.title, question: issue.detail, items });
   }
@@ -122,36 +122,36 @@
   function resolveHere(issue) {
     if (isOpen) closeList();
     if (!SC.draftChange(issue.change)) { fixWith(issue); return; }
-    SC.toast(issue.kind === 'question' ? 'Type your answer, then press Enter' : 'Edit the request if you like, then press Enter');
+    SC.toast(issue.kind === 'question' ? '写下你的回答，然后按回车' : '想改这段请求就改，然后按回车');
   }
   function fixWith(issue) {
     SC.modal({
-      title: `${FIX} with ${A.name}`,
-      html: `<p class="hc-hint">Copy this request and paste it into <b>${A.app}</b>, opened in your project folder. It explains what to change and asks before anything risky.</p><pre>${h(issue.fix)}</pre>`,
-      actions: [{ label: 'Copy prompt', primary: true, icon: 'copy', onClick: () => { SC.copy(issue.fix).then((ok) => { if (ok) SC.toast(`Copied. Paste it into ${A.app}.`); }); } }],
+      title: `让 ${A.name} 来${FIX}`,
+      html: `<p class="hc-hint">复制这段请求，贴进已经打开你项目文件夹的 <b>${A.app}</b>。它会说明要改什么，碰到有风险的地方会先问你。</p><pre>${h(issue.fix)}</pre>`,
+      actions: [{ label: '复制这段请求', primary: true, icon: 'copy', onClick: () => { SC.copy(issue.fix).then((ok) => { if (ok) SC.toast(`已复制。贴进 ${A.app}。`); }); } }],
     });
   }
   // The report is a GitHub issue the person reads and sends themselves: which check fired, its title (which
   // can name a file or endpoint), the kinds of files involved and their note. Never code, values or the fix prompt.
   const reportText = (issue, reason) => [
-    `**Check:** ${issue.kind} (${issue.severity})`,
-    `**What Floorplan said:** ${issue.title}`,
-    `**File types:** ${[...new Set((issue.locations || []).map((l) => (/\.[^./]+$/.exec(l.file) || [l.file.split('/').pop()])[0]))].slice(0, 6).join(', ') || 'none'}`,
+    `**检查：** ${issue.kind}（${issue.severity}）`,
+    `**Floorplan 怎么说：** ${issue.title}`,
+    `**文件类型：** ${[...new Set((issue.locations || []).map((l) => (/\.[^./]+$/.exec(l.file) || [l.file.split('/').pop()])[0]))].slice(0, 6).join(', ') || '无'}`,
     ``,
-    `**Why it's not a problem:**`,
-    reason.slice(0, 1500) || '_(no note)_',
+    `**为什么不是问题：**`,
+    reason.slice(0, 1500) || '（没有备注）',
   ].join('\n');
   function notAProblem(issue) {
     const m = SC.modal({
-      title: 'Not a problem?',
-      html: `<p class="hc-hint">Mark “${h(issue.title)}” as a false alarm and it moves to the bottom of the ${CHECK}, out of the count. It comes back if this check finds something new there.</p>
-        <textarea class="hc-why" placeholder="Why not? (optional) e.g. that value is a bcrypt hash, not the password" spellcheck="true"></textarea>
-        <label class="hc-rep"><input type="checkbox" class="hc-rep-on"><span>Also tell the Floorplan developer, so the check gets better. This opens a GitHub issue you can read and edit before sending. It includes only what’s shown below, never your code or any values.</span></label>
+      title: '不是问题？',
+      html: `<p class="hc-hint">把「${h(issue.title)}」标成误报，它会挪到${CHECK}的最底下，也不再计入数量。这条检查要是在那儿又发现了新东西，它会再出现。</p>
+        <textarea class="hc-why" placeholder="为什么不是？（可以不填）例如这个值是加密后的哈希，不是密码本身" spellcheck="true"></textarea>
+        <label class="hc-rep"><input type="checkbox" class="hc-rep-on"><span>也告诉 Floorplan 的作者，好把这项检查改准。这会打开一条 GitHub 议题，发送前你可以看、可以改。里面只有下面显示的内容，绝没有你的代码或任何具体的值。</span></label>
         <pre class="hc-prev"></pre>`,
-      actions: [{ label: 'Mark as not a problem', primary: true, icon: 'check', keepOpen: true, onClick: async (close) => {
+      actions: [{ label: '标成不是问题', primary: true, icon: 'check', keepOpen: true, onClick: async (close) => {
         const reason = m.el.querySelector('.hc-why').value.trim();
         const report = m.el.querySelector('.hc-rep-on').checked;
-        const url = `${ISSUES_URL}?title=${encodeURIComponent(`False positive: ${issue.kind}`)}&body=${encodeURIComponent(reportText(issue, reason))}`;
+        const url = `${ISSUES_URL}?title=${encodeURIComponent(`误报：${issue.kind}`)}&body=${encodeURIComponent(reportText(issue, reason))}`;
         // opened before anything is awaited, while the browser still counts it as the click's; where storage is
         // refused (often a sandboxed frame, which may block new windows too) a blocked window is noticed, and the
         // report's address is shown once the dismissal is saved
@@ -160,7 +160,7 @@
         if (!(await saveDismissal(issue, reason))) return;
         close();
         refresh();
-        SC.toast(report && opened ? 'Marked as not a problem. Thanks for the report.' : 'Marked as not a problem.');
+        SC.toast(report && opened ? '已标成不是问题。谢谢你的反馈。' : '已标成不是问题。');
         if (report && !opened) SC.showAddress(url);
       } }],
     });
@@ -176,23 +176,23 @@
     const locs = issue.locations || [];
     if (!SC.technical() || !locs.length) return '';
     const shown = locs.slice(0, 3).map((l) => `${l.file}${l.line > 1 ? ':' + l.line : ''}`);
-    return `<div class="hc-w">${shown.map(h).join('<br>')}${locs.length > 3 ? `<br>+${locs.length - 3} more` : ''}</div>`;
+    return `<div class="hc-w">${shown.map(h).join('<br>')}${locs.length > 3 ? `<br>还有 ${locs.length - 3} 处` : ''}</div>`;
   };
   const issueHtml = (issue, idx, note) => {
     const d = dismissalOf(issue);
     if (d) return `<div class="hc-issue off">
         <div class="hc-t"><span class="dot" style="background:rgba(var(--ink),.2)"></span><span>${h(issue.title)}</span></div>
-        <div class="hc-n">Marked as not a problem${d.reason ? `: ${h(d.reason)}` : ''}</div>
-        ${canDismiss ? `<div class="hc-a"><button class="btn soft" data-hc-undo="${idx}">Show again</button></div>` : ''}
+        <div class="hc-n">已标成不是问题${d.reason ? `：${h(d.reason)}` : ''}</div>
+        ${canDismiss ? `<div class="hc-a"><button class="btn soft" data-hc-undo="${idx}">再显示</button></div>` : ''}
       </div>`;
     return `<div class="hc-issue">
       <div class="hc-t"><span class="dot" style="background:${SEV[issue.severity].color}"></span><span>${h(issue.title)}</span></div>
       ${note ? `<div class="hc-n">${h(note)}</div>` : `<div class="hc-d">${h(issue.detail)}</div>`}
       ${locText(issue)}
       <div class="hc-a">
-        ${onMap(issue) ? `<button class="btn soft" data-hc-show="${idx}">${SC.iconI('search')}Show on map</button>` : ''}
-        ${SC.exported ? '' : here(issue) ? `<button class="btn soft" data-hc-here="${idx}">${SC.iconI('spark')}Resolve on the map</button>` : `<button class="btn soft" data-hc-fix="${idx}">${SC.iconI('spark')}${FIX} with ${A.name}</button>`}
-        ${canDismiss ? `<button class="btn soft" data-hc-dismiss="${idx}">${SC.iconI('check')}Not a problem</button>` : ''}
+        ${onMap(issue) ? `<button class="btn soft" data-hc-show="${idx}">${SC.iconI('search')}在地图上标出来</button>` : ''}
+        ${SC.exported ? '' : here(issue) ? `<button class="btn soft" data-hc-here="${idx}">${SC.iconI('spark')}在地图上处理</button>` : `<button class="btn soft" data-hc-fix="${idx}">${SC.iconI('spark')}让 ${A.name} 来${FIX}</button>`}
+        ${canDismiss ? `<button class="btn soft" data-hc-dismiss="${idx}">${SC.iconI('check')}不是问题</button>` : ''}
       </div>
     </div>`;
   };
@@ -200,7 +200,7 @@
     const on = (attr, fn) => el.querySelectorAll(`[data-hc-${attr}]`).forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); fn(issues[+b.getAttribute(`data-hc-${attr}`)]); }));
     on('show', showOnMap); on('fix', fixWith); on('here', resolveHere); on('dismiss', notAProblem); on('undo', undoDismissal);
   };
-  const headline = () => urgent() ? `${SC.plural(urgent(), 'thing')} need${urgent() === 1 ? 's' : ''} attention` : active().length ? 'Nothing urgent' : 'No problems found';
+  const headline = () => urgent() ? `${SC.plural(urgent(), '件事')}要看一下` : active().length ? '没有急事' : '没发现问题';
   const breakdown = () => `<div class="hc-sub">${ORDER.filter(count).map((s) => `<span><i class="dot" style="background:${SEV[s].color}"></i>${count(s)} ${SEV[s].word}</span>`).join('')}</div>`;
   const headColor = () => urgent() ? SEV[count('high') ? 'high' : 'medium'].color : 'var(--ok)';
 
@@ -209,30 +209,30 @@
   // "all clear" when a check never ran. `loud` lines are gaps that matter (a server, but no endpoints found).
   const checked = Array.isArray(SC.graph.health && SC.graph.health.checked) ? SC.graph.health.checked.filter((c) => c && typeof c.label === 'string' && typeof c.text === 'string') : [];
   const gaps = checked.filter((c) => c.loud);
-  const checkedHtml = () => !checked.length ? '' : `<div class="sec"><h3>What was checked</h3><div class="hc-chk">${checked.map((c) =>
-    `<div class="k${c.loud ? ' loud' : ''}"><span class="dot" style="background:${c.loud ? 'var(--sev-medium)' : c.checked ? 'var(--ok)' : 'rgba(var(--ink),.22)'}"></span><span><b>${h(c.label)}:</b> ${h(c.text)}</span></div>`).join('')}</div></div>`;
+  const checkedHtml = () => !checked.length ? '' : `<div class="sec"><h3>查过什么</h3><div class="hc-chk">${checked.map((c) =>
+    `<div class="k${c.loud ? ' loud' : ''}"><span class="dot" style="background:${c.loud ? 'var(--sev-medium)' : c.checked ? 'var(--ok)' : 'rgba(var(--ink),.22)'}"></span><span><b>${h(c.label)}：</b> ${h(c.text)}</span></div>`).join('')}</div></div>`;
   // app-wide checks that alone clear some endpoints: named, so a clean result shows what it rests on
   const appWide = (!PLAN && SC.graph.health && SC.graph.health.appWide) || [];
-  const appWideHtml = () => appWide.length ? `<p class="pd">${appWide.map((g) => `${SC.plural(g.endpoints, 'endpoint')} ${g.endpoints === 1 ? 'counts' : 'count'} as protected only because of <b>${h(g.name)}</b>, a check in ${h(g.file)} (line ${h(String(g.line))}) that runs before every request.`).join(' ')} If it lets some requests through, those endpoints are open to anyone.</p>` : '';
+  const appWideHtml = () => appWide.length ? `<p class="pd">${appWide.map((g) => `${SC.plural(g.endpoints, '个接口')}算作有保护，只是因为 <b>${h(g.name)}</b>（在 ${h(g.file)} 第 ${h(String(g.line))} 行）会在每个请求之前先跑一遍。`).join(' ')} 如果它会放行一部分请求，那些接口就是谁都能用的。</p>` : '';
 
   function listHtml() {
     const live = active(), off = issues.filter(dismissalOf);
     const top = `<div class="sec">
-        <div class="ph"><span class="ico" style="--c:${headColor()}">${SC.icon('health')}</span><span class="kindlabel">${PLAN ? 'Design review' : 'Health check'}</span></div>
+        <div class="ph"><span class="ico" style="--c:${headColor()}">${SC.icon('health')}</span><span class="kindlabel">${PLAN ? '设计审查' : '健康检查'}</span></div>
         <h2 class="pt">${h(headline())}</h2>
-        <p class="pd">${PLAN ? 'We checked the plan for parts anyone on the internet could use, decisions the PRD leaves open, and pieces nothing connects to. Settling these now is cheaper than after it’s built.' : 'We looked for keys left in the code or sent to the browser, data and parts of your app anyone on the internet can reach (Supabase tables, Firebase rules, Stripe webhooks, endpoints), leftover files and files too big to edit safely. It’s a quick check, not a security audit.'}</p>
+        <p class="pd">${PLAN ? '我们看了这份规划：有没有谁在网上都能用的部分、需求里还没定的事、以及什么都没连上的块。现在定下来，比做出来再改便宜。' : '我们找了写在代码里或发给浏览器的密钥，网上谁都能碰到的数据和功能（Supabase 的表、Firebase 规则、Stripe 的到账通知、接口），没人用的文件，以及大到不好安全修改的文件。这是一次快速检查，不是安全审计。'}</p>
         ${appWideHtml()}
-        ${live.length ? breakdown() : `<div class="hc-calm">${off.length ? `Nothing left to look at: you marked ${SC.plural(off.length, 'item')} as not a problem.` : `Nothing stood out${gaps.length ? `, but ${gaps.length === 1 ? 'one check' : `${gaps.length} checks`} had nothing to look at (below)` : ''}.`} This is a quick automatic check, not a full ${PLAN ? 'design' : 'security'} review.</div>`}
-        <div class="actions"><button class="btn soft" data-hc-back>${SC.iconI('left')}Back</button></div>
+        ${live.length ? breakdown() : `<div class="hc-calm">${off.length ? `没有剩下要看的：你把 ${SC.plural(off.length, '项')}标成了不是问题。` : `没有特别扎眼的${gaps.length ? `，但有 ${gaps.length} 项检查没有东西可看（见下）` : ''}。`}这是一次自动的快速检查，不是完整的${PLAN ? '设计' : '安全'}审查。</div>`}
+        <div class="actions"><button class="btn soft" data-hc-back>${SC.iconI('left')}返回</button></div>
       </div>` + checkedHtml();
     const groups = ORDER.map((sev) => {
       const list = issues.map((i, idx) => [i, idx]).filter(([i]) => i.severity === sev && !dismissalOf(i));
       return list.length ? `<div class="sec"><h3>${h(SEV[sev].group)} <span class="c">${list.length}</span></h3>${list.map(([i, idx]) => issueHtml(i, idx)).join('')}</div>` : '';
     }).join('');
-    const offHtml = off.length ? `<div class="sec"><h3>Marked as not a problem <span class="c">${off.length}</span></h3>${issues.map((i, idx) => [i, idx]).filter(([i]) => dismissalOf(i)).map(([i, idx]) => issueHtml(i, idx)).join('')}</div>` : '';
-    const foot = !live.length ? '' : SC.exported ? `<div class="sec" style="color:var(--text-3);font-size:12px;line-height:1.6">These are automatic hints from when this copy was exported.</div>` : `<div class="sec" style="color:var(--text-3);font-size:12px;line-height:1.6">These are automatic hints. ${live.some(here)
-      ? `“Resolve on the map” puts a request in the Ask bar’s Change mode: finish or edit it, press Enter, and ${A.name} updates the plan and redraws the map. Undo puts it back.`
-      : `“${FIX} with ${A.name}” gives you a request to paste into ${A.app}; ${PLAN ? 'it explains the choice and updates the plan once you decide' : 'it checks the code before changing anything'}.`} If one is wrong, “Not a problem” sets it aside.</div>`;
+    const offHtml = off.length ? `<div class="sec"><h3>标成不是问题 <span class="c">${off.length}</span></h3>${issues.map((i, idx) => [i, idx]).filter(([i]) => dismissalOf(i)).map(([i, idx]) => issueHtml(i, idx)).join('')}</div>` : '';
+    const foot = !live.length ? '' : SC.exported ? `<div class="sec" style="color:var(--text-3);font-size:12px;line-height:1.6">这些是导出这份副本时自动给出的提示。</div>` : `<div class="sec" style="color:var(--text-3);font-size:12px;line-height:1.6">这些是自动提示。${live.some(here)
+      ? `「在地图上处理」会把一段请求放进提问栏的「改规划」：补完或改一改，按回车，${A.name} 会更新规划并重画地图。撤销可以改回去。`
+      : `「让 ${A.name} 来${FIX}」给你一段请求，贴进 ${A.app}；${PLAN ? '它会把选择讲清楚，你定了之后再更新规划' : '它会先看代码，再改'}。`}哪一条不对，用「不是问题」先搁到一边。</div>`;
     return top + groups + offHtml + foot;
   }
   function openList() {
@@ -246,14 +246,14 @@
 
   // ---------- chrome ----------
   const btn = SC.addHeaderButton({
-    id: 'btn-health', label: PLAN ? 'Review' : 'Health', icon: 'health',
+    id: 'btn-health', label: PLAN ? '设计审查' : '健康检查', icon: 'health',
     onClick: () => (isOpen ? closeList() : openList()),
   });
   const badge = document.createElement('span');
   badge.className = 'badge';
   function updateButton() {
     const n = urgent();
-    btn.title = `${PLAN ? 'Design review' : 'Health check'}: ${n ? headline() : 'nothing urgent'}`;
+    btn.title = `${PLAN ? '设计审查' : '健康检查'}：${n ? headline() : '没有急事'}`;
     btn.querySelector('svg.i').innerHTML = SC.icons[n ? 'health' : 'check'];
     if (n) {
       badge.textContent = n > 99 ? '99+' : String(n);
@@ -276,9 +276,9 @@
   SC.on('panel', () => { if (isOpen && openedAt && where() !== openedAt) { isOpen = false; SC.closePanel(); } });
 
   SC.addPanelSection('overview', () => ({
-    html: `<div class="sec"><h3>${PLAN ? 'Design review' : 'Health'}</h3><div class="list"><a class="row" data-hc-open>
+    html: `<div class="sec"><h3>${PLAN ? '设计审查' : '健康检查'}</h3><div class="list"><a class="row" data-hc-open>
         <span class="dot" style="background:${headColor()}"></span>
-        <span class="rt"><div class="rn">${h(headline())}</div><div class="rd">${active().length ? ORDER.filter(count).map((s) => `${count(s)} ${SEV[s].word}`).join(' · ') : PLAN ? 'Quick automatic check of the plan' : gaps.length ? `${h(gaps.map((c) => c.label).join(' and '))}: nothing found to check` : 'Quick automatic check of secrets, open endpoints and leftover files'}</div></span>
+        <span class="rt"><div class="rn">${h(headline())}</div><div class="rd">${active().length ? ORDER.filter(count).map((s) => `${count(s)} ${SEV[s].word}`).join(' · ') : PLAN ? '对规划做的一次自动快速检查' : gaps.length ? `${h(gaps.map((c) => c.label).join('、'))}：没有东西可查` : '自动快速看过密钥、敞开的接口和没人用的文件'}</div></span>
         <span class="rc">${SC.iconI('right')}</span></a></div></div>`,
     bind: (el) => el.querySelector('[data-hc-open]')?.addEventListener('click', (ev) => { ev.preventDefault(); openList(); }),
   }));
@@ -291,9 +291,9 @@
       const inside = (issue.items || []).filter((id) => id === itemId || (SC.exists(id) && SC.chain(id).includes(itemId)));
       if (!inside.length) return;
       const exact = issue.notes && inside.includes(itemId) ? issue.notes[itemId] : '';
-      hits.push(issueHtml(issue, idx, exact || (inside.length > 1 || inside[0] !== itemId ? `Affects ${SC.plural(inside.length, 'place')} in here` : '')));
+      hits.push(issueHtml(issue, idx, exact || (inside.length > 1 || inside[0] !== itemId ? `这里面有 ${SC.plural(inside.length, '处')}会受影响` : '')));
     });
     if (!hits.length) return '';
-    return { html: `<div class="sec"><h3>${PLAN ? 'Design review' : 'Health'} <span class="c">${hits.length}</span></h3>${hits.slice(0, 6).join('')}${hits.length > 6 ? `<div class="more" data-hc-open style="cursor:pointer">+${hits.length - 6} more in the ${CHECK}</div>` : ''}</div>`, bind: (el) => { bindIssues(el); el.querySelector('[data-hc-open]')?.addEventListener('click', openList); } };
+    return { html: `<div class="sec"><h3>${PLAN ? '设计审查' : '健康检查'} <span class="c">${hits.length}</span></h3>${hits.slice(0, 6).join('')}${hits.length > 6 ? `<div class="more" data-hc-open style="cursor:pointer">${CHECK}里还有 ${hits.length - 6} 条</div>` : ''}</div>`, bind: (el) => { bindIssues(el); el.querySelector('[data-hc-open]')?.addEventListener('click', openList); } };
   });
 })();

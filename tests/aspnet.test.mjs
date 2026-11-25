@@ -276,7 +276,7 @@ test('Health, ASP.NET Core end to end: an app-wide policy covers its own project
     const graph = readGraph(root);
     assert.deepEqual(openEndpoints(graph), ['POST /admin/roles', 'POST /admin/users']);
     const roles = graph.health.issues.find((i) => i.id === 'open-endpoints:Admin/RolesController.cs');
-    assert.match(roles.fix, /the same check the other endpoints in this file already use \(\[Authorize\(Roles = "admin"\)\]\)/);
+    assert.match(roles.fix, /这个文件里其他接口已经在用的同一道检查（\[Authorize\(Roles = "admin"\)\]）/);
   } finally {
     cleanup(root);
   }
@@ -296,7 +296,7 @@ test('Health, C#: CORS that allows every site, Stripe webhooks without a signatu
   // a password-like value, put together here so none is written in the repo
   const pw = ['Tr0', 'ub4', 'dor&', '3x'].join('');
   const conn = (src) => findIssues(src, { path: 'Api/appsettings.json', category: 'config', lang: 'json' }).filter((x) => x.k === 'secret').map((x) => x.what);
-  assert.deepEqual(conn(`{ "ConnectionStrings": { "Db": "Server=prod-sql.shop.io;Database=shop;User Id=app;Password=${pw};" } }`), ['a database password inside a connection string']);
+  assert.deepEqual(conn(`{ "ConnectionStrings": { "Db": "Server=prod-sql.shop.io;Database=shop;User Id=app;Password=${pw};" } }`), ['连接串里的数据库密码']);
   assert.deepEqual(conn(`{ "ConnectionStrings": { "Db": "Host=localhost;Username=app;Password=${pw}" } }`), []);
   assert.deepEqual(conn('{ "ConnectionStrings": { "Db": "Host=db.shop.io;Password=${DB_PASSWORD}" } }'), []);
 });
@@ -305,7 +305,7 @@ test('Health, C#: connection-string passwords follow the same rules as other sec
   const pw = ['Tr0', 'ub4', 'dor&', '3x'].join('');
   const conn = (value, file = 'Api/appsettings.json', lang = 'json') => findIssues(`{ "ConnectionStrings": { "Db": "${value}" } }`, { path: file, category: lang === 'json' ? 'config' : 'code', lang })
     .filter((x) => x.k === 'secret').map((x) => x.what);
-  const real = ['a database password inside a connection string'];
+  const real = ['连接串里的数据库密码'];
   // real ones, in any spelling of the keys, and in C# code too
   assert.deepEqual(conn(`Server=tcp:prod-sql.shop.io,1433;Initial Catalog=shop;User ID=app;Password=${pw};Encrypt=True`), real);
   assert.deepEqual(conn(`Data Source=prod-sql.shop.io;Database=shop;UID=app;PWD=${pw}`), real);

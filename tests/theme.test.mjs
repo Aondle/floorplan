@@ -89,8 +89,8 @@ test('an unknown saved value is ignored, and blocked storage still works for thi
 
 test('the Theme button is in the built page with a plain label, a 44 px target and a visible focus ring', () => {
   assert.match(html, /\/\* ui\/05-theme\.js \*\//);
-  assert.ok(html.includes('Theme: ${NAME[c]}. Press for ${WORD[NEXT[c]]}.'));
-  assert.ok(html.includes("auto: 'Auto (follows your device)'"));
+  assert.ok(html.includes('外观：${NAME[c]}。再按一下换成${WORD[NEXT[c]]}。'));
+  assert.ok(html.includes("auto: '自动（跟着这台设备）'"));
   assert.match(html, /#theme-toggle \{[^}]*width: 44px; height: 44px;/);
   assert.match(html, /#theme-toggle:focus-visible \{ outline: 2px solid/);
   assert.match(html, /prefers-reduced-motion: reduce\) \{ #theme-toggle/);

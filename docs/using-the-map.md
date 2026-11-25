@@ -1,215 +1,236 @@
-# Using the map
+# 用地图
 
-The map is a board of cards connected by lines. Each card is a part of your app: a big area like "Main server", a group of files, a single file, or an endpoint (a request the server can receive). Lines show what uses what.
+地图是一块板，上面是用线连起来的卡片。每张卡片是你应用的一部分：一大块，比如「主服务器」；一组文件；一个文件；或一个接口（服务器能接收的一种请求）。线表示谁在用谁。
 
-## Getting around
+## 怎么逛
 
-| To… | Do this |
+| 想… | 这样做 |
 |---|---|
-| go inside a card | double-click it, or select it and press **Enter** |
-| go back up | **Backspace**, the back arrow, or the breadcrumbs at the top |
-| pan | drag the background |
-| zoom | scroll, or **+** / **−** |
-| fit everything on screen | **F**, or the frame button bottom-left |
-| find anything | **/** or **Ctrl/⌘ K**, then type a name, file or URL |
-| see details | click a card; the panel on the right fills in |
-| show or hide the panel | **P**, or the panel button top-right |
-| close a menu, stop a flow, clear a selection | **Esc** |
+| 进一张卡片里面 | 双击它，或选中后按 **Enter** |
+| 回到上一层 | **Backspace**、返回箭头，或顶上的面包屑 |
+| 平移 | 拖背景 |
+| 缩放 | 滚动，或 **+** / **−** |
+| 把全部放进屏幕 | **F**，或左下角的框选按钮 |
+| 找任何东西 | **/** 或 **Ctrl/⌘ K**，然后打名字、文件或网址 |
+| 看详情 | 点一张卡片；右边的面板会填上 |
+| 显示或藏起面板 | **P**，或右上角的面板按钮 |
+| 关掉菜单、停下流程、清掉选中 | **Esc** |
 
-The details on cards simplify as you zoom out: descriptions drop away and titles get bigger, so the map stays readable from far away.
+往远了缩，卡片上的字会变简单：说明先消失，标题变大，所以离远了也读得清。
 
-### On a phone or tablet
+### 在手机或平板上
 
-- **Drag** with one finger to pan, and **pinch** with two to zoom.
-- **Tap a card** to see its details in a sheet at the bottom. **Open** in the sheet goes inside the card. Tapping empty space, going in or up, or **Esc** puts the sheet away.
-- The top bar wraps onto two rows and its buttons show only their icons. On a phone the zoom buttons sit in the top row, and the description under the title folds to one line, with **More** to read the rest.
+- **一根手指拖**是平移，**两根手指捏**是缩放。
+- **点一张卡片**，详情在底部的一张单子里打开。单子里的 **打开** 会进到卡片里面。点空白处、走进去或往上走，或按 **Esc**，单子会收起。
+- 顶栏折成两行，按钮只剩图标。在手机上，缩放按钮在顶行；标题下面的说明折成一行，用 **展开** 看剩下的（收起来是 **收起**）。
 
-Nothing changes with a mouse in a window 1000 px wide or wider. Phone and tablet support was built by [@menachem-kurkus](https://github.com/menachem-kurkus).
+窗口宽 1000 像素或更宽、并且用鼠标时，什么都不变。手机和平板的支持由 [@menachem-kurkus](https://github.com/menachem-kurkus) 做的。
 
-## Cards
+## 卡片
 
-- **Title and description:** a plain-English name, and one line on what it does.
-- **Footer:** how much is inside (modules, files or endpoints) on the left. On the right, a green tag when it's part of recent work.
-- **Endpoint cards** show the method and address (`POST /api/orders`) above their name.
-- **A small amber dot** after a title means there's a note pinned to that file.
-- **Pill-shaped cards at the edges** of a view are things outside it. The brackets above each column say which side is which:
-  - **Used by:** outside parts that use or call into this one.
-  - **Inside ‹name›:** what this part is made of.
-  - **Uses:** outside parts it relies on, like a database or Stripe.
+- **标题和说明：** 一个人话名字，加一句它干什么。
+- **底部：** 左边是里面有多少（模块、文件或接口）。右边，如果它属于最近改动，会有一个绿色标签。
+- **接口卡片** 在名字上面显示方法和地址（`POST /api/orders`）。
+- **标题后面一个小的琥珀色圆点** 表示这个文件上钉了备注。
+- **看法边上的胶囊形卡片** 是这一层外面的东西。每一列顶上的括号仍是程序里的英文固定字：
+  - **Used by：** 外面用到或调用这一块的部分。
+  - **Inside ‹名字›：** 这一块是由什么组成的。
+  - **Uses：** 它依赖的外面部分，比如数据库或 Stripe。
 
-  Double-click an outside card to jump there.
+  双击一张外面的卡片，就跳过去。
 
-<img src="images/inside.png" alt="Inside a part of the server: what uses it on the left, its files in the middle, outside services on the right">
+<img src="images/inside.png" alt="服务器里某一块的内部：左边是谁在用它，中间是它的文件，右边是外面的服务">
 
-Hover over a card for a moment to see what kind of thing it is, where it lives, and how big it is. Hover over a line to see what it carries, for example which endpoints a screen calls.
+在卡片上停一会儿，能看到它是哪一类、住在哪、有多大。在线上停一会儿，能看到这条线带着什么，例如一个页面调用了哪些接口。
 
-## The side panel
+## 侧边面板
 
-Click anything to see it in the panel: its full description, what it's part of, what's inside it, what it's **used by** and what it **depends on**, its endpoints, and buttons to open it or ask about it. With nothing selected, the panel describes the current view, or the whole app at the top level.
+点任何东西，都会在面板里看到：完整说明、它属于哪一块、里面有什么、**谁在用** 它、它 **依赖** 什么、它的接口，以及打开它或向它提问的按钮。什么都没选时，面板讲的是当前这一层；在最顶上，讲的是整个应用。
 
-Drag the panel's left edge to resize it.
+拖面板的左边缘可以改宽度。
 
-## Header buttons
+## 顶栏按钮
 
-### Health
-A count of important issues, and a plain-language list of problems the scan found:
-- passwords and keys written into the code, or into a committed `.env` file;
-- secret keys in settings the browser gets, like an OpenAI key in a `VITE_` or `NEXT_PUBLIC_` variable;
-- Supabase tables with row-level security switched off, and database rules that let anyone change a table (row-level security switched on in a loop over a list of tables counts for those tables; when a migration switches it on for tables it doesn't name, the tables it may cover are reported as "can't tell" instead);
-- Firebase rules that let anyone read or change your data or files, including "test mode" rules and when they run out;
-- Stripe webhooks that act on payments without checking Stripe's signature, so anyone could fake one;
-- servers that let any website call them, flagged as worth fixing when login cookies go along too;
-- endpoints that let anyone change or read data without signing in, ASP.NET Core apps included;
-- files nothing uses;
-- files over about 1,000 lines, which AI struggles to edit safely.
+### 健康检查
 
-Below the count, **What was checked** says what each check had to look at: how many endpoints, Supabase tables, Firebase rules files, Stripe webhooks and files it read, or that it found none. A check with nothing to look at can't find a problem, so a short list isn't always a clean bill of health. The line stands out when it matters, for example when the code looks like it runs a server (a `createServer` call, `Deno.serve`, a Supabase Edge Function, PHP that reads `$_POST` or declares `#[Route]`s) but no endpoints were found, which usually means they're set up in a way Floorplan doesn't recognise yet.
+要紧问题的个数，加上扫描找到的问题，用人话列出来：
 
-Each issue has **Show on map**, which highlights the affected files and endpoints with notes, and **Fix with Claude** (or **Fix with Codex**, for a map made in Codex), which copies a ready-made prompt naming the exact files and lines and the safe fix. It's a quick automatic check, not a security audit. On a blueprint this button is **Review** instead (see [Blueprints](#blueprints)).
+- 写进代码里的密码和密钥，或写进已经提交的 `.env` 文件；
+- 浏览器拿得到的设置里的密钥，比如 `VITE_` 或 `NEXT_PUBLIC_` 变量里的一把 OpenAI 密钥；
+- 行级安全没打开的 Supabase 表，以及让谁都能改一张表的数据库规则（在一份表名单上循环打开行级安全，那些表算打开了；一次迁移给它没点名的表打开时，它可能盖到的表会报成「看不出来」，而不是当成已经锁好）；
+- 让谁都能读或改你的数据或文件的 Firebase 规则，包括「测试模式」的规则，以及它们什么时候失效；
+- 处理付款却不核对 Stripe 签名的到账通知，这样谁都能伪造一条；
+- 让任何网站都能来调用的服务器；登录用的 cookie 也一起放行时，会标成值得修；
+- 不登录就能改或读数据的接口，包括 ASP.NET Core 应用；
+- 什么都没用到的文件；
+- 大约超过 1000 行的文件，AI 很难安全地改。
 
-Health leaves password hashes and encrypted values alone (bcrypt, argon2, dotenvx, sops, Ansible Vault and similar), and goes by the value, so a backup with one value left unencrypted is still flagged. It can only recognise encryption that marks itself, and it can't read a `.env` file that git ignores. It also doesn't judge sign-in on endpoints in a route table (`"GET /api/orders": listOrders`) or on Django endpoints, because the check isn't where it can read it for each route, so no report there doesn't mean those endpoints are protected.
+个数下面，**查过什么** 说明每一项检查有什么可看：多少个接口、多少张 Supabase 表、多少份 Firebase 规则文件、多少个 Stripe 到账通知、读了多少文件，或者它什么都没找到。一项检查没有东西可看，就发现不了问题，所以列表短并不总是「检查过了、没问题」。要紧的时候这一行会突出，例如代码看起来在跑一个服务器（一次 `createServer` 调用、`Deno.serve`、一个 Supabase Edge Function，或读 `$_POST`、声明 `#[Route]` 的 PHP），却没找到任何接口。这通常是接口的写法 Floorplan 还认不出来。
 
-It also leaves alone what's public on purpose, as long as it only reads: feeds and files for crawlers and AI tools (`rss.xml`, `llms.txt` and similar), addresses your project lists in its `llms.txt` or allows in its `robots.txt`, responses marked `Cache-Control: public`, and Next.js `GET` routes that read no database, session or server secret, even through what they import. Endpoints that change data are always checked. Payload CMS's own API routes count as checked, because Payload applies its access rules, so check those rules yourself. A token passed to a browser tracker's script is left alone too, since every visitor already has it, and so are publishable keys made to go in web pages (`pk_…` from Stripe, Clerk and others, Supabase's `sb_publishable_…`); their secret partners (`sk_…`, `sb_secret_…`) are still flagged.
+构建报告里，同一段的标题仍是英文固定字 **HEALTH**（规划蓝图是 **DESIGN REVIEW**），下面那一行是 **what was checked:**。
 
-For passwords and keys, Health goes by what's written, not just the name: a variable a script or pipeline fills in (`"$DB_PASSWORD"`, `${{ secrets.TOKEN }}`, `$(dbPassword)`, a psql `:'app_password'`), the browser's autofill words (`new-password`), placeholders such as `your-key-here` or `troque-esta-chave` (in English, Portuguese, Spanish, French and German), SQL comments and made-up keys with a run of the alphabet in them are left alone, while a password written in next to them is still flagged. For files nothing uses, it leaves alone Expo Router screens (every file in the `app/` folder of an app that uses `expo-router`) and files whose name another file mentions, such as `users.service` in a NestJS module.
+每条问题都有 **在地图上标出来**（把涉及的文件和接口标上备注），以及 **让 Claude 来改**（在 Codex 里做的地图是 **让 Codex 来改**）。它会复制一段现成的请求，点名具体的文件和行，以及安全的改法。这是一次自动的快速检查，不是安全审计。在规划蓝图上，这个按钮换成 **设计审查**（见[规划蓝图](#blueprints)）。
 
-A login check that runs before every request, like Express's `app.use(requireAuth)` or Hono's `app.use('/api/*', auth)` for everything under a path, counts for the endpoints behind it, and so does a NestJS guard for the whole app (`{ provide: APP_GUARD, useClass: JwtAuthGuard }` or `app.useGlobalGuards(new JwtAuthGuard())`) for that app's controllers, except routes marked `@Public()`. Only middleware whose name says what it checks counts: `cors()`, `helmet()`, a session being loaded or a word in its options (a header named `X-Refreshed-Token`) doesn't. When such a check is all that protects some endpoints, the Health panel names it and where it is, so you can see what a clean result rests on.
+健康检查会放过密码哈希和加密过的值（bcrypt、argon2、dotenvx、sops、Ansible Vault 以及类似的），而且看的是值本身，所以一份备份里有一个值没加密，仍会被标出来。它只能认出自己标明了加密方式的那种，也读不了 git 忽略掉的 `.env` 文件。路由表里的接口（`"GET /api/orders": listOrders`）和 Django 的接口，它也不判断有没有登录检查，因为检查不在它能按每条路由读到的地方。那里没有报告，并不等于那些接口有保护。
 
-In ASP.NET Core, `[Authorize]` and `.RequireAuthorization()` count wherever they are: on the action or endpoint, its controller or route group, or a base controller. `[AllowAnonymous]` and `.AllowAnonymous()` mark an endpoint public on purpose, so it isn't reported. An app-wide fallback policy, an `AuthorizeFilter` on every controller or `MapControllers().RequireAuthorization()` counts only for the endpoints of its own project (the folder of its `.csproj`), so in a repo with several services one service's policy doesn't hide another's open endpoints.
+它也会放过故意公开、而且只是读取的东西：给爬虫和 AI 工具的订阅和文件（`rss.xml`、`llms.txt` 以及类似的）、你的项目在自己的 `llms.txt` 里列出或在 `robots.txt` 里允许的地址、标了 `Cache-Control: public` 的响应，以及不读数据库、会话或服务器密钥的 Next.js `GET` 路由，哪怕是通过它引用的东西去读。会改数据的接口始终要查。Payload CMS 自己的 API 路由算作已经查过，因为 Payload 会套它自己的访问规则，那些规则要你自己看。交给浏览器追踪脚本的令牌也会放过，因为每个访客本来就有它；做成放进网页的可公开密钥也放过（Stripe、Clerk 等的 `pk_…`，Supabase 的 `sb_publishable_…`）。它们的秘密那一半（`sk_…`、`sb_secret_…`）仍会标出来。
 
-If an issue is wrong, press **Not a problem** and add a reason if you like. It moves to the bottom of the list and out of the count, and stays that way when the map is rebuilt. Editing elsewhere in the file won't bring it back, but it does show again if the same check finds something new in that file or the issue changes severity. **Show again** undoes it. Exported copies keep the issue set apart but leave your reason out.
+密码和密钥，健康检查看的是写下来的内容，不只看名字：脚本或流水线填进去的变量（`"$DB_PASSWORD"`、`${{ secrets.TOKEN }}`、`$(dbPassword)`、psql 的 `:'app_password'`）、浏览器的自动填充词（`new-password`）、占位符比如 `your-key-here` 或 `troque-esta-chave`（英语、葡萄牙语、西班牙语、法语和德语）、SQL 注释，以及里面有一串字母表的编造密钥，都会放过；旁边写着的真密码仍会标出来。没人用的文件里，它会放过 Expo Router 的页面（用了 `expo-router` 的应用，`app/` 文件夹里的每个文件），以及名字被另一个文件提到的文件，比如 NestJS 模块里的 `users.service`。
 
-You can also tick the box to tell the Floorplan developer. That opens a GitHub issue for you to read, edit and send yourself, with the check's name and title, the kinds of files involved and your note. A title can name a file or an endpoint, and the preview shows you exactly what will go. It never includes your code or any values, and nothing is sent unless you send it.
+每个请求之前都跑的登录检查，比如 Express 的 `app.use(requireAuth)`，或 Hono 里盖住一条路径下所有东西的 `app.use('/api/*', auth)`，算在它后面的接口上。整个应用的 NestJS 守卫也算（`{ provide: APP_GUARD, useClass: JwtAuthGuard }` 或 `app.useGlobalGuards(new JwtAuthGuard())`），盖住那个应用的控制器，但标了 `@Public()` 的路由除外。只有名字说出它在查什么的中间件才算：`cors()`、`helmet()`、正在加载的会话，或它的选项里的一个词（一个叫 `X-Refreshed-Token` 的头）不算。有些接口全靠这样一次检查来保护时，健康检查面板会点出它的名字和位置，好让你看见「没问题」是靠什么撑着的。
 
-### Recent work
-Appears when Claude or Codex has just changed things. It lays the changed cards out on one board, with what you asked for, a summary of what was done, and a note on every card. Elsewhere on the map, changed cards have a green ring and a **Changed** or **New** tag, and the parts that contain them show **N changed**, so you can follow the green down from the top level.
+在 ASP.NET Core 里，`[Authorize]` 和 `.RequireAuthorization()` 写在哪都算：在动作或接口上、在它的控制器或路由组上，或在一个基类控制器上。`[AllowAnonymous]` 和 `.AllowAnonymous()` 表示这个接口故意公开，所以不报告。整份应用的后备策略、每个控制器上的 `AuthorizeFilter`，或 `MapControllers().RequireAuthorization()`，只盖住它自己那个项目的接口（它的 `.csproj` 所在的文件夹）。一个仓库里有好几个服务时，一个服务的策略不会把另一个服务敞开的接口藏起来。
 
-### Screens
-Every page of your app that Floorplan detected. Pick one to see everything behind it: its components, the requests it makes, the server code that answers them, the data they touch, and outside services.
+一条问题判断错了，按 **不是问题**，想写理由就写。它会挪到列表最底下，也不再计入个数，地图重建之后还这样。在文件的别处编辑不会把它带回来；同一项检查在那个文件里发现了新东西，或问题的严重程度变了，它会再出现。**再显示** 可以撤掉。导出的副本仍把这条分开搁着，但会去掉你的理由。
 
-### Export
-Saves a copy of the map to send to anyone, such as a teammate, a client, or someone without Claude or Codex. It's one HTML file that opens in any browser with nothing to install. The copy has the whole map, search, screens, the tour and flows, but no Ask bar, no **Fix with Claude** or **Build this** requests, no editor links, and nothing about your computer, like its folder path. An **Exported** label beside the title shows the date, and a small **Made with Floorplan** link at the bottom leads here.
+你也可以勾那一格，告诉 Floorplan 的作者。那会打开一条 GitHub 议题，给你自己看、改、发送，里面有检查的名字和标题、涉及的文件种类，以及你的备注。标题可以点一个文件或一个接口，预览会把将要发出去的内容原样给你看。它从不包含你的代码或任何值，你不发送，什么都不会发出去。
 
-You choose what goes in:
-- **Flows and the tour**, and **notes pinned to files**, on by default;
-- **Recent work**, off by default;
-- **Health check** (or the **design review** on a blueprint), off by default. Health lists the endpoints anyone can use and where secrets sit in the code (never their values), so only include it for people you trust.
+### 最近改动
 
-Every copy shows how the app fits together (each part, file and endpoint, with names and descriptions), but not your source code. Export needs the map's server; on a map opened straight from its file, the button shows the command to run instead. You can also ask Claude or Codex to "export the floorplan".
+Claude 或 Codex 刚改过东西时才会出现。它把改过的卡片摆在一块板上，写着你要求了什么、做了什么的小结，以及每张卡片上的一句说明。地图上别处，改过的卡片有一圈绿色，以及 **改过了** 或 **新加的** 标签；包着它们的那些块会显示 **N 处改动**，所以你能从最顶上顺着绿色往下找。
 
-### Start here
-Replays the one-minute tour that runs the first time you open a map. The tour doesn't start on its own when the address points somewhere on the map, or when the browser won't let the map remember anything (see [Embedding the map](#embedding-the-map-and-locked-down-browsers)); this button always starts it.
+### 页面
 
-### Flows
-Guided walkthroughs of the app's main jobs, like "Checkout" or "Sign up". A flow moves across the board step by step, with a narration at each stop. Use **←** / **→** or the flow bar's buttons to step through, and **Esc** to stop.
+Floorplan 认出来的你应用的每一页。选一页，看它背后的一切：它的组件、它发出的请求、应答它们的服务器代码、它们碰到的数据，以及外面的服务。
 
-**Request a new flow** lets you describe one in plain words ("how does a refund get back to the customer's card?"), and Claude or Codex traces it through the code. Flows you request are saved with the map.
+### 导出
 
-### Filters
-- **Show connections:** turn kinds of lines on or off (Uses, Web requests, Background jobs and so on).
-- **Show technical detail:** switch to developer terms (Imports, HTTP, Queues), and show each file's exports.
-- **Highlight recent work:** turn the green highlights off for a clean map.
+存一份地图的副本，发给任何人，比如队友、客户，或没有 Claude 和 Codex 的人。它是一个 HTML 文件，任何浏览器都能打开，什么都不用装。副本有整张地图、搜索、页面、导览和流程，但没有提问栏，没有 **让 Claude 来改** 或 **让 Claude 来做** 的请求，没有编辑器链接，也没有关于你电脑的东西，比如文件夹路径。标题旁边一个 **导出于 …** 的标签显示日期（日期读不出来时是 **导出的副本**），底部一条小链接是「由 Floorplan · 免费开源」，点了回到这个项目。
 
-## Asking questions
+你选什么放进去：
 
-<img src="images/ask.png" alt="An answer board with numbered cards and a written walkthrough">
+- **流程和导览**，以及 **钉在文件上的备注**，默认开着；
+- **最近改动**，默认关着；
+- **健康检查**（规划蓝图上是 **设计审查**），默认关着。健康检查会列出谁都能用的接口，以及密钥写在代码的哪一行（绝不是值本身），所以只发给你信得过的人。
 
-Type into the Ask bar at the bottom and press **Enter**. Claude or Codex answers in a few sentences and shows an **answer board**: just the cards involved, how they connect, a short note on each, and a numbered walkthrough when the answer is a sequence. Follow-up suggestions appear under the answer. **Back to map** returns to where you were.
+每份副本都展示应用是怎么拼的（每一块、每个文件、每个接口，带着名字和说明），但没有你的源代码。导出需要地图的服务器；地图是直接从文件打开的话，按钮会改成显示要跑的命令。你也可以让 Claude 或 Codex「导出 floorplan」。
 
-- **Right-click → Ask about this** on any card or line adds it to your question as context.
-- The label in the bar shows what's answering. **Claude Code** means the Claude Code CLI and **Codex** means Codex, both running on your computer and able to read your source code. **Claude** means the map was opened in the Claude app, which answers from the map alone.
-- If neither is available, the bar explains what's needed. See [Troubleshooting](troubleshooting.md).
+### 新手导览
 
-## Blueprints
+再放一遍你第一次打开地图时的那一分钟导览。地址已经指到地图上的某处时，或浏览器不让地图记住任何东西时，导览不会自己开始（见[把地图嵌进去，以及锁得很严的浏览器](#embedding-the-map-and-locked-down-browsers)）。这个按钮始终能开始它。
 
-Everything above describes a map of existing code, which is what most maps are. A blueprint is the other kind: a map planned from a PRD or a spec before the code exists (see [Getting started](getting-started.md#plan-something-you-havent-built-yet)). It works the same way, with a few differences:
+### 流程
 
-- **Dashed cards and a Blueprint label** beside the board's title show it's a plan. With nothing selected, the panel says which document it was planned from, the stack and the assumptions made.
-- **Review** replaces Health. It's a design review of the plan: endpoints anyone could use to change data, endpoints with no decision on who may use them, questions the PRD leaves open, and pieces nothing connects to. Each item has **Show on map** and **Resolve on the map**, which switches the Ask bar to Change and fills in a request to settle it. For an open question, type your answer after "My answer:" and press **Enter**. (When the map isn't served, the button is **Resolve with Claude** or **Resolve with Codex**, a request to paste instead.)
-- **Who may use it:** an endpoint's panel says whether anyone, signed-in people (and which ones), your own team, or another service may use it.
-- **Build it:** every part and file has **Build this with Claude** (or Codex), which shows a request to build just that piece the way the plan describes (its files, endpoints, what it relies on and any open questions), ready to copy into Claude Code or Codex.
-- **Ask and Change:** the Ask bar has a switch. **Ask** answers questions from the plan and the PRD. **Change** takes requests like "also plan out refunds" or "drop the admin page". It takes a few minutes; then the map redraws, the new and changed cards are highlighted as recent work, and a summary offers **Show N changes**, **Undo** and suggested next changes.
+应用主要工作的引导讲解，比如「结账」或「注册」。一条流程在板上一步一步走，每一站有一句旁白。用 **←** / **→** 或流程条上的按钮往前走，**Esc** 停下。
 
-## Right-click menus
+**请一条新流程…** 让你用大白话描述一条（「退款怎么回到顾客的卡上？」），Claude 或 Codex 会在代码里把它追出来。你请来的流程会跟地图一起保存。
 
-| On | You get |
+### 筛选
+
+- **显示连线：** 打开或关掉某几类线（用到、网页请求、后台任务，等等）。
+- **显示技术细节：** 换成开发者的说法（引用、HTTP、队列），并显示每个文件导出了什么。
+- **标出最近改动：** 把绿色高亮关掉，地图就干净了。
+
+## 提问
+
+<img src="images/ask.png" alt="一张回答板：卡片上有编号，旁边有文字讲解">
+
+在底部的提问栏里打字，按 **Enter**。Claude 或 Codex 用几句话回答，并给出一块**回答板**：只有涉及的卡片、它们怎么连、每张上的短注，答案是一串步骤时还有带编号的讲解。回答下面会出现可以接着问的建议。**回到地图** 回到你刚才的地方。
+
+- 在任何卡片或线上 **右键 → 向地图问这个**（在线上是 **向地图问这条连线**），会把它加进你的问题当上下文。
+- 栏上的标签显示是谁在回答。**Claude Code** 表示 Claude Code 命令行，**Codex** 表示 Codex，都在你的电脑上跑，都能读你的源代码。**Claude** 表示地图是在 Claude 应用里打开的，那时只根据地图回答。
+- 两个都没有时，栏上会说明还缺什么。见[遇到问题](troubleshooting.md)。
+
+<a id="blueprints"></a>
+
+## 规划蓝图
+
+上面说的是已有代码的地图，大多数地图是这种。规划蓝图是另一种：代码还没有时，按 PRD 或规格规划出来的地图（见[上手](getting-started.md#plan-something-you-havent-built-yet)）。用法一样，有几处不同：
+
+- **虚线卡片**，以及板子标题旁边的 **规划蓝图** 标签，表示这是计划。什么都没选时，面板会说它是按哪份文档规划的、用了哪套技术、做了哪些假定。
+- **设计审查** 代替健康检查。这是对计划的审查：谁都能用来改数据的接口、还没定谁可以用的接口、PRD 没回答的问题，以及什么都没连上的块。每条都有 **在地图上标出来** 和 **在地图上处理**。后者把提问栏拨到改规划，并填好一段把这件事定下来的请求。还没定的问题，请求里已经有程序写好的「我的回答：」，你把答案接在后面，按 **Enter**。（地图不是由服务器打开时，按钮是 **让 Claude 来处理** 或 **让 Codex 来处理**，变成一段贴走的请求。）来自 `plan.json` 的问题原文保持原样，不改写。
+- **谁可以用：** 一个接口的面板会说，是谁都能用、登录了的人（以及哪些人）、你自己的团队，还是另一个服务。
+- **动手做：** 每一块和每个文件都有 **让 Claude 来做**（或 Codex）。它给出一段请求，只按计划描述的那样做这一块（它的文件、接口、它依赖什么、还有哪些问题没定），可以复制进 Claude Code 或 Codex。
+- **提问和改规划：** 提问栏有一个开关。**提问** 根据计划和 PRD 回答问题。**改规划** 接受「把退款也规划进去」或「去掉管理页」这样的请求。要几分钟；然后地图重画，新的和改过的卡片按最近改动标出来，小结里有 **看这 N 处改动**、**撤销**，以及建议的下一步改动。
+
+## 右键菜单
+
+| 点在 | 你会看到 |
 |---|---|
-| a card | Open · Show on the map · Ask about this · Show details · Copy name · Copy path (or endpoint) · Open in editor |
-| a line | Ask about this connection · Show details |
-| the background | Ask about this view · Up one level · Back to overview · Fit to screen · Search |
+| 一张卡片 | 打开 · 在地图上显示 · 向地图问这个 · 看详情 · 复制名字 · 复制路径（或复制接口）· 在编辑器里打开 |
+| 一条线 | 向地图问这条连线 · 看详情 |
+| 背景 | 向地图问当前这一块 · 返回上一层 · 回到总览 · 适应屏幕 · 搜索 |
 
-**Open in editor** opens the file at the right line, in VS Code unless you choose another editor.
+**在编辑器里打开** 会在对的那一行打开文件。没另选编辑器时，是 VS Code。
 
-### Choosing the editor
+<a id="choosing-the-editor"></a>
 
-**Open in editor**, **Open handler** and the right-click **Open in editor** all use the same setting. Set it in `floorplan/architecture.json` (or ask Claude or Codex to: "open files from the map in Cursor"):
+### 选哪个编辑器
+
+**在编辑器里打开**、**打开处理代码** 和右键里的 **在编辑器里打开** 用的是同一个设置。写在 `floorplan/architecture.json` 里（或让 Claude 或 Codex：「从地图打开文件时用 Cursor」）：
 
 ```json
 { "editor": "cursor" }
 ```
 
-or for one run of the map's server, for every map it shows, which wins over `architecture.json`:
+或者只对地图服务器的这一次运行生效，它显示的每张地图都用，并且盖过 `architecture.json`：
 
 ```bash
 node floorplan/serve.mjs --editor zed
 ```
 
-`open.mjs` passes `--editor` on (and restarts a running server that uses a different one), and `FLOORPLAN_EDITOR=cursor` (in PowerShell, `$env:FLOORPLAN_EDITOR = "cursor"`) sets it for every server you start.
+`open.mjs` 会把 `--editor` 传下去（正在跑的服务器用的是另一个时，它会重启）。`FLOORPLAN_EDITOR=cursor`（PowerShell 里是 `$env:FLOORPLAN_EDITOR = "cursor"`）对你启动的每个服务器都生效。
 
-The setting is an editor's name or a link of your own:
+这个设置是编辑器的名字，或你自己的一条链接：
 
-| Name | Opens |
+| 名字 | 打开 |
 |---|---|
-| `vscode` (the default) | `vscode://file/{path}:{line}` |
-| `vscode-insiders`, `vscodium`, `cursor`, `windsurf`, `zed` | the same link in that editor's scheme, e.g. `cursor://file/{path}:{line}` |
-| `idea`, `phpstorm` | `idea://open?file={path}&line={line}` (and `phpstorm://…`), where the IDE registers its links (macOS, or with JetBrains Toolbox) |
+| `vscode`（默认） | `vscode://file/{path}:{line}` |
+| `vscode-insiders`、`vscodium`、`cursor`、`windsurf`、`zed` | 同一个链接，换成那个编辑器的方案，例如 `cursor://file/{path}:{line}` |
+| `idea`、`phpstorm` | `idea://open?file={path}&line={line}`（以及 `phpstorm://…`），在 IDE 登记了自己的链接时（macOS，或装了 JetBrains Toolbox） |
 
-A link of your own uses `{path}` (the file's full path, required), `{line}` and `{column}` (always 1, since the map knows lines only), for example `"zed://file/{path}:{line}:{column}"` or `"pycharm://open?file={path}&line={line}"`. It must use an editor's own scheme: `vscode`, `vscode-insiders`, `vscodium`, `cursor`, `windsurf`, `zed`, `idea`, `phpstorm`, `pycharm`, `webstorm`, `goland`, `rubymine`, `clion`, `rider`, `txmt`, `mvim` or `subl`. Web addresses, `file:`, `javascript:` and `data:` links aren't allowed, so nothing written into `architecture.json` can turn the button into something else; the build names a setting it can't use, and the map's server won't start with one. Open an issue to add an editor's scheme. Exported copies have no editor links.
+你自己的链接用 `{path}`（文件的完整路径，必填）、`{line}` 和 `{column}`（地图只知道行，所以列始终是 1）。例如 `"zed://file/{path}:{line}:{column}"` 或 `"pycharm://open?file={path}&line={line}"`。它必须用编辑器自己的方案：`vscode`、`vscode-insiders`、`vscodium`、`cursor`、`windsurf`、`zed`、`idea`、`phpstorm`、`pycharm`、`webstorm`、`goland`、`rubymine`、`clion`、`rider`、`txmt`、`mvim` 或 `subl`。网址、`file:`、`javascript:` 和 `data:` 链接不允许，所以写进 `architecture.json` 的东西不能把这个按钮变成别的。构建会点名一个它用不了的设置，地图的服务器遇到这种也不会启动。要加一个编辑器的方案，开一条议题。导出的副本没有编辑器链接。
 
-## Links to a place on the map
+<a id="links-to-a-place-on-the-map"></a>
 
-The address in the browser follows you around the map, so you can bookmark or share a link to any view. The part after `#` says where:
+## 链到地图上的某一处
 
-| Address ends with | Opens |
+浏览器里的地址跟着你在地图上走，所以你可以给任何一层做书签，或把链接发给别人。`#` 后面说的是位置：
+
+| 地址结尾 | 打开 |
 |---|---|
-| *(nothing)* | the overview |
-| `#v=<view>` | inside a card, for example `#v=n%3Aapi` |
-| `#v=<view>&s=<item>` | inside a card, with one item selected and its details in the panel |
-| `#s=<item>` | the overview, with one card selected |
+| *（什么都没有）* | 总览 |
+| `#v=<一层>` | 一张卡片里面，例如 `#v=n%3Aapi` |
+| `#v=<一层>&s=<一项>` | 一张卡片里面，并选中一项，详情在面板里 |
+| `#s=<一项>` | 总览，并选中一张卡片 |
 
-The easiest way to get one is to go there on the map and copy the address. **Back** and **Forward** in the browser move between the places you've been. An address that names something the map no longer has opens the overview instead.
+最省事的办法是在地图上走到那里，再复制地址。浏览器的 **后退** 和 **前进** 在你去过的地方之间移动。地址点了一个地图上已经没有的东西，就打开总览。
 
-## Embedding the map and locked-down browsers
+<a id="embedding-the-map-and-locked-down-browsers"></a>
 
-A map is one HTML file, so you can show it inside another page with an `<iframe>`, including a sandboxed one such as `<iframe sandbox="allow-scripts" src="floorplan/index.html">`. A sandboxed frame, a private window or strict browser settings can stop the map from saving anything, using the clipboard or opening new windows. The map still works:
+## 把地图嵌进去，以及锁得很严的浏览器
 
-- **Settings** (panel width, panel open or closed, connection filters, technical detail, recent-work highlights, the folded description, Health issues marked "Not a problem") hold while the page is open, and start fresh next time.
-- **The tour** doesn't start on its own, because the map can't tell a first visit from the hundredth. **Start here** starts it.
-- **Copy buttons** say "Copied" only when the text really was copied. If the browser blocks copying, the text is selected for you to copy yourself.
-- **Links that open a new window** show the address to copy when the browser blocks the window.
+地图是一个 HTML 文件，所以你可以用 `<iframe>` 把它放进另一个页面，包括加了沙箱的，例如 `<iframe sandbox="allow-scripts" src="floorplan/index.html">`。沙箱框架、隐私窗口或很严的浏览器设置，可能不让地图保存任何东西、用不了剪贴板，或打不开新窗口。地图仍然能用：
 
-To keep the tour from starting on its own wherever the map is shown, add `tour=0` to the address, alone or with a link to a place:
+- **设置**（面板宽度、面板开或关、连线筛选、技术细节、最近改动的高亮、折起来的说明、标成「不是问题」的健康检查项）在这一页开着的时候都留着，下次打开从头来。
+- **导览** 不会自己开始，因为地图分不出第一次来和第一百次来。**新手导览** 能开始它。
+- **复制按钮** 只有文字真的复制成功才说「已复制」。浏览器拦住复制时，文字会被选中，你自己复制。
+- **会打开新窗口的链接**，在浏览器拦住窗口时，改成把地址显示出来给你复制。
+
+无论地图显示在哪，都不想让导览自己开始的话，在地址里加上 `tour=0`，单独加，或和指向某一处的链接一起：
 
 ```
 floorplan/index.html#tour=0
 floorplan/index.html#tour=0&v=n%3Aapi
 ```
 
-`tour=0` stays in the address as people move around the map. **Start here** still works.
+人们在地图上走动时，`tour=0` 会留在地址里。**新手导览** 仍然能用。
 
-### Handing "Ask about this" to the page around the map
+<a id="handing-ask-about-this-to-the-page-around-the-map"></a>
 
-An exported copy has no Ask bar. If the page you embed it in has its own way to ask questions, it can take over **Ask about this**: add `ask=host` to the address.
+### 把「向地图问这个」交给外层页面
+
+导出的副本没有提问栏。如果你嵌它的那个页面自己有办法提问，它可以接过 **向地图问这个**：在地址里加上 `ask=host`。
 
 ```
 map.html#ask=host
 map.html#ask=host&tour=0&v=n%3Aapi
 ```
 
-Then right-clicking a card, a line or the background shows **Ask about this**, and choosing it sends the page around the map a message:
+然后在卡片、线或背景上右键，会看到 **向地图问这个**。选了它，会给包着地图的页面发一条消息：
 
 ```js
 { type: 'floorplan:ask', items: [{ id: 'f:api/app/auth.py', name: 'Sign-in check' }] }
 ```
 
-`items` holds the card, both ends of a line, or the part being viewed (empty at the top level). Ids are the map's own (`n:` part, `f:` file, `r:` endpoint), the same ones `#v=` and `#s=` take. Nothing else is sent, and only when someone chooses it. The page listens with `window.addEventListener('message', …)`; check that `event.source` is the map's frame, since the message is posted to whatever page holds the map. Without `ask=host`, or when the map isn't inside another page, an exported copy sends nothing and shows no Ask items, as before.
+`items` 里是那张卡片、一条线的两头，或正在看的那一块（在最顶上是空的）。id 是地图自己的（`n:` 一块、`f:` 文件、`r:` 接口），和 `#v=`、`#s=` 用的是同一套。别的什么都不发，而且只有有人选了才发。页面用 `window.addEventListener('message', …)` 来听；要检查 `event.source` 是地图那个框架，因为消息是发给包着地图的那个页面的。没有 `ask=host`，或地图不在另一个页面里时，导出的副本什么都不发，也不显示提问项，和以前一样。

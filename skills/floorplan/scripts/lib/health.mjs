@@ -51,34 +51,34 @@ const PLACEHOLDER = new RegExp(String.raw`your|xxxx|example|changeme|change[-_]?
 
 // Well-known key formats. `sev` defaults to high; `live` formats are flagged even in test files.
 const FORMATS = [
-  { re: /\bAKIA[0-9A-Z]{16}\b/g, what: 'an Amazon Web Services (AWS) access key', svc: 'AWS', live: true },
-  { re: /\b(?:sk|rk)_live_[0-9a-zA-Z]{20,}/g, what: 'a Stripe live secret key', svc: 'Stripe', live: true },
-  { re: /\b(?:sk|rk)_test_[0-9a-zA-Z]{20,}/g, what: 'a Stripe test key', svc: 'Stripe', sev: 'medium' },
-  { re: /\bwhsec_[A-Za-z0-9]{24,}/g, what: 'a Stripe webhook signing secret', svc: 'Stripe' },
-  { re: /\bgh[pousr]_[A-Za-z0-9]{36,}\b/g, what: 'a GitHub access token', svc: 'GitHub', live: true },
-  { re: /\bgithub_pat_[A-Za-z0-9_]{50,}/g, what: 'a GitHub access token', svc: 'GitHub', live: true },
-  { re: /\bglpat-[A-Za-z0-9_-]{20,}/g, what: 'a GitLab access token', svc: 'GitLab', live: true },
-  { re: /\bxox[abposr]-[A-Za-z0-9-]{10,}/g, what: 'a Slack token', svc: 'Slack', live: true },
-  { re: /https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]+\/B[A-Z0-9]+\/[A-Za-z0-9]{20,}/g, what: 'a Slack webhook address (anyone with it can post to your Slack)', svc: 'Slack', sev: 'medium' },
-  { re: /\bAIza[0-9A-Za-z_\-]{35}\b/g, what: 'a Google API key', svc: 'Google Cloud', sev: 'medium', skipIf: /firebase|authDomain|messagingSenderId/i },
-  { re: /\bGOCSPX-[A-Za-z0-9_\-]{20,}/g, what: 'a Google sign-in client secret', svc: 'Google Cloud' },
-  { re: /\bsk-ant-[a-z]+\d*-[A-Za-z0-9_\-]{40,}/g, what: 'an Anthropic (Claude) API key', svc: 'Anthropic', live: true },
-  { re: /\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_\-]{16,}T3BlbkFJ[A-Za-z0-9_\-]{16,}/g, what: 'an OpenAI API key', svc: 'OpenAI', live: true },
-  { re: /\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_\-]{40,}/g, what: 'an OpenAI API key', svc: 'OpenAI', live: true },
+  { re: /\bAKIA[0-9A-Z]{16}\b/g, what: '一把 AWS 访问钥匙', svc: 'AWS', live: true },
+  { re: /\b(?:sk|rk)_live_[0-9a-zA-Z]{20,}/g, what: '一把 Stripe 正式环境密钥', svc: 'Stripe', live: true },
+  { re: /\b(?:sk|rk)_test_[0-9a-zA-Z]{20,}/g, what: '一把 Stripe 测试钥匙', svc: 'Stripe', sev: 'medium' },
+  { re: /\bwhsec_[A-Za-z0-9]{24,}/g, what: '一把 Stripe 通知签名密钥', svc: 'Stripe' },
+  { re: /\bgh[pousr]_[A-Za-z0-9]{36,}\b/g, what: '一把 GitHub 访问令牌', svc: 'GitHub', live: true },
+  { re: /\bgithub_pat_[A-Za-z0-9_]{50,}/g, what: '一把 GitHub 访问令牌', svc: 'GitHub', live: true },
+  { re: /\bglpat-[A-Za-z0-9_-]{20,}/g, what: '一把 GitLab 访问令牌', svc: 'GitLab', live: true },
+  { re: /\bxox[abposr]-[A-Za-z0-9-]{10,}/g, what: '一把 Slack 令牌', svc: 'Slack', live: true },
+  { re: /https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]+\/B[A-Z0-9]+\/[A-Za-z0-9]{20,}/g, what: '一个 Slack 通知地址（拿到它的人都能往你的 Slack 发消息）', svc: 'Slack', sev: 'medium' },
+  { re: /\bAIza[0-9A-Za-z_\-]{35}\b/g, what: '一把 Google API 钥匙', svc: 'Google Cloud', sev: 'medium', skipIf: /firebase|authDomain|messagingSenderId/i },
+  { re: /\bGOCSPX-[A-Za-z0-9_\-]{20,}/g, what: '一把 Google 登录客户端密钥', svc: 'Google Cloud' },
+  { re: /\bsk-ant-[a-z]+\d*-[A-Za-z0-9_\-]{40,}/g, what: '一把 Anthropic（Claude）API 钥匙', svc: 'Anthropic', live: true },
+  { re: /\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_\-]{16,}T3BlbkFJ[A-Za-z0-9_\-]{16,}/g, what: '一把 OpenAI API 钥匙', svc: 'OpenAI', live: true },
+  { re: /\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_\-]{40,}/g, what: '一把 OpenAI API 钥匙', svc: 'OpenAI', live: true },
   // (a passphrase-protected key, ENCRYPTED PRIVATE KEY or Proc-Type: 4,ENCRYPTED, is left alone: see encryptedKeyAt)
-  { re: /-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY(?: BLOCK)?-----/g, what: 'a private key', svc: null, whole: true },
-  { re: /\bSG\.[A-Za-z0-9_\-]{22}\.[A-Za-z0-9_\-]{43}\b/g, what: 'a SendGrid email API key', svc: 'SendGrid', live: true },
-  { re: /\bsq0csp-[0-9A-Za-z_\-]{40,}/g, what: 'a Square app secret', svc: 'Square', live: true },
-  { re: /\bsq0atp-[0-9A-Za-z_\-]{20,}/g, what: 'a Square access token', svc: 'Square', live: true },
-  { re: /\bEAAA[A-Za-z0-9_\-]{60,}/g, what: 'a Square access token', svc: 'Square', live: true },
-  { re: /\bshp(?:at|ss|ca|pa)_[a-fA-F0-9]{32}\b/g, what: 'a Shopify access token', svc: 'Shopify', live: true },
-  { re: /\bhf_[A-Za-z0-9]{30,}\b/g, what: 'a Hugging Face token', svc: 'Hugging Face', live: true },
-  { re: /\bnpm_[A-Za-z0-9]{36}\b/g, what: 'an npm publishing token', svc: 'npm', live: true },
-  { re: /\bsbp_[a-f0-9]{40}\b/g, what: 'a Supabase account token', svc: 'Supabase', live: true },
-  { re: /\bsb_secret_[A-Za-z0-9_\-]{20,}/g, what: 'a Supabase secret key', svc: 'Supabase', live: true },
-  { re: /\b\d{8,10}:AA[0-9A-Za-z_\-]{33}\b/g, what: 'a Telegram bot token', svc: 'Telegram', live: true },
-  { re: /\bdop_v1_[a-f0-9]{64}\b/g, what: 'a DigitalOcean token', svc: 'DigitalOcean', live: true },
-  { re: /\bpat[A-Za-z0-9]{14}\.[a-f0-9]{64}\b/g, what: 'an Airtable token', svc: 'Airtable', live: true },
+  { re: /-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY(?: BLOCK)?-----/g, what: '一把私钥', svc: null, whole: true },
+  { re: /\bSG\.[A-Za-z0-9_\-]{22}\.[A-Za-z0-9_\-]{43}\b/g, what: '一把 SendGrid 邮件 API 钥匙', svc: 'SendGrid', live: true },
+  { re: /\bsq0csp-[0-9A-Za-z_\-]{40,}/g, what: '一把 Square 应用密钥', svc: 'Square', live: true },
+  { re: /\bsq0atp-[0-9A-Za-z_\-]{20,}/g, what: '一把 Square 访问令牌', svc: 'Square', live: true },
+  { re: /\bEAAA[A-Za-z0-9_\-]{60,}/g, what: '一把 Square 访问令牌', svc: 'Square', live: true },
+  { re: /\bshp(?:at|ss|ca|pa)_[a-fA-F0-9]{32}\b/g, what: '一把 Shopify 访问令牌', svc: 'Shopify', live: true },
+  { re: /\bhf_[A-Za-z0-9]{30,}\b/g, what: '一把 Hugging Face 令牌', svc: 'Hugging Face', live: true },
+  { re: /\bnpm_[A-Za-z0-9]{36}\b/g, what: '一把 npm 发布令牌', svc: 'npm', live: true },
+  { re: /\bsbp_[a-f0-9]{40}\b/g, what: '一把 Supabase 账号令牌', svc: 'Supabase', live: true },
+  { re: /\bsb_secret_[A-Za-z0-9_\-]{20,}/g, what: '一把 Supabase 密钥', svc: 'Supabase', live: true },
+  { re: /\b\d{8,10}:AA[0-9A-Za-z_\-]{33}\b/g, what: '一把 Telegram 机器人令牌', svc: 'Telegram', live: true },
+  { re: /\bdop_v1_[a-f0-9]{64}\b/g, what: '一把 DigitalOcean 令牌', svc: 'DigitalOcean', live: true },
+  { re: /\bpat[A-Za-z0-9]{14}\.[a-f0-9]{64}\b/g, what: '一把 Airtable 令牌', svc: 'Airtable', live: true },
 ];
 // A key starts where a run of key characters starts: "\b" alone would also try from inside "sk-sk-sk-…" or
 // "xoxb-xoxb-…" at every repeat, and each try scans to the end of the run (quadratic on a hostile file).
@@ -252,7 +252,7 @@ function findSecrets(src, f, out) {
       let payload = null;
       try { payload = JSON.parse(Buffer.from(m[0].split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')); } catch { continue; }
       if (payload?.role !== 'service_role') continue; // "anon" keys are public by design
-      add(at(m.index), { what: 'a Supabase service-role key (full access to your database, skipping all security rules)', svc: 'Supabase', sev: 'high', hint: mask(m[0]) });
+      add(at(m.index), { what: '一把 Supabase service-role 钥匙（能跳过全部安全规则，完全访问你的数据库）', svc: 'Supabase', sev: 'high', hint: mask(m[0]) });
     }
     for (const m of src.matchAll(ADO_CONN)) {
       const host = (/(?:Server|Host|Data Source|Address|Addr)\s*=\s*(?:tcp:)?([^;,"'\s]+)/i.exec(m[0])?.[1] || '').split(/[:\\]/)[0];
@@ -260,12 +260,12 @@ function findSecrets(src, f, out) {
       // the same rules as any other password: variables ($(DbPassword), %DB_PASSWORD%), C# interpolation
       // ({password}), placeholders and made-up words aren't secrets
       if (LOCAL_HOST.test(host) || ADO_LOCAL_HOST.test(host) || PLACEHOLDER.test(pw) || /^[:$%{<]/.test(pw) || !valueLooksReal(pw, 'password')) continue;
-      add(at(m.index), { what: 'a database password inside a connection string', svc: 'your database', sev: 'high', hint: mask(pw, true) });
+      add(at(m.index), { what: '连接串里的数据库密码', svc: '你的数据库', sev: 'high', hint: mask(pw, true) });
     }
     for (const m of src.matchAll(DB_URL)) {
       const [, user, pw, host] = m;
       if (LOCAL_HOST.test(host) || PLACEHOLDER.test(pw) || /^[:$%{<]/.test(pw) || pw.length < 4 || /^(password|pass|postgres|root|secret|admin|user)$/i.test(pw)) continue;
-      add(at(m.index), { what: 'a database password inside a connection address', svc: 'your database', sev: 'high', hint: mask(pw, true) });
+      add(at(m.index), { what: '连接地址里的数据库密码', svc: '你的数据库', sev: 'high', hint: mask(pw, true) });
     }
   }
   if (isTest || f.category === 'docs') return;
@@ -1076,39 +1076,39 @@ function findStripeWebhook(src, f, out) {
   out.push({ k: 'stripe-unsigned', line: lineIndex(src)(hits[0].index), events: [...new Set(hits.map((h) => h.event))].slice(0, 4) });
 }
 
-const ENV_SECRET_STEP = `4. Add STRIPE_WEBHOOK_SECRET (empty) to .env.example and tell me where to get it: the Stripe dashboard (Developers → Webhooks → the endpoint → Signing secret), or \`stripe listen\` when testing locally.`;
+const ENV_SECRET_STEP = `4. 把 STRIPE_WEBHOOK_SECRET（留空）加进 .env.example，并告诉我去哪拿：Stripe 后台（Developers → Webhooks → 这个端点 → Signing secret），本地测试用 \`stripe listen\`。`;
 const STRIPE_FIX = {
   python: {
     verify: 'stripe.Webhook.construct_event',
     steps: [
-      `1. Read the raw request body as bytes (FastAPI: \`await request.body()\`; Flask: \`request.get_data()\`), not the parsed JSON.`,
-      `2. Call \`stripe.Webhook.construct_event(payload, request.headers["stripe-signature"], os.environ["STRIPE_WEBHOOK_SECRET"])\` and return 400 if it raises.`,
+      `1. 把原始请求体按字节读出来（FastAPI：\`await request.body()\`；Flask：\`request.get_data()\`），不要用解析后的 JSON。`,
+      `2. 调用 \`stripe.Webhook.construct_event(payload, request.headers["stripe-signature"], os.environ["STRIPE_WEBHOOK_SECRET"])\`，抛错就返回 400。`,
     ],
     secret: ENV_SECRET_STEP,
   },
   next: {
     verify: 'stripe.webhooks.constructEvent',
     steps: [
-      `1. Read the raw request body with \`await req.text()\` (App Router) or turn off the body parser for this route (Pages Router), not the parsed JSON.`,
-      `2. Call \`stripe.webhooks.constructEvent(rawBody, signatureHeader, process.env.STRIPE_WEBHOOK_SECRET)\` (the \`stripe-signature\` header) and return 400 if it throws.`,
+      `1. 用 \`await req.text()\` 读原始请求体（App Router），或关掉这条路由的 body parser（Pages Router），不要用解析后的 JSON。`,
+      `2. 调用 \`stripe.webhooks.constructEvent(rawBody, signatureHeader, process.env.STRIPE_WEBHOOK_SECRET)\`（请求头 \`stripe-signature\`），抛错就返回 400。`,
     ],
     secret: ENV_SECRET_STEP,
   },
   express: {
     verify: 'stripe.webhooks.constructEvent',
     steps: [
-      `1. Give this route the raw body: \`express.raw({ type: 'application/json' })\` on it, registered before \`express.json()\` runs for it.`,
-      `2. Call \`stripe.webhooks.constructEvent(rawBody, signatureHeader, process.env.STRIPE_WEBHOOK_SECRET)\` (the \`stripe-signature\` header) and return 400 if it throws.`,
+      `1. 给这条路由原始请求体：在它上面用 \`express.raw({ type: 'application/json' })\`，并且要在 \`express.json()\` 处理它之前登记。`,
+      `2. 调用 \`stripe.webhooks.constructEvent(rawBody, signatureHeader, process.env.STRIPE_WEBHOOK_SECRET)\`（请求头 \`stripe-signature\`），抛错就返回 400。`,
     ],
     secret: ENV_SECRET_STEP,
   },
   csharp: {
     verify: 'EventUtility.ConstructEvent',
     steps: [
-      `1. Read the raw request body with \`await new StreamReader(Request.Body).ReadToEndAsync()\`, not a model-bound parameter.`,
-      `2. Call \`EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"], webhookSecret)\` with the secret read from configuration, and return 400 if it throws a \`StripeException\`.`,
+      `1. 用 \`await new StreamReader(Request.Body).ReadToEndAsync()\` 读原始请求体，不要用模型绑定的参数。`,
+      `2. 调用 \`EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"], webhookSecret)\`，密钥从配置里读；抛出 \`StripeException\` 就返回 400。`,
     ],
-    secret: `4. Add an empty Stripe:WebhookSecret setting (user secrets locally, an environment variable such as Stripe__WebhookSecret when deployed) and tell me where to get it: the Stripe dashboard (Developers → Webhooks → the endpoint → Signing secret), or \`stripe listen\` when testing locally.`,
+    secret: `4. 加一个空的 Stripe:WebhookSecret 设置（本地用 user secrets，部署时用 Stripe__WebhookSecret 这类环境变量），并告诉我去哪拿：Stripe 后台（Developers → Webhooks → 这个端点 → Signing secret），本地测试用 \`stripe listen\`。`,
   },
 };
 
@@ -1353,13 +1353,13 @@ const SPECIAL_FILE = /(^|\/)(index|main|app|server|cli|manage|wsgi|asgi|__init__
 // A comment saying a tool opens this file by name, or that it's generated: not leftover code, whatever imports it
 const LOADED_BY_NAME = /^\s*(?:\/\/|\/?\*|#|<!--|"""|''')[^\n]*(?:\b(?:cli|tool|tooling|framework|runner|bundler|build|compiler|plugin|sdk|script)\b[^\n]*\b(?:reads?|loads?|imports?|runs?|executes?|opens?|requires?|picks? up)\b[^\n]*\b(?:this file|directly|by name|by path|at runtime)\b|\bthis file is (?:read|loaded|imported|run|executed|required|used|picked up)\b[^\n]*\b(?:by|directly|at runtime)\b|\bthis (?:file|code) (?:is|was) (?:auto-?)?generated\b|@generated\b|\b(?:auto-?)?generated (?:file|code)\b|\bcode generated by\b|\bdo not (?:edit|modify|delete|remove) (?:this|it)\b)/im;
 const USED_LANGS = new Set(['typescript', 'javascript', 'python', 'vue', 'svelte', 'astro', 'liquid']);
-const plural = (n, w, ws) => `${n} ${n === 1 ? w : ws || w + 's'}`;
+const plural = (n, w) => `${n} ${w}`;
 
 /** How a fix prompt names a check: a FastAPI alias parameter, a Python decorator, a C# attribute, or as written. */
 function guardLabel(name, defs, lang) {
-  if (defs.some((g) => g.alias)) return `a parameter typed ${name}`;
+  if (defs.some((g) => g.alias)) return `类型写成 ${name} 的参数`;
   if (lang === 'python') return '@' + name;
-  if (lang === 'php' && /^[a-z]/.test(name)) return `the '${name}' middleware`;
+  if (lang === 'php' && /^[a-z]/.test(name)) return `'${name}' 这道检查`;
   // [Authorize(...)] and .RequireAuthorization(...) arrive written out; a custom attribute arrives as its name
   if (lang === 'csharp' && !/^[[.]/.test(name)) return `[${name}]`;
   return name;
@@ -1408,7 +1408,7 @@ export function buildHealth({ graph, scan, arch, root }) {
     if (!/\.(pem|key|p12|pfx|jks|keystore)$|^id_(rsa|dsa|ecdsa|ed25519)$|service[-_]?account.*\.json$|^credentials?\.json$|firebase-adminsdk.*\.json$|^client_secret.*\.json$|-key\.json$/i.test(base)) continue;
     let head = '';
     try { head = readHead(path.join(root, f.path), 65536); } catch { continue; }
-    if (plainKeyIn(head) || /"private_key"\s*:\s*"-----|"client_secret"\s*:\s*"[^"]{8,}/.test(head) || /\.(p12|pfx|jks|keystore)$/i.test(base)) secretFiles.push({ path: f.path, list: [{ k: 'secret', line: 1, what: 'a credentials file (a private key that logs in as your app)', sev: 'high', hint: 'whole file' }], file: true });
+    if (plainKeyIn(head) || /"private_key"\s*:\s*"-----|"client_secret"\s*:\s*"[^"]{8,}/.test(head) || /\.(p12|pfx|jks|keystore)$/i.test(base)) secretFiles.push({ path: f.path, list: [{ k: 'secret', line: 1, what: '一份凭据文件（用来以你的应用身份登录的私钥）', sev: 'high', hint: '整个文件' }], file: true });
   }
   const secretIssue = (group) => {
     const locations = [], notes = {}, items = [];
@@ -1424,31 +1424,31 @@ export function buildHealth({ graph, scan, arch, root }) {
         if (s.svc) svcs.add(s.svc);
       }
       if (isFrontend(p)) frontend = true;
-      if (it) notes[it] = (notes[it] ? notes[it] + ' · ' : '') + list.slice(0, 4).map((s) => `${file ? p.split('/').pop() : `line ${s.line}`}: ${s.name ? `${s.name}, ` : ''}${s.what.replace(/ \(.*\)$/, '')} (${s.hint})`).join(' · ') + (list.length > 4 ? ` · +${list.length - 4} more` : '');
+      if (it) notes[it] = (notes[it] ? notes[it] + ' · ' : '') + list.slice(0, 4).map((s) => `${file ? p.split('/').pop() : `第 ${s.line} 行`}：${s.name ? `${s.name}，` : ''}${s.what.replace(/ \(.*\)$/, '')}（${s.hint}）`).join(' · ') + (list.length > 4 ? ` · 还有 ${list.length - 4} 处` : '');
     }
     const n = locations.length;
     const sev = group.some((g) => g.list.some((s) => s.sev === 'high')) ? 'high' : 'medium';
     const one = group.length === 1 ? group[0].path : null;
-    const kindText = kinds.size === 1 ? [...kinds][0].replace(/ \(.*\)$/, '') : 'passwords or keys';
+    const kindText = kinds.size === 1 ? [...kinds][0].replace(/ \(.*\)$/, '') : '密码或密钥';
     return {
       id: 'secret:' + (one || group.map((g) => g.path).join('|')),
       kind: 'secret', severity: sev,
-      title: n === 1 ? `A secret key is written into ${one ? one.split('/').pop() : `${group.length} more files`}` : `${n} passwords or keys are written into ${one ? one.split('/').pop() : `${group.length} more files`}`,
-      detail: `${one ? `${nameOf(one)} (${one})` : plural(group.length, 'file')} contains ${n === 1 ? kindText : `${n} secrets (${kindText})`}. Anyone who can see the code can use ${n === 1 ? 'it' : 'them'} to get into ${svcs.size ? [...svcs].slice(0, 4).join(', ') : 'the services they unlock'} as you${frontend ? ', and this code is sent to every visitor’s browser' : ''}. Treat ${n === 1 ? 'it' : 'them'} as leaked: move ${n === 1 ? 'it' : 'them'} out of the code and replace ${n === 1 ? 'it with a new one' : 'them with new ones'}.`,
+      title: n === 1 ? `密钥写在了 ${one ? one.split('/').pop() : `另外 ${group.length} 个文件`} 里` : `${n} 处密码或密钥写在了 ${one ? one.split('/').pop() : `另外 ${group.length} 个文件`} 里`,
+      detail: `${one ? `${nameOf(one)}（${one}）` : plural(group.length, '个文件')}里有${n === 1 ? kindText : `${n} 处密钥（${kindText}）`}。谁能看到这段代码，就能拿${n === 1 ? '它' : '它们'}冒充你进入${svcs.size ? [...svcs].slice(0, 4).join('、') : '它们打开的那些服务'}${frontend ? '，而且这段代码会发给每个打开网页的人' : ''}。先当成已经泄露：把${n === 1 ? '它' : '它们'}移出代码，再换成新的。`,
       items, notes, locations,
       fix: [
-        `Security fix: hard-coded secrets. Do not print, echo or repeat any secret value in your replies, commits or logs.`,
+        `安全修复：代码里写死了密钥。回复、提交和日志里都不要打印、复述任何密钥的值。`,
         ``,
-        `These lines contain ${n === 1 ? 'a secret' : 'secrets'} written directly in the code:`,
-        ...group.flatMap(({ path: p, list, file }) => list.map((s) => `- ${p}${file ? ' (the whole file)' : `:${s.line}`}: ${s.name ? `${s.name} — ` : ''}${s.what.replace(/ \(.*\)$/, '')}`)),
+        `这几行把${n === 1 ? '一把密钥' : '密钥'}直接写在了代码里：`,
+        ...group.flatMap(({ path: p, list, file }) => list.map((s) => `- ${p}${file ? '（整个文件）' : `:${s.line}`}：${s.name ? `${s.name} — ` : ''}${s.what.replace(/ \(.*\)$/, '')}`)),
         ``,
-        `For each one:`,
-        `1. Replace the literal with an environment variable lookup (${group.some((g) => /\.py$/.test(g.path)) ? `os.environ["NAME"] in Python` : ''}${group.some((g) => /\.py$/.test(g.path)) && group.some((g) => /\.[jt]sx?$/.test(g.path)) ? ', ' : ''}${group.some((g) => /\.[jt]sx?$/.test(g.path)) ? 'process.env.NAME in JavaScript/TypeScript' : ''}${!group.some((g) => /\.(py|[jt]sx?)$/.test(g.path)) ? 'or a secret manager reference' : ''}), using a clear variable name. If the app can't run without it, fail with a clear error when it is missing instead of falling back to a hard-coded value.`,
-        `2. Add each variable name (with an empty value, never the real one) to .env.example, and make sure .env is listed in .gitignore.`,
-        frontend ? `3. This is frontend code that ships to the browser. Move the call that needs the secret to a server-side route or function so the key never reaches visitors.` : `3. Update any deployment config (Docker, Cloud Run, Vercel, etc.) so the variable is set in production.`,
-        group.some((g) => g.file) ? `4. Remove the credentials file from the repository (git rm --cached), add its name to .gitignore, and load it from a path given by an environment variable.` : `4. Run the app or its tests to confirm it still starts with the variables set.`,
+        `每一处都这样处理：`,
+        `1. 把写死的值换成读环境变量（${group.some((g) => /\.py$/.test(g.path)) ? `Python 用 os.environ["NAME"]` : ''}${group.some((g) => /\.py$/.test(g.path)) && group.some((g) => /\.[jt]sx?$/.test(g.path)) ? '，' : ''}${group.some((g) => /\.[jt]sx?$/.test(g.path)) ? 'JavaScript/TypeScript 用 process.env.NAME' : ''}${!group.some((g) => /\.(py|[jt]sx?)$/.test(g.path)) ? '或改成从密钥管理服务读取' : ''}），变量名要看得懂。少了它程序就跑不起来的话，缺了就清楚报错，不要退回写死的值。`,
+        `2. 把每个变量名（值留空，绝不要填真的）写进 .env.example，并确认 .env 已经列在 .gitignore 里。`,
+        frontend ? `3. 这是会发给浏览器的前端代码。把用到密钥的调用挪到服务器上的接口或函数，钥匙不能到访客手里。` : `3. 更新部署配置（Docker、Cloud Run、Vercel 等），让这个变量在正式环境里有值。`,
+        group.some((g) => g.file) ? `4. 把凭据文件从仓库里拿掉（git rm --cached），文件名写进 .gitignore，再从环境变量给的路径去读它。` : `4. 把变量设上之后，跑一下应用或测试，确认还能启动。`,
         ``,
-        `Then give me a short checklist (without the values) of which services these keys belong to, so I can rotate each one: create a new key in that service's dashboard, put it in my environment, and revoke the old one. Because the old values are in git history, assume they are compromised.`,
+        `然后给我一份简短清单（不要带值），说明这些钥匙分别属于哪个服务，方便我去轮换：在那个服务的后台新建一把，放进我的环境，再作废旧的。旧值已经在 git 历史里，就当已经泄露。`,
       ].join('\n'),
     };
   };
@@ -1478,19 +1478,19 @@ export function buildHealth({ graph, scan, arch, root }) {
     const it = itemFor(f.path);
     issues.push({
       id: 'env-file:' + f.path, kind: 'env-file', severity: tracked ? 'high' : 'medium',
-      title: tracked ? 'Your private settings file is saved in git' : 'Your private settings file isn’t hidden from git',
+      title: tracked ? '你的私人设置文件已经进了 git' : '你的私人设置文件没有对 git 藏起来',
       detail: tracked
-        ? `${f.path} holds ${plural(secretVars.length, 'password or key', 'passwords and keys')} and is committed, so everyone with access to the code (and its history) can read them. This file is meant to stay on your computer only.`
-        : `${f.path} holds ${plural(secretVars.length, 'password or key', 'passwords and keys')} and isn’t listed in .gitignore, so the next commit will upload it with your code.`,
+        ? `${f.path} 里有 ${plural(secretVars.length, '个密码或密钥')}，而且已经提交了。能看到代码（以及历史）的人都能读到。这个文件本来只该留在你自己的电脑上。`
+        : `${f.path} 里有 ${plural(secretVars.length, '个密码或密钥')}，又没写进 .gitignore，下一次提交就会跟着代码传上去。`,
       items: it ? [it] : [], notes: it ? { [it]: `${f.path}: ${secretVars.slice(0, 6).map((v) => v.name).join(', ')}${secretVars.length > 6 ? '…' : ''}` } : {},
       locations: secretVars.map((v) => ({ file: f.path, line: v.line })),
       fix: [
-        `Security fix: ${f.path} contains secrets and ${tracked ? 'is committed to git' : 'is not ignored by git'}. Do not print or repeat any value from it.`,
+        `安全修复：${f.path} 里有密钥，而且${tracked ? '已经提交进 git' : '没有被 git 忽略'}。不要打印或复述里面的任何值。`,
         ``,
-        `1. Add ${base} (and .env*.local) to ${f.repo ? f.repo + '/' : ''}.gitignore, keeping .env.example tracked.`,
-        tracked ? `2. Stop tracking it without deleting my local copy: git rm --cached "${relInRepo}" (run inside ${f.repo || 'the repo'}), then commit.` : `2. Confirm with git status that the file no longer shows up as a new file.`,
-        `3. Create or update .env.example next to it with the same variable names and empty values: ${secretVars.map((v) => v.name).join(', ')}.`,
-        tracked ? `4. Give me a checklist (names only, no values) of which keys I need to rotate in each service's dashboard, since they are in git history. Mention that removing them from history needs a tool like git filter-repo, and ask before doing that.` : `4. Tell me which deployment settings need these variables.`,
+        `1. 把 ${base}（以及 .env*.local）加进 ${f.repo ? f.repo + '/' : ''}.gitignore，.env.example 继续被跟踪。`,
+        tracked ? `2. 停止跟踪它，但不要删我电脑上的那份：在 ${f.repo || '仓库'} 里运行 git rm --cached "${relInRepo}"，然后提交。` : `2. 用 git status 确认这个文件不再显示成新文件。`,
+        `3. 在它旁边建或更新 .env.example，变量名相同、值留空：${secretVars.map((v) => v.name).join(', ')}。`,
+        tracked ? `4. 给我一份清单（只要名字，不要值），说明我要在各服务后台轮换哪些钥匙，因为它们已经在 git 历史里。提一下从历史里清掉需要 git filter-repo 这类工具，动手之前先问我。` : `4. 告诉我哪些部署设置需要这些变量。`,
       ].join('\n'),
     });
   }
@@ -1525,26 +1525,26 @@ export function buildHealth({ graph, scan, arch, root }) {
       const it = itemFor(loc.file);
       if (!it) continue;
       if (!items.includes(it)) items.push(it);
-      const note = `line ${loc.line}: ${v.name}`;
+      const note = `第 ${loc.line} 行：${v.name}`;
       if (!(notes[it] || '').includes(note)) notes[it] = (notes[it] ? notes[it] + ' · ' : '') + note;
     }
     const names = vars.map((v) => v.name);
     issues.push({
       id: 'public-env', kind: 'public-env-secret', severity: sev,
-      title: vars.length === 1 ? `${names[0]} is sent to every visitor’s browser` : `${vars.length} secret keys are sent to every visitor’s browser`,
-      detail: `Settings whose names start with NEXT_PUBLIC_, VITE_ and the like are copied into the code your site sends to every visitor, where anyone can read them in their browser’s developer tools. ${vars.length === 1 ? `${names[0]} looks like a secret key` : `${names.slice(0, 4).join(', ')}${vars.length > 4 ? '…' : ''} look like secret keys`}${svcs.length ? ` (for ${svcs.slice(0, 4).join(', ')})` : ''}, so anyone could use ${vars.length === 1 ? 'it' : 'them'} as you: run up your bill, send messages as you, or reach your data.${sev === 'medium' ? ' Right now only server code seems to read it, so it may not have reached a browser yet, but the name invites that.' : ''}`,
+      title: vars.length === 1 ? `${names[0]} 会被发到每个访客的浏览器里` : `${vars.length} 把密钥会被发到每个访客的浏览器里`,
+      detail: `名字以 NEXT_PUBLIC_、VITE_ 这类开头的设置，会被抄进网站发给每个访客的代码里，任何人都能在浏览器的开发者工具里读到。${vars.length === 1 ? `${names[0]} 看起来是一把密钥` : `${names.slice(0, 4).join('、')}${vars.length > 4 ? '…' : ''} 看起来是密钥`}${svcs.length ? `（给 ${svcs.slice(0, 4).join('、')} 用的）` : ''}，别人就能拿${vars.length === 1 ? '它' : '它们'}冒充你：刷你的账单、以你的名义发消息，或碰到你的数据。${sev === 'medium' ? '眼下似乎只有服务器代码在读它，可能还没到浏览器，但这个名字就是在邀请这么用。' : ''}`,
       items, notes, locations,
       fix: [
-        `Security fix: secret keys in public environment variables (the browser gets every variable with these prefixes). Do not print, echo or repeat any key value.`,
+        `安全修复：公开环境变量里放了密钥（带这些前缀的变量，浏览器拿得到）。不要打印、复述任何钥匙的值。`,
         ``,
         ...vars.map((v) => `- ${v.name}${v.svc ? ` (${v.svc})` : ''}: ${[...v.defs.map((d) => `set in ${d.file}:${d.line}`), ...v.refs.map((r) => `used in ${r.file}:${r.line}`)].slice(0, 6).join(', ')}`),
         ``,
-        `For each one:`,
-        `1. Rename it without the public prefix (for example OPENAI_API_KEY instead of VITE_OPENAI_API_KEY) in the .env files, .env.example and the hosting settings.`,
-        `2. Move every place that uses it into server-side code (a Next.js route handler or server action, a Supabase Edge Function, a serverless function or the existing backend) and have the frontend call that instead, so the key never reaches the browser.`,
-        vars.some((v) => v.svc === 'Supabase') ? `3. For the Supabase service-role key: browser code should use the anon key and rely on row-level security; only server code may use the service-role key.` : `3. Keep the frontend working the same way, and run the app to check.`,
+        `每一处都这样处理：`,
+        `1. 去掉公开前缀再改名（例如把 VITE_OPENAI_API_KEY 改成 OPENAI_API_KEY），.env、.env.example 和托管设置里都改。`,
+        `2. 把用到它的地方都挪到服务器代码（Next.js 的路由处理或 server action、Supabase Edge Function、无服务器函数，或现有的后端），让前端改去调那个，钥匙不要到浏览器。`,
+        vars.some((v) => v.svc === 'Supabase') ? `3. Supabase 的 service-role 钥匙：浏览器代码应该用 anon 钥匙，并靠行级安全；只有服务器代码可以用 service-role 钥匙。` : `3. 前端保持原来的用法，跑一下应用确认。`,
         ``,
-        `Then give me a checklist (names only, no values) of the keys to rotate in each service's dashboard: anyone who loaded the site may have copied them.`,
+        `然后给我一份清单（只要名字，不要值），说明要在各服务后台轮换哪些钥匙：打开过这个网站的人可能已经抄走了。`,
       ].join('\n'),
     });
   }
@@ -1578,25 +1578,25 @@ export function buildHealth({ graph, scan, arch, root }) {
           const it = itemFor(t.file);
           if (!it) continue;
           if (!items.includes(it)) items.push(it);
-          notes[it] = (notes[it] ? notes[it] + ' · ' : '') + `line ${t.line}: ${short(name)} (row-level security ${t.off ? 'switched off' : 'never switched on'})`;
+          notes[it] = (notes[it] ? notes[it] + ' · ' : '') + `第 ${t.line} 行：${short(name)}（行级安全${t.off ? '被关掉了' : '从没打开过'}）`;
         }
         const list = open.map(([name]) => short(name));
         issues.push({
           id: 'rls:' + repo, kind: 'database-rules', severity: 'high',
-          title: open.length === 1 ? `Anyone can read and change your ${list[0]} table` : `Anyone can read and change ${open.length} of your database tables`,
-          detail: `Your app talks to Supabase with a public key that every visitor’s browser has. Row-level security is what stops one person from reading or changing someone else’s rows, and it’s off for ${open.length === 1 ? `the ${list[0]} table` : `${list.slice(0, 6).join(', ')}${list.length > 6 ? ` and ${list.length - 6} more` : ''}`}. Without it, anyone can use that key to read, change or delete every row${open.length === 1 ? '' : ' in them'}. If your app only reaches the database from its own server, the risk is lower, but switching it on is still the safe default.`,
+          title: open.length === 1 ? `谁都能读、改你的 ${list[0]} 表` : `谁都能读、改你的 ${open.length} 张数据表`,
+          detail: `应用用一把每个访客浏览器里都有的公开钥匙连着 Supabase。行级安全才是拦住一个人去读、改别人那一行的东西，而 ${open.length === 1 ? `${list[0]} 这张表` : `${list.slice(0, 6).join('、')}${list.length > 6 ? `，还有 ${list.length - 6} 张` : ''}`} 没开。不开的话，谁都能用这把钥匙读、改、删掉每一行${open.length === 1 ? '' : '（这些表里的）'}。如果应用只从自己的服务器连数据库，风险小一些，但打开它仍然是稳妥的默认。`,
           items, notes,
           locations: open.map(([, t]) => t.off || { file: t.file, line: t.line }),
           fix: [
-            `Security fix: Supabase tables without row-level security (RLS). Do not print any keys.`,
+            `安全修复：这些 Supabase 表没有行级安全（RLS）。不要打印任何钥匙。`,
             ``,
-            `Anyone with the app's public (anon) key can read and change these tables:`,
+            `拿着应用公开（anon）钥匙的人可以读、改这些表：`,
             ...open.map(([name, t]) => `- ${name}: created in ${t.file}:${t.line}${t.off ? `, row-level security switched off in ${t.off.file}:${t.off.line}` : ''}`),
             ``,
-            `1. Read how the app uses each table: which pages read or write it, and whether rows belong to a user (for example a user_id column that should match auth.uid()).`,
-            `2. Write one new migration (don't edit the old ones) that runs \`alter table <table> enable row level security;\` for each table, plus policies so the app keeps working: usually signed-in users can read and change only their own rows (\`using (auth.uid() = user_id)\`), and tables meant to be public get a read-only policy. Server code that uses the service-role key isn't affected by these rules.`,
-            `3. Explain the policies to me in plain words before applying anything, and don't loosen any existing policy.`,
-            `4. Tell me how to apply the migration (for example \`supabase db push\`) and how to check, while signed out, that I can't read other people's rows.`,
+            `1. 读应用怎么用每张表：哪些页面在读或写，行是不是属于某个用户（比如应该对上 auth.uid() 的 user_id 列）。`,
+            `2. 写一份新迁移（不要改旧的），给每张表跑 \`alter table <table> enable row level security;\`，再加上策略让应用还能用：通常登录用户只能读、改自己的行（\`using (auth.uid() = user_id)\`），本来就该公开的表给只读策略。用 service-role 钥匙的服务器代码不受这些规则影响。`,
+            `3. 动手之前用大白话把策略讲给我听，不要放宽任何已有策略。`,
+            `4. 告诉我怎么应用这份迁移（例如 \`supabase db push\`），以及没登录时怎么确认我读不到别人的行。`,
           ].join('\n'),
         });
       }
@@ -1606,54 +1606,54 @@ export function buildHealth({ graph, scan, arch, root }) {
           const it = itemFor(t.dyn.file);
           if (!it) continue;
           if (!items.includes(it)) items.push(it);
-          const note = `line ${t.dyn.line}: row-level security switched ${t.dyn.on ? 'on' : 'off'} for tables this migration doesn’t name`;
+          const note = `第 ${t.dyn.line} 行：这份迁移没点名的表，行级安全被${t.dyn.on ? '打开' : '关掉'}了`;
           if (!(notes[it] || '').includes(note)) notes[it] = (notes[it] ? notes[it] + ' · ' : '') + note;
         }
         const list = unsure.map(([name]) => short(name));
         const where = [...new Map(unsure.map(([, t]) => [`${t.dyn.file}:${t.dyn.line}`, t.dyn])).values()];
         issues.push({
           id: 'rls-unsure:' + repo, kind: 'database-rules', severity: 'medium',
-          title: unsure.length === 1 ? `Floorplan can’t tell whether your ${list[0]} table is protected` : `Floorplan can’t tell whether ${unsure.length} of your database tables are protected`,
-          detail: `A migration (${where[0].file.split('/').pop()}, line ${where[0].line}) switches row-level security ${unsure[0][1].dyn.on ? 'on' : 'off'} with SQL it puts together as it runs, so Floorplan can’t see which tables it covers. If ${unsure.length === 1 ? `the ${list[0]} table` : `any of ${list.slice(0, 6).join(', ')}${list.length > 6 ? ` or ${list.length - 6} more` : ''}`} ends up without it, anyone with your app’s public key could read or change every row there. Worth checking once in the Supabase dashboard, where a table without it is marked “RLS disabled”.`,
+          title: unsure.length === 1 ? `Floorplan 看不出你的 ${list[0]} 表有没有保护` : `Floorplan 看不出你的 ${unsure.length} 张数据表有没有保护`,
+          detail: `一份迁移（${where[0].file.split('/').pop()}，第 ${where[0].line} 行）用运行时拼出来的 SQL ${unsure[0][1].dyn.on ? '打开' : '关掉'}了行级安全，所以 Floorplan 看不出它覆盖了哪些表。如果 ${unsure.length === 1 ? `${list[0]} 这张表` : `${list.slice(0, 6).join('、')}${list.length > 6 ? `，或另外 ${list.length - 6} 张` : ''}里的任何一张`}最后没开，拿着应用公开钥匙的人就能读、改那里的每一行。值得去 Supabase 后台看一眼，没开的表会标着 “RLS disabled”。`,
           items, notes,
           locations: where.map((w) => ({ file: w.file, line: w.line })),
           fix: [
-            `Security check: Supabase tables whose row-level security (RLS) is set by dynamic SQL. Do not print any keys.`,
+            `安全检查：这些 Supabase 表的行级安全（RLS）是用动态 SQL 设的。不要打印任何钥匙。`,
             ``,
-            `Row-level security is switched on or off with SQL built at run time here:`,
+            `行级安全是在这里用运行时拼出来的 SQL 打开或关掉的：`,
             ...where.map((w) => `- ${w.file}:${w.line}`),
             ``,
-            `Check whether that covers each of these tables:`,
+            `看一看它有没有覆盖下面每一张表：`,
             ...unsure.map(([name, t]) => `- ${name}: created in ${t.file}:${t.line}`),
             ``,
-            `1. Read the migration and tell me in plain words which tables it switches row-level security on for.`,
-            `2. For any table it misses, write one new migration (don't edit the old ones) that runs \`alter table <table> enable row level security;\` plus policies so the app keeps working (usually \`using (auth.uid() = user_id)\` for rows that belong to a user). Show me before applying anything.`,
-            `3. Tell me how to check, while signed out, that I can't read other people's rows.`,
+            `1. 读这份迁移，用大白话告诉我它给哪些表打开了行级安全。`,
+            `2. 漏掉的表，写一份新迁移（不要改旧的），跑 \`alter table <table> enable row level security;\`，再加上策略让应用还能用（属于用户的行通常用 \`using (auth.uid() = user_id)\`）。动手之前先给我看。`,
+            `3. 告诉我没登录时怎么确认我读不到别人的行。`,
           ].join('\n'),
         });
       }
       const loose = policies.filter((pol) => tables.get(pol.table)?.rls === true);
       if (loose.length) {
-        const verb = (cmd) => ({ insert: 'add', update: 'change', delete: 'delete' }[cmd] || 'add, change and delete');
-        const rowsOf = (cmd, t) => `${verb(cmd)} rows ${{ insert: 'to', delete: 'from' }[cmd] || 'in'} ${t}`;
+        const verb = (cmd) => ({ insert: '新增', update: '修改', delete: '删除' }[cmd] || '新增、修改和删除');
+        const rowsOf = (cmd, t) => `${verb(cmd)} ${t} 里的记录`;
         const items = [], notes = {};
         for (const pol of loose) {
           const it = itemFor(pol.file);
           if (!it) continue;
           if (!items.includes(it)) items.push(it);
-          notes[it] = (notes[it] ? notes[it] + ' · ' : '') + `line ${pol.line}: “${pol.policy}” lets anyone ${rowsOf(pol.cmd, short(pol.table))}`;
+          notes[it] = (notes[it] ? notes[it] + ' · ' : '') + `第 ${pol.line} 行：「${pol.policy}」让谁都能${rowsOf(pol.cmd, short(pol.table))}`;
         }
         issues.push({
           id: 'open-policy:' + repo, kind: 'database-rules', severity: 'medium',
-          title: loose.length === 1 ? `A database rule lets anyone change your ${short(loose[0].table)} table` : `${loose.length} database rules let anyone change your data`,
-          detail: `${loose.length === 1 ? `The rule “${loose[0].policy}” lets anyone` : `These rules let anyone`}${loose.some((pol) => pol.signedOut) ? ', even people who aren’t signed in,' : ''} ${loose.length === 1 ? rowsOf(loose[0].cmd, short(loose[0].table)) : `add, change or delete rows in ${[...new Set(loose.map((pol) => short(pol.table)))].slice(0, 5).join(', ')}`}. If a table is a public form (like a waitlist or contact form), letting anyone add rows is fine; otherwise limit it to signed-in users and their own rows.`,
+          title: loose.length === 1 ? `一条数据库规则让谁都能改你的 ${short(loose[0].table)} 表` : `${loose.length} 条数据库规则让谁都能改你的数据`,
+          detail: `${loose.length === 1 ? `规则「${loose[0].policy}」让任何人` : `这些规则让任何人`}${loose.some((pol) => pol.signedOut) ? '，包括没登录的人，' : ''}${loose.length === 1 ? rowsOf(loose[0].cmd, short(loose[0].table)) : `新增、修改或删除 ${[...new Set(loose.map((pol) => short(pol.table)))].slice(0, 5).join('、')} 里的记录`}。如果这张表是公开表单（比如等候名单或联系表），让谁都能新增可以；否则就限制成登录用户、而且只能动自己的记录。`,
           items, notes,
           locations: loose.map((pol) => ({ file: pol.file, line: pol.line })),
           fix: [
-            `Security review: Supabase row-level security policies that allow anyone to change data (\`using (true)\` / \`with check (true)\` for anon or public):`,
+            `安全审查：这些 Supabase 行级安全策略让谁都能改数据（anon 或 public 上的 \`using (true)\` / \`with check (true)\`）：`,
             ...loose.map((pol) => `- “${pol.policy}” on ${pol.table} (for ${pol.cmd}) — ${pol.file}:${pol.line}`),
             ``,
-            `For each one, tell me in plain words what it allows and whether the app needs that. If the table isn't meant to be public, replace \`true\` with a check such as \`auth.uid() = user_id\`, limited to authenticated users, in a new migration. If it's a public form, keep adding rows open but make sure nobody can read, change or delete other people's rows. Show me the change before applying it.`,
+            `每一条都用大白话告诉我它允许什么、应用是不是需要这样。如果这张表不该公开，在一份新迁移里把 \`true\` 换成 \`auth.uid() = user_id\` 这类检查，并限制成已登录用户。如果是公开表单，新增可以保持开放，但要确保谁都不能读、改、删别人的行。应用之前先把改动给我看。`,
           ].join('\n'),
         });
       }
@@ -1662,7 +1662,7 @@ export function buildHealth({ graph, scan, arch, root }) {
 
   // ---------- Firebase security rules that let anyone in ----------
   const today = new Date();
-  const longDate = (d) => d.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' });
+  const longDate = (d) => d.toLocaleDateString('zh-CN', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
   const firebaseFiles = []; // rules files read, for "What was checked"
   for (const f of scan.files) {
     const base = f.path.split('/').pop();
@@ -1689,39 +1689,39 @@ export function buildHealth({ graph, scan, arch, root }) {
     let title, detail, severity;
     if (until && writes.length) {
       severity = 'high';
-      title = `Your Firebase ${service} is open to anyone until ${longDate(until.until)}`;
-      detail = `${base} still has Firebase’s “test mode” rules: anyone can read and change ${files ? 'every file' : 'everything'} until ${longDate(until.until)}, without signing in or using your app. After that date every request is refused and the app stops working, so replace them with real rules rather than moving the date.`;
+      title = `你的 Firebase ${service} 在 ${longDate(until.until)} 之前谁都能进`;
+      detail = `${base} 还留着 Firebase 的「测试模式」规则：在 ${longDate(until.until)} 之前，谁都能读、改${files ? '每一个文件' : '全部数据'}，不用登录，也不用经过你的应用。过了那天每个请求都会被拒绝，应用就停了，所以换成真正的规则，不要只是把日期往后挪。`;
     } else if (writes.length) {
       severity = 'high';
-      title = files ? 'Anyone can upload, replace or delete your Firebase files' : `Anyone can change or delete your Firebase ${service} data`;
-      detail = `A rule in ${base} (line ${writes[0].line}, at ${writes[0].where}) lets anyone, signed in or not, ${files ? 'upload, replace or delete files' : 'add, change or delete data'}. Your app’s Firebase settings are in every visitor’s browser, so anyone can use them to reach your ${service} directly, without going through your app.`;
+      title = files ? '谁都能上传、换掉或删掉你的 Firebase 文件' : `谁都能改或删掉你的 Firebase ${service} 数据`;
+      detail = `${base} 第 ${writes[0].line} 行（在 ${writes[0].where}）的一条规则让任何人，不管登没登录，都能${files ? '上传、换掉或删除文件' : '新增、修改或删除数据'}。应用的 Firebase 设置在每个访客的浏览器里，所以谁都能直接拿去连你的 ${service}，不用经过应用。`;
     } else if (deepWrites.length || reads.length) {
       severity = 'medium';
-      title = reads.length && !deepWrites.length ? `Anyone can read everything in your Firebase ${service}` : `Anyone can change part of your Firebase ${service}`;
+      title = reads.length && !deepWrites.length ? `谁都能读光你的 Firebase ${service}` : `谁都能改你的 Firebase ${service} 的一部分`;
       detail = [
-        reads.length ? `A rule in ${base} (line ${reads[0].line}) lets anyone read every ${files ? 'file' : 'record'}, including data that may belong to your users. If everything there is meant to be public, that’s fine; otherwise it needs a sign-in check.` : '',
-        deepWrites.length ? `A rule in ${base} (line ${deepWrites[0].line}) lets anyone ${deepWrites[0].createOnly ? 'add to' : 'change'} ${deepWrites[0].where} without signing in. If that’s a public form (like a waitlist or contact form), that can be fine; otherwise it needs a sign-in check.` : '',
+        reads.length ? `${base} 第 ${reads[0].line} 行的一条规则让谁都能读每一个${files ? '文件' : '记录'}，里面可能有属于用户的数据。如果那里本来就该公开，可以；否则需要先确认登录。` : '',
+        deepWrites.length ? `${base} 第 ${deepWrites[0].line} 行的一条规则让谁都能在不登录的情况下${deepWrites[0].createOnly ? '往' : '改'} ${deepWrites[0].where}${deepWrites[0].createOnly ? '里新增' : ''}。如果那是公开表单（比如等候名单或联系表），可以；否则需要先确认登录。` : '',
       ].filter(Boolean).join(' ');
     } else {
       severity = 'medium';
-      title = `Your Firebase ${service} test-mode rules ran out on ${longDate(expired.until)}`;
-      detail = `${base} has Firebase’s “test mode” rules, which stopped allowing access on ${longDate(expired.until)}. Every read and write is now refused, so the parts of the app that use ${service} won’t work. Replace them with real rules instead of moving the date, which would open everything to anyone again.`;
+      title = `你的 Firebase ${service} 测试模式规则已在 ${longDate(expired.until)} 到期`;
+      detail = `${base} 用的是 Firebase 的「测试模式」规则，${longDate(expired.until)} 起不再放行。现在每次读写都会被拒绝，用到 ${service} 的部分就用不了。换成真正的规则，不要把日期往后挪，那样又会让谁都能进来。`;
     }
     const it = itemFor(f.path);
     issues.push({
       id: 'firebase-rules:' + f.path, kind: 'database-rules', severity, title, detail,
-      items: it ? [it] : [], notes: it ? { [it]: shown.slice(0, 4).map((r) => `line ${r.line}: ${r.text}`).join(' · ') } : {},
+      items: it ? [it] : [], notes: it ? { [it]: shown.slice(0, 4).map((r) => `第 ${r.line} 行：${r.text}`).join(' · ') } : {},
       locations: shown.map((r) => ({ file: f.path, line: r.line })),
       fix: [
-        `Security fix: Firebase ${service} security rules in ${f.path}.`,
+        `安全修复：${f.path} 里的 Firebase ${service} 安全规则。`,
         ``,
-        `These rules let anyone in (or have expired):`,
-        ...shown.map((r) => `- line ${r.line}: ${r.text}`),
+        `这些规则让谁都能进来（或已经过期）：`,
+        ...shown.map((r) => `- 第 ${r.line} 行：${r.text}`),
         ``,
-        `1. Read how the app uses each ${rtdb ? 'path' : files ? 'storage folder' : 'collection'}: what each screen reads and writes, and which data belongs to a user (for example ${files ? 'files under a folder named after the user’s uid' : 'documents keyed by the user’s uid, or with an ownerId field'}).`,
-        `2. Rewrite the rules so signed-in users can only read and write their own ${what} (${rtdb ? 'auth != null && auth.uid === $uid' : files ? 'request.auth != null && request.auth.uid == userId' : 'request.auth != null && request.auth.uid == resource.data.ownerId'}), public content is read-only, and everything else is denied. Don't use test-mode dates.`,
-        `3. Explain the new rules to me in plain words and wait for my OK.`,
-        `4. Then deploy them with \`firebase deploy --only ${deploy}\` and check them in the Firebase console's Rules Playground (or the emulator): a signed-out user shouldn't be able to read or change anything private.`,
+        `1. 读应用怎么用每个${rtdb ? '路径' : files ? '存储文件夹' : '集合'}：每个页面读什么、写什么，哪些数据属于某个用户（例如${files ? '放在以用户 uid 命名的文件夹下的文件' : '以用户 uid 为键的文档，或带 ownerId 字段'}）。`,
+        `2. 重写规则：登录用户只能读、写自己的${what === 'files' ? '文件' : '数据'}（${rtdb ? 'auth != null && auth.uid === $uid' : files ? 'request.auth != null && request.auth.uid == userId' : 'request.auth != null && request.auth.uid == resource.data.ownerId'}），公开内容只读，其余拒绝。不要用测试模式的日期。`,
+        `3. 用大白话把新规则讲给我听，等我同意。`,
+        `4. 然后用 \`firebase deploy --only ${deploy}\` 部署，并在 Firebase 控制台的 Rules Playground（或模拟器）里检查：没登录的人不该能读或改任何私有的东西。`,
       ].join('\n'),
     });
   }
@@ -1736,17 +1736,17 @@ export function buildHealth({ graph, scan, arch, root }) {
     const fixSteps = STRIPE_FIX[stripeStack(file)];
     issues.push({
       id: 'stripe-webhook:' + file, kind: 'stripe-webhook', severity: 'high',
-      title: `Anyone could fake a Stripe payment in ${nameOf(file)}`,
-      detail: `${file.split('/').pop()} acts on Stripe events (like “${x.events[0]}”) without checking Stripe’s signature, so anyone who finds the address can send a fake “payment succeeded” message and get orders, credits or a subscription for free. Stripe signs every real event; checking that signature takes a few lines.`,
-      items, notes: Object.fromEntries(items.map((id) => [id, id.startsWith('r:') ? 'Receives Stripe events without checking they’re real' : `line ${x.line}: handles ${x.events.join(', ')} without checking Stripe’s signature`])),
+      title: `谁都能在 ${nameOf(file)} 里伪造一笔 Stripe 付款`,
+      detail: `${file.split('/').pop()} 会按 Stripe 的事件行事（比如「${x.events[0]}」），却没核对 Stripe 的签名。谁找到这个地址，就能发一条假的「付款成功」，白拿订单、额度或订阅。Stripe 给每条真事件都签了名，核对只要几行。`,
+      items, notes: Object.fromEntries(items.map((id) => [id, id.startsWith('r:') ? '接收 Stripe 事件，没核对是不是真的' : `第 ${x.line} 行：处理 ${x.events.join('、')}，没核对 Stripe 的签名`])),
       locations: [{ file, line: x.line }],
       fix: [
-        `Security fix in ${file}: verify Stripe webhook signatures before acting on any event. Do not print any secret values.`,
+        `安全修复（${file}）：处理任何事件之前，先核对 Stripe 通知的签名。不要打印任何密钥的值。`,
         ``,
-        `It handles ${x.events.join(', ')} (line ${x.line}) without calling ${fixSteps.verify}.`,
+        `它处理 ${x.events.join(', ')}（第 ${x.line} 行），却没有调用 ${fixSteps.verify}。`,
         ``,
         ...fixSteps.steps,
-        `3. Use only the verified event from then on, and handle each event once even if Stripe sends it again.`,
+        `3. 之后只用核对过的事件，而且每条事件即使 Stripe 再发一次也只处理一遍。`,
         fixSteps.secret,
       ].join('\n'),
     });
@@ -1763,21 +1763,21 @@ export function buildHealth({ graph, scan, arch, root }) {
       const it = itemFor(c.file);
       if (!it) continue;
       if (!items.includes(it)) items.push(it);
-      notes[it] = (notes[it] ? notes[it] + ' · ' : '') + `line ${c.line}: ${c.how}${c.credentials ? ', with login cookies' : ''}`;
+      notes[it] = (notes[it] ? notes[it] + ' · ' : '') + `第 ${c.line} 行：${c.how}${c.credentials ? '，会带上登录 cookie' : ''}`;
     }
     issues.push({
       id: 'cors', kind: 'cors', severity: cred.length ? 'medium' : 'low',
-      title: cred.length ? 'Any website could act as your signed-in users' : 'Any website can call your server from a visitor’s browser',
+      title: cred.length ? '任何网站都能冒充你已登录的用户' : '任何网站都能从访客的浏览器调用你的服务器',
       detail: cred.length
-        ? `${cred[0].file.split('/').pop()} lets any website call this server from a visitor’s browser and send along their login cookies. So a site a signed-in user happens to visit could quietly read their data or act as them. Allow only your own app’s address instead.`
-        : `${filesC.length === 1 ? filesC[0].split('/').pop() : `${filesC.length} files`} tell browsers that any website may call this server. That’s fine for a public API that doesn’t use login cookies (for example one that checks a token in the Authorization header); otherwise, allow only your own app’s address.`,
+        ? `${cred[0].file.split('/').pop()} 允许任何网站从访客的浏览器调用这台服务器，并带上他们的登录 cookie。所以一个已登录的人随便打开的网站，就能悄悄读他们的数据，或冒充他们。改成只允许你自己应用的地址。`
+        : `${filesC.length === 1 ? filesC[0].split('/').pop() : `${filesC.length} 个文件`}告诉浏览器：任何网站都可以调用这台服务器。对不用登录 cookie 的公开接口（比如只核对 Authorization 头里的通行证）可以；否则就只允许你自己应用的地址。`,
       items, notes,
       locations: cors.map((c) => ({ file: c.file, line: c.line })),
       fix: [
-        `Security review: CORS settings that allow every website:`,
+        `安全审查：CORS 设置允许了所有网站：`,
         ...cors.map((c) => `- ${c.file}:${c.line}: ${c.how}${c.credentials ? ' (with credentials)' : ''}`),
         ``,
-        `First tell me in plain words whether this server uses login cookies or sessions, and which websites legitimately call it. Then replace the allow-everything setting with an explicit list of allowed origins read from an environment variable (for example ALLOWED_ORIGINS=https://myapp.com,http://localhost:3000). Keep credentials only if the app logs in with cookies, and never combine them with "*" or with echoing back whatever origin asks. Show me the change before making it, and change nothing else.`,
+        `先用大白话告诉我：这台服务器用不用登录 cookie 或登录状态，哪些网站是正经来调用它的。然后把「谁都能来」改成从环境变量读的一份明确允许名单（例如 ALLOWED_ORIGINS=https://myapp.com,http://localhost:3000）。只有应用靠 cookie 登录时才保留凭据，绝不要和 "*" 一起用，也不要原样回显对方报上来的来源。改之前先给我看，别的不要动。`,
       ].join('\n'),
     });
   }
@@ -2027,23 +2027,23 @@ export function buildHealth({ graph, scan, arch, root }) {
       const copyable = (m) => m && new Map([...m].filter(([n]) => !guardDefs.get(n)?.some((g) => g.base)));
       const local = top(copyable(pr.fileGuards.get(file)));
       const name = local || top(new Map([...copyable(pr.guardCounts)].filter(([n]) => !guardDefs.get(n)?.every((g) => g.wrapper))));
-      if (!name) return `the project's existing login check (find how other protected endpoints verify the user; if there is none, ask me before adding one)`;
+      if (!name) return `项目里现有的登录检查（看看别的受保护接口怎么验人；如果没有，加之前先问我）`;
       const defs = guardDefs.get(name) || [];
-      const where = defs.find((g) => g.file === file) ? 'defined in this file' : defs.length ? `defined in ${defs[0].file}` : '';
+      const where = defs.find((g) => g.file === file) ? '就定义在这个文件里' : defs.length ? `定义在 ${defs[0].file}` : '';
       const how = guardLabel(name, defs, lang);
-      return `the same check ${local ? 'the other endpoints in this file' : 'the protected endpoints'} already use (${how}${where ? ', ' + where : ''})`;
+      return `${local ? '这个文件里其他接口' : '那些受保护的接口'}已经在用的同一道检查（${how}${where ? '，' + where : ''}）`;
     };
     const routeLine = (e) => `- ${e.r.m} ${e.r.p} — ${e.r.f}:${e.r.l}${e.fnd.fn && !/^[A-Z]+$/.test(e.fnd.fn) ? ` (${e.fnd.fn})` : ''}${e.fnd.defFile ? `, route registered in ${e.fnd.defFile}:${e.fnd.defLine}` : ''}`;
     if (pr.misplaced.length) {
       const list = pr.misplaced;
       issues.push({
         id: 'misplaced-guard:' + repo, kind: 'unprotected-endpoint', severity: 'high',
-        title: 'A login check is in the wrong place, so it does nothing',
-        detail: `On ${plural(list.length, 'endpoint')} the login check (@${list[0].fnd.misplaced}) is written above the route line instead of below it. Flask only sees what's below, so ${list.length === 1 ? 'it is' : 'they are'} open to anyone even though ${list.length === 1 ? 'it looks' : 'they look'} protected.`,
+        title: '登录检查放错了位置，所以根本没生效',
+        detail: `有 ${plural(list.length, '个接口')}把登录检查（@${list[0].fnd.misplaced}）写在了路由那一行的上面，而不是下面。Flask 只看下面的，所以${list.length === 1 ? '它' : '它们'}其实谁都能用，尽管看起来像是有保护。`,
         items: list.slice(0, 24).map((e) => 'r:' + e.i),
-        notes: Object.fromEntries(list.slice(0, 24).map((e) => ['r:' + e.i, `@${e.fnd.misplaced} sits above the route line, so it is skipped`])),
+        notes: Object.fromEntries(list.slice(0, 24).map((e) => ['r:' + e.i, `@${e.fnd.misplaced} 写在路由那一行上面，所以被跳过了`])),
         locations: list.map((e) => ({ file: e.r.f, line: e.r.l })),
-        fix: [`Security fix: these endpoints have their auth decorator above the route decorator, so the framework registers the unprotected function:`, ...list.map(routeLine), ``, `Move each auth decorator directly below the @…route(...) line (route decorator first, then the auth decorator, then def). Change nothing else, then run the tests that cover these endpoints.`].join('\n'),
+        fix: [`安全修复：这些接口的登录装饰器写在路由装饰器上面，框架登记的是没保护的函数：`, ...list.map(routeLine), ``, `把每个登录装饰器挪到 @…route(...) 那一行的正下方（先路由装饰器，再登录装饰器，然后才是 def）。别的不要改，然后跑覆盖这些接口的测试。`].join('\n'),
       });
     }
     if (!pr.open.length) continue;
@@ -2052,12 +2052,12 @@ export function buildHealth({ graph, scan, arch, root }) {
       const list = pr.open.sort((a, b) => b.write - a.write);
       issues.push({
         id: 'no-auth:' + repo, kind: 'unprotected-endpoint', severity: 'medium',
-        title: `None of ${repoName ? `${repoName}’s` : 'your'} endpoints check who is calling`,
-        detail: `${plural(list.length, 'endpoint')} answer anyone who knows the address, with no login check in the code. That's fine only if this server is private (for example behind a company network or a gateway that checks logins); otherwise anyone could read or change its data.`,
+        title: `${repoName ? `${repoName} 的` : '你的'}接口都没检查是谁在调用`,
+        detail: `${plural(list.length, '个接口')}谁知道地址都能调用，代码里没有登录检查。只有这台服务器是私有的（比如在公司网络后面，或前面有网关在验登录）才说得过去；否则谁都能读、改它的数据。`,
         items: list.slice(0, 24).map((e) => 'r:' + e.i),
-        notes: Object.fromEntries(list.slice(0, 24).map((e) => ['r:' + e.i, e.write ? 'Changes data, no login check' : 'No login check'])),
+        notes: Object.fromEntries(list.slice(0, 24).map((e) => ['r:' + e.i, e.write ? '会改数据，没有登录检查' : '没有登录检查'])),
         locations: list.map((e) => ({ file: e.r.f, line: e.r.l })),
-        fix: [`Review access control${repoName ? ` in ${repoName}` : ''}. None of these endpoints verify the caller in code:`, ...list.slice(0, 40).map(routeLine), list.length > 40 ? `- …and ${list.length - 40} more` : null, ``, `First tell me in plain words whether this server is reachable from the internet and whether anything in front of it (gateway, network rules) checks logins. If it is public, propose the smallest safe way to require login for the data-changing endpoints (POST/PUT/PATCH/DELETE) first, show me the plan, and wait for my OK before changing code.`].filter((x) => x !== null).join('\n'),
+        fix: [`看一看访问控制${repoName ? `（在 ${repoName}）` : ''}。这些接口在代码里都没验证调用者是谁：`, ...list.slice(0, 40).map(routeLine), list.length > 40 ? `- …还有 ${list.length - 40} 个` : null, ``, `先用大白话告诉我：这台服务器能不能从网上访问到，前面有没有东西（网关、网络规则）在验登录。如果是公开的，先给会改数据的接口（POST/PUT/PATCH/DELETE）想一个最小、稳妥的登录办法，把方案给我看，我同意之前不要改代码。`].filter((x) => x !== null).join('\n'),
       });
       continue;
     }
@@ -2071,29 +2071,29 @@ export function buildHealth({ graph, scan, arch, root }) {
       const sev = writes.length ? 'high' : reads.length > 2 ? 'medium' : 'low';
       const lang = scanByPath.get(file)?.lang;
       const fileGuarded = pr.guardedIn.get(file) || 0;
-      const sv = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+      const sv = (n, one) => `${n} 个${one}`;
       const parts = [];
-      if (writes.length) parts.push(sv(writes.length, 'endpoint that changes data (create, update or delete)', 'endpoints that change data (create, update or delete)'));
-      if (reads.length) parts.push(sv(reads.length, 'endpoint that returns data', 'endpoints that return data'));
+      if (writes.length) parts.push(sv(writes.length, '会改数据的接口（新建、修改或删除）'));
+      if (reads.length) parts.push(sv(reads.length, '会返回数据的接口'));
       const nOpen = writes.length + reads.length;
-      const hookText = hooks.length ? `${sv(hooks.length, 'webhook (an automatic message from another service) is', 'webhooks (automatic messages from another service) are')} accepted without checking that ${hooks.length === 1 ? 'it really comes' : 'they really come'} from that service, so anyone could send fake ones. Some providers can't sign their messages; if so, that's expected.` : '';
+      const hookText = hooks.length ? `有 ${hooks.length} 个通知（别的服务自动发来的消息）没核对是不是真的来自那个服务，所以谁都能发假的。有的服务发不出签名；如果是这种情况，可以接受。` : '';
       issues.push({
         id: 'open-endpoints:' + file, kind: 'unprotected-endpoint', severity: sev,
-        title: writes.length ? `Anyone could change data through ${nameOf(file)}` : hooks.length ? `Anyone could send fake events to ${nameOf(file)}` : `Anyone could read data from ${nameOf(file)}`,
+        title: writes.length ? `谁都能通过 ${nameOf(file)} 改数据` : hooks.length ? `谁都能给 ${nameOf(file)} 发假通知` : `谁都能从 ${nameOf(file)} 读数据`,
         detail: [
-          parts.length ? `${file.split('/').pop()} has ${parts.join(' and ')} with no login check, so anyone who finds the address can use ${nOpen === 1 ? 'it' : 'them'}${fileGuarded > 0 ? ` (${sv(fileGuarded, 'other endpoint', 'other endpoints')} in the same file ${fileGuarded === 1 ? 'is' : 'are'} protected)` : ''}. If ${nOpen === 1 ? 'it is' : 'some are'} meant to be public, that's fine; otherwise ${nOpen === 1 ? 'it needs' : 'they need'} a login check.` : '',
-          parts.length && hooks.length ? `It also accepts ${sv(hooks.length, 'webhook', 'webhooks')} without checking who sent ${hooks.length === 1 ? 'it' : 'them'}.` : hookText,
+          parts.length ? `${file.split('/').pop()} 里有${parts.join('和')}，没有登录检查，谁找到地址都能用${fileGuarded > 0 ? `（同一个文件里另外 ${fileGuarded} 个接口是有保护的）` : ''}。${nOpen === 1 ? '如果它本来就该公开，可以；否则需要登录检查。' : '如果其中有的本来就该公开，可以；否则需要登录检查。'}` : '',
+          parts.length && hooks.length ? `它还接收 ${hooks.length} 个通知，没核对是谁发的。` : hookText,
         ].filter(Boolean).join(' '),
         items: list.slice(0, 24).map((e) => 'r:' + e.i),
-        notes: Object.fromEntries(list.slice(0, 24).map((e) => ['r:' + e.i, e.webhook ? 'Webhook with no visible signature check' : e.write ? 'Changes data, no login check' : 'Returns data, no login check'])),
+        notes: Object.fromEntries(list.slice(0, 24).map((e) => ['r:' + e.i, e.webhook ? '通知，看不出有签名核对' : e.write ? '会改数据，没有登录检查' : '会返回数据，没有登录检查'])),
         locations: list.map((e) => ({ file: e.r.f, line: e.r.l })),
         fix: [
-          `Security fix in ${file}: these endpoints don't check who is calling:`,
+          `安全修复（${file}）：这些接口没有检查是谁在调用：`,
           ...list.map((e) => routeLine(e) + (e.webhook ? ' [webhook]' : '')),
           ``,
-          `For each endpoint that isn't meant to be public, add ${guardHint(file, lang)}.`,
-          hooks.length ? `For webhooks, verify the provider's signature (using its signing secret from an environment variable) before doing anything, and reject requests that fail.` : null,
-          `If an endpoint is intentionally public (for example a public page or a health check), leave it and tell me why. Don't change anything else; afterwards list exactly which endpoints you protected and run the related tests.`,
+          `每个不该公开的接口，加上${guardHint(file, lang)}。`,
+          hooks.length ? `通知要先用对方的签名核对（签名密钥放在环境变量里），再做别的事；核对失败就拒绝。` : null,
+          `如果某个接口是故意公开的（比如公开页面或健康检查），留着，并告诉我为什么。别的不要改；做完列出你加了保护的接口，并跑相关测试。`,
         ].filter((x) => x !== null).join('\n'),
       });
     }
@@ -2158,12 +2158,12 @@ export function buildHealth({ graph, scan, arch, root }) {
       const lines = list.reduce((s, f) => s + f.loc, 0);
       issues.push({
         id: 'unused:' + (nid || 'other'), kind: 'unused-file', severity: 'low',
-        title: list.length === 1 ? `A file in ${where} looks unused` : `${list.length} files in ${where} look unused`,
-        detail: `Nothing in the app imports or calls ${list.length === 1 ? 'this file' : 'these files'} (${lines.toLocaleString('en-US')} lines). Leftover code confuses AI assistants, which may edit or copy the wrong version. Double-check before deleting: some files are loaded in ways the map can't see.`,
+        title: list.length === 1 ? `${where} 里有一个文件看起来没人用` : `${where} 里有 ${list.length} 个文件看起来没人用`,
+        detail: `应用里没有地方引用或调用${list.length === 1 ? '这个文件' : '这些文件'}（一共 ${lines.toLocaleString('zh-CN')} 行）。留下的代码会把 AI 助手搞糊涂，它可能改错或抄错那一份。删之前再确认一下：有些文件是用地图看不到的方式加载的。`,
         items: list.slice(0, 24).map((f) => 'f:' + f.p),
-        notes: Object.fromEntries(list.slice(0, 24).map((f) => ['f:' + f.p, `Nothing uses this file (${f.loc.toLocaleString('en-US')} lines)`])),
+        notes: Object.fromEntries(list.slice(0, 24).map((f) => ['f:' + f.p, `没有人用这个文件（${f.loc.toLocaleString('zh-CN')} 行）`])),
         locations: list.map((f) => ({ file: f.p, line: 1 })),
-        fix: [`Cleanup check: these files look unused (nothing imports or calls them):`, ...list.slice(0, 40).map((f) => `- ${f.p}`), list.length > 40 ? `- …and ${list.length - 40} more` : null, ``, `For each file, search the codebase (including configs, scripts, HTML templates and dynamic imports) to confirm nothing uses it. Then tell me which ones are safe to delete and which are actually used, with one line of evidence each. Don't delete anything until I confirm.`].filter((x) => x !== null).join('\n'),
+        fix: [`收拾一下：这些文件看起来没人用（没有引用或调用）：`, ...list.slice(0, 40).map((f) => `- ${f.p}`), list.length > 40 ? `- …还有 ${list.length - 40} 个` : null, ``, `每个文件都在代码里搜一遍（包括配置、脚本、HTML 模板和动态引用），确认真的没人用。然后告诉我哪些可以删、哪些其实在用，各给一行证据。我确认之前不要删。`].filter((x) => x !== null).join('\n'),
       });
     }
   }
@@ -2174,12 +2174,12 @@ export function buildHealth({ graph, scan, arch, root }) {
     const huge = big.filter((f) => f.loc >= 2000);
     issues.push({
       id: 'large-files', kind: 'large-file', severity: huge.length ? 'medium' : 'low',
-      title: big.length === 1 ? 'One file is very large' : `${big.length} files are very large`,
-      detail: `${big.length === 1 ? 'This file has' : 'These files each have'} over 1,000 lines${huge.length ? ` (the biggest has ${big[0].loc.toLocaleString('en-US')})` : ''}. AI assistants read and edit big files less reliably: they lose track of what's where and can break one part while fixing another. Splitting them into smaller files by job makes future changes safer.`,
+      title: big.length === 1 ? '有一个文件特别大' : `有 ${big.length} 个文件特别大`,
+      detail: `${big.length === 1 ? '这个文件' : '这些文件每个都'}超过 1000 行${huge.length ? `（最大的有 ${big[0].loc.toLocaleString('zh-CN')} 行）` : ''}。文件太大，AI 助手读和改都不稳：它会弄丢东西在哪，修一处可能弄坏另一处。按职责拆成小文件，以后改起来更安全。`,
       items: big.slice(0, 24).map((f) => 'f:' + f.p),
-      notes: Object.fromEntries(big.slice(0, 24).map((f) => ['f:' + f.p, `${f.loc.toLocaleString('en-US')} lines${f.tooLarge ? ': too big for Floorplan to read, so what it connects to and any secrets in it weren’t checked' : ''}`])),
+      notes: Object.fromEntries(big.slice(0, 24).map((f) => ['f:' + f.p, `${f.loc.toLocaleString('zh-CN')} 行${f.tooLarge ? '：太大，Floorplan 没读，所以它连着什么、里面有没有密钥都没查' : ''}`])),
       locations: big.map((f) => ({ file: f.p, line: 1 })),
-      fix: [`Refactor plan: these files are very large:`, ...big.slice(0, 15).map((f) => `- ${f.p} (${f.loc.toLocaleString('en-US')} lines)`), ``, `Start with ${big[0].p}. Read it and propose how to split it into smaller files, each with one clear job (for example by feature or by type of work), keeping every public function name and behaviour the same. Show me the plan first. After I approve, move code in small steps, update the imports, and run the tests after each step. Don't change behaviour.`].join('\n'),
+      fix: [`拆分计划：这些文件特别大：`, ...big.slice(0, 15).map((f) => `- ${f.p}（${f.loc.toLocaleString('zh-CN')} 行）`), ``, `从 ${big[0].p} 开始。读一遍，提议怎么拆成更小的文件，每个只干一件清楚的事（比如按功能或按工作类型），对外的函数名和行为都保持不变。先把方案给我看。我同意之后，一小步一小步挪代码，更新引用，每一步之后跑测试。不要改行为。`].join('\n'),
     });
   }
 
@@ -2190,12 +2190,12 @@ export function buildHealth({ graph, scan, arch, root }) {
     const filesL = [...new Set(local.map((x) => x.file))];
     issues.push({
       id: 'localhost-url', kind: 'hardcoded-url', severity: 'low',
-      title: 'The app points at your own computer’s address',
-      detail: `${filesL.length === 1 ? 'A frontend file' : `${filesL.length} frontend files`} call${filesL.length === 1 ? 's' : ''} a fixed “localhost” address. That only works on your machine; once the app is online those calls will fail for everyone else.`,
+      title: '应用指向了你自己电脑的地址',
+      detail: `${filesL.length === 1 ? '有一个前端文件' : `有 ${filesL.length} 个前端文件`}写死了 “localhost” 地址。那只在你自己的电脑上能通；应用上线之后，别人的调用都会失败。`,
       items: filesL.slice(0, 24).map((p) => 'f:' + p),
-      notes: Object.fromEntries(filesL.slice(0, 24).map((p) => ['f:' + p, `localhost address on line ${local.filter((x) => x.file === p).map((x) => x.line).join(', ')}`])),
+      notes: Object.fromEntries(filesL.slice(0, 24).map((p) => ['f:' + p, `第 ${local.filter((x) => x.file === p).map((x) => x.line).join('、')} 行写了 localhost 地址`])),
       locations: local,
-      fix: [`These frontend lines use a hard-coded localhost URL:`, ...local.map((x) => `- ${x.file}:${x.line}`), ``, `Replace each with the project's existing API base URL setting (or add one read from a public environment variable such as NEXT_PUBLIC_API_URL / VITE_API_URL, with the localhost value only in .env.development). Don't change anything else.`].join('\n'),
+      fix: [`这些前端行写死了 localhost 地址：`, ...local.map((x) => `- ${x.file}:${x.line}`), ``, `每一处都换成项目里现成的接口基地址设置（或者加一个从公开环境变量读的，比如 NEXT_PUBLIC_API_URL / VITE_API_URL，localhost 只放在 .env.development）。别的不要改。`].join('\n'),
     });
   }
 
@@ -2222,33 +2222,35 @@ function whatWasChecked({ graph, scan, perRepo, live, usesSupabase, supabaseTabl
   for (const f of scan.files) {
     if (!live(f.path) || f.category !== 'code') continue;
     const sv = findings(f.path).find((x) => x.k === 'server-code');
-    if (sv) servers.push({ file: f.path, what: `it ${sv.how || 'calls'} ${sv.what}` });
-    else if (/(^|\/)supabase\/functions\/[^/]+\/index\.[jt]s$/.test(f.path)) servers.push({ file: f.path, what: 'it’s a Supabase Edge Function' });
+    if (sv) {
+      const how = sv.how === 'reads' ? '读了' : sv.how === 'declares routes with' ? '用它声明接口：' : '调用了';
+      servers.push({ file: f.path, what: `${how} ${sv.what}` });
+    } else if (/(^|\/)supabase\/functions\/[^/]+\/index\.[jt]s$/.test(f.path)) servers.push({ file: f.path, what: '它是 Supabase Edge Function' });
   }
-  if (checkedRoutes) add('endpoints', 'Endpoint sign-in', true, found > checkedRoutes
-    ? `checked ${checkedRoutes} of the ${found} endpoints found (the others are set up in a way Floorplan can’t check yet, or belong to scripts and tests)`
-    : `checked ${plural(checkedRoutes, 'endpoint')}`);
-  else if (found) add('endpoints', 'Endpoint sign-in', false, `not checked: ${plural(found, 'endpoint')} found, but set up in a way Floorplan can’t check for a login yet`);
-  else if (servers.length) add('endpoints', 'Endpoint sign-in', false, `not checked: no endpoints found, but ${servers[0].file} looks like it runs a server (${servers[0].what})${servers.length > 1 ? `, and so ${servers.length === 2 ? 'does 1 other file' : `do ${servers.length - 1} other files`}` : ''}. Its endpoints may be set up in a way Floorplan doesn’t recognise yet, so nothing checked whether they need a login.`, true);
-  else add('endpoints', 'Endpoint sign-in', false, 'not checked: no endpoints found. If your app has a server, it may use a setup Floorplan doesn’t recognise yet.');
+  if (checkedRoutes) add('endpoints', '接口有没有验登录', true, found > checkedRoutes
+    ? `查了找到的 ${found} 个接口里的 ${checkedRoutes} 个（其余的写法 Floorplan 还查不了，或者属于脚本和测试）`
+    : `查了 ${plural(checkedRoutes, '个接口')}`);
+  else if (found) add('endpoints', '接口有没有验登录', false, `没查：找到了 ${plural(found, '个接口')}，但写法是 Floorplan 还不会检查登录的那种`);
+  else if (servers.length) add('endpoints', '接口有没有验登录', false, `没查：没找到接口，但 ${servers[0].file} 看起来在跑服务器（${servers[0].what}）${servers.length > 1 ? `，另外 ${servers.length - 1} 个文件也是` : ''}。它的接口可能用了 Floorplan 还不认识的写法，所以没查它们要不要登录。`, true);
+  else add('endpoints', '接口有没有验登录', false, '没查：没找到接口。如果应用有服务器，可能用了 Floorplan 还不认识的写法。');
 
-  if (usesSupabase && supabaseTables) add('supabase', 'Supabase table rules', true, `checked ${plural(supabaseTables, 'table')} in the migrations`);
-  else if (usesSupabase) add('supabase', 'Supabase table rules', false, 'not checked: the app uses Supabase, but no migrations that create tables were found. Tables made in the Supabase dashboard can’t be checked from the code.', true);
-  else add('supabase', 'Supabase table rules', false, 'no Supabase found');
+  if (usesSupabase && supabaseTables) add('supabase', 'Supabase 表规则', true, `查了迁移里的 ${plural(supabaseTables, '张表')}`);
+  else if (usesSupabase) add('supabase', 'Supabase 表规则', false, '没查：应用用了 Supabase，但没找到建表的迁移。在 Supabase 后台建的表，从代码里查不到。', true);
+  else add('supabase', 'Supabase 表规则', false, '没找到 Supabase');
 
   const firebaseJson = scan.files.some((f) => /(^|\/)firebase\.json$/.test(f.path));
-  if (firebaseFiles.length) add('firebase', 'Firebase rules', true, `checked ${plural(firebaseFiles.length, 'rules file')}`);
-  else add('firebase', 'Firebase rules', false, firebaseJson ? 'not checked: the project uses Firebase, but no rules files were found. Rules set in the Firebase console can’t be checked from the code.' : 'no rules files found');
+  if (firebaseFiles.length) add('firebase', 'Firebase 规则', true, `查了 ${plural(firebaseFiles.length, '份规则文件')}`);
+  else add('firebase', 'Firebase 规则', false, firebaseJson ? '没查：项目用了 Firebase，但没找到规则文件。在 Firebase 控制台里设的规则，从代码里查不到。' : '没找到规则文件');
 
   const stripe = scan.files.filter((f) => live(f.path) && findings(f.path).some((x) => x.k === 'stripe-unsigned' || x.k === 'stripe-signed')).length;
   // Stripe.net is `using Stripe;`, listed as the NuGet package Stripe
   const usesStripe = (scan.externals || []).some((e) => e.name === 'stripe' || /^@stripe\//.test(e.name || '') || (e.eco === 'nuget' && e.name === 'Stripe'));
-  if (stripe) add('stripe', 'Stripe webhooks', true, `checked ${plural(stripe, 'file')} that receive${stripe === 1 ? 's' : ''} Stripe events`);
-  else add('stripe', 'Stripe webhooks', false, usesStripe ? 'the app uses Stripe, but no code that receives its events was found' : 'no Stripe code found');
+  if (stripe) add('stripe', 'Stripe 到账通知', true, `查了 ${plural(stripe, '个接收 Stripe 通知的文件')}`);
+  else add('stripe', 'Stripe 到账通知', false, usesStripe ? '应用用了 Stripe，但没找到接收它通知的代码' : '没找到 Stripe 相关代码');
 
   const readable = scan.files.filter((f) => ['code', 'config', 'docs'].includes(f.category));
   const big = readable.filter((f) => f.tooLarge).length;
-  add('secrets', 'Secrets in code', readable.length > big, `read ${plural(readable.length - big, 'file')}${big ? `; ${plural(big, 'file')} too big to read ${big === 1 ? 'wasn’t' : 'weren’t'} checked` : ''}`);
+  add('secrets', '代码里的密钥', readable.length > big, `读了 ${plural(readable.length - big, '个文件')}${big ? `；${plural(big, '个文件')}太大，没读，所以没查` : ''}`);
   return out;
 }
 
@@ -2295,7 +2297,7 @@ function firebaseRules(src, now) {
     const where = matches.filter((x) => x.i < m.index).pop()?.path || '/';
     const writeOps = ops.filter((o) => /^(write|create|update|delete)$/.test(o));
     out.push({
-      line: at(m.index), text: `allow ${ops.join(', ')}${m[2] ? `: if ${cond}` : ' (no condition)'} at ${where}`,
+      line: at(m.index), text: `allow ${ops.join(', ')}${m[2] ? `: if ${cond}` : '（没有条件）'}，位置 ${where}`,
       read: ops.some((o) => /^(read|get|list)$/.test(o)), write: writeOps.length > 0, createOnly: writeOps.length > 0 && writeOps.every((o) => o === 'create'),
       open: !end ? 'always' : end > now ? 'until' : 'expired', until: end, where,
       wide: /=\*\*\}/.test(where) || /\/documents$/.test(where) || where === '/',
@@ -2318,9 +2320,9 @@ function firebaseRtdbRules(src, now) {
     let depth = 0;
     for (let i = 0; i < m.index; i++) { if (s[i] === '{') depth++; else if (s[i] === '}') depth--; }
     const keys = [...s.slice(0, m.index).matchAll(/"([^".][^"]*)"\s*:\s*\{/g)].map((k) => k[1]);
-    const where = depth <= 2 ? 'the whole database' : '/' + keys.slice(-(depth - 2)).join('/');
+    const where = depth <= 2 ? '整个数据库' : '/' + keys.slice(-(depth - 2)).join('/');
     out.push({
-      line: at(m.index), text: `"${m[1] === 'read' ? '.read' : '.write'}": ${m[2]} for ${where}`,
+      line: at(m.index), text: `"${m[1] === 'read' ? '.read' : '.write'}": ${m[2]}，作用范围 ${where}`,
       read: m[1] === 'read', write: m[1] === 'write', createOnly: false,
       open: !end ? 'always' : end > now ? 'until' : 'expired', until: end, where, wide: depth <= 2, root: depth <= 2,
     });

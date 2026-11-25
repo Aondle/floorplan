@@ -1,43 +1,43 @@
-name: Bug report
-description: Something went wrong making, updating or using a map
+name: 毛病报告
+description: 做地图、更新地图或用地图时出了问题
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting! Please don't paste private code, secrets, or screenshots of a map of a private project.
-        Security problems: use the Security tab's **Report a vulnerability** instead.
+        谢谢你来报告。请不要粘贴私有代码、密钥，或私人项目地图的截图。
+        安全问题：改用 Security 标签页的 **Report a vulnerability**，不要发在这里。
   - type: textarea
     id: what
     attributes:
-      label: What happened?
-      description: What you asked Claude, what you expected, and what happened instead.
+      label: 出了什么事？
+      description: 你对 Claude 说了什么，你以为会怎样，实际又怎样。
     validations:
       required: true
   - type: textarea
     id: output
     attributes:
-      label: Output
-      description: Anything Claude or the scripts printed, especially lines starting with ✗ or !
+      label: 输出
+      description: Claude 或脚本打印出来的任何内容，尤其是以 ✗ 或 ! 开头的行
       render: text
   - type: input
     id: project
     attributes:
-      label: Your project
-      description: Languages and frameworks, and whether it's one repo, a monorepo or several repos side by side
-      placeholder: e.g. Next.js frontend + Flask API, two repos
+      label: 你的项目
+      description: 用什么语言和框架，是一个仓库、一个大仓库（里面放着好几个子项目），还是几个仓库并排放
+      placeholder: 例如 Next.js 页面 + Flask 接口，两个仓库
   - type: dropdown
     id: where
     attributes:
-      label: Where were you using Claude Code?
+      label: 你在哪里用的 Claude Code？
       options:
-        - Desktop app (Code tab)
-        - CLI in a terminal
-        - IDE extension
-        - Other
+        - 桌面应用（Code 标签页）
+        - 终端里的命令行
+        - IDE 插件
+        - 其他
   - type: input
     id: versions
     attributes:
-      label: Versions
-      description: Floorplan version, Node version (`node --version`), and your OS
-      placeholder: Floorplan 0.1.0, Node 22, Windows 11
+      label: 版本
+      description: "Floorplan 版本、Node 版本（`node --version`），以及你的系统"
+      placeholder: Floorplan 0.11.0，Node 22，Windows 11

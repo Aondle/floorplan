@@ -39,8 +39,8 @@ const label = (id) => nodes.get(id)?.label || id;
 // Who the map is written for (architecture.json "audience", copied into graph.meta by build.mjs).
 const audience = g.meta?.audience === 'developers' ? 'developers' : 'everyone';
 const STYLE = audience === 'developers'
-  ? 'technical style for engineers: name the frameworks, patterns and mechanics where they help.'
-  : 'plain language for a non-technical owner: what it does for the business or its users, in everyday words, still specific. No jargon (endpoint, ORM, blueprint, webhook, worker…): the path and method/URL are already shown next to it. See "Plain language" in references/writing-descriptions.md.';
+  ? '写给工程师的技术说法，句子仍用简体中文：框架、套路和机制在有帮助时可以点名。代码路径、变量名、接口 URL 保持原样。'
+  : '用通俗简体中文写给不懂代码的项目主人：这件事对生意或用户有什么用，用日常的话，但要具体。不要用行话（endpoint、ORM、blueprint、webhook、worker 这类词）：路径、方法和 URL 已经标在旁边。代码路径、变量名、接口 URL 保持原样。见 references/writing-descriptions.md 的 "Plain language"。';
 
 // file -> neighbours, summarised by owning node
 const usesOf = new Map(), usedBy = new Map();
@@ -235,8 +235,8 @@ for (const [nid, list] of byNode) {
     out.push(`# Worksheet ${key}: ${n?.label || nid}${parts > 1 ? ` (part ${i + 1}/${parts})` : ''}`);
     out.push(`Audience: ${audience}. Write in ${STYLE}`);
     if (n?.summary) out.push(`Module: ${n.summary}`);
-    out.push(`Write to: floorplan/descriptions/${key}.json (a skeleton is already there; fill in every "description", improve every "name").`);
-    out.push('Entries marked REVIEW already have a description but their code changed: update name/description if the change matters, then delete the "review" field. Entries not listed here are fine; leave them alone.');
+    out.push(`Write to: floorplan/descriptions/${key}.json（骨架已经在了；把每条 "description" 填上，把每个 "name" 改得更像人话。名称和说明用通俗简体中文，键不要改）。`);
+    out.push('标了 REVIEW 的条目已经有说明，但代码变了：变化要紧就更新 name 和 description，然后删掉 "review" 字段。这里没列出的条目不用动。');
     // the code to quote: endpoints first (they're where placeholders hide), then very short files, within the cap
     const quotes = new Map(chunk.map((f) => [f.p, quotesFor(f)]));
     let budget = CAP.worksheetLines;
@@ -247,7 +247,7 @@ for (const [nid, list] of byNode) {
         if (q.lines.length <= budget) budget -= q.lines.length; else { q.skip = true; skipped.add(f.p); }
       }
     }
-    out.push('Say what each thing does today ("Say what it does today" in references/writing-descriptions.md). Code quoted under an entry is what it really does: describe that, not what its name suggests, and say plainly when it is a placeholder. "imported by", "sent web requests by" and "named in" list every file the scan saw using it; don\'t say who or what runs or uses something beyond that unless its own code shows it.' + ([...quotes.values()].some((qs) => qs.some((q) => q.lines && !q.skip)) ? ' Values that might be secret are shown as «hidden».' : ''));
+    out.push('名称和说明用通俗简体中文，代码路径、变量名和接口地址不要翻译。Say what each thing does today ("Say what it does today" in references/writing-descriptions.md). 条目下面引用的代码才是它真正在做的事：照这个写，别照名字猜；只是占位就直说。"imported by"、"sent web requests by" 和 "named in" 列出了扫描看到的使用方；除非它自己的代码写了，不要再猜是谁在跑、谁在用。' + ([...quotes.values()].some((qs) => qs.some((q) => q.lines && !q.skip)) ? ' 可能是密钥的值显示成 «hidden»。' : ''));
     out.push('');
     let routeCount = 0;
     for (const f of chunk) {

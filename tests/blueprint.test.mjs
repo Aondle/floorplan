@@ -84,11 +84,11 @@ test('Health is a design review of the plan', () => {
   const issues = graph.health.issues;
   const titles = issues.map((i) => `${i.severity} ${i.title}`);
   assert.deepEqual(titles, [
-    'medium Anyone could change data through one planned endpoint',
-    'medium The plan doesn’t say who may use one endpoint',
+    'medium 谁都能通过一个计划中的接口改数据',
+    'medium 规划没写明一个接口谁可以用',
     'medium Can owners cancel a walk for free, and up to when?',
-    'low Nothing in the plan uses one endpoint',
-    'low One planned file isn’t connected to anything',
+    'low 规划里没有人用到一个接口',
+    'low 有一个计划中的文件什么都没连上',
   ]);
   const routesOf = (i) => i.items.filter((id) => id.startsWith('r:')).map((id) => `${graph.routes[+id.slice(2)].m} ${graph.routes[+id.slice(2)].p}`).sort();
   // sign-in is open on purpose (publicBecause says why), so only sign-up is flagged
@@ -100,11 +100,11 @@ test('Health is a design review of the plan', () => {
   assert.match(issues[0].fix, /floorplan\/plan\.json/);
   // each item also has a request to settle it from the map, for the person to finish or edit
   assert.deepEqual(issues.map((i) => i.change), [
-    'Review who may use POST /api/auth/signup: anyone can change data through it now. ',
-    'Decide who may use DELETE /api/walkers/:id, going by the PRD. ',
-    'Open question: "Can owners cancel a walk for free, and up to when?" My answer: ',
-    'Nothing calls DELETE /api/walkers/:id. Add the screen or service that should use it, or remove it if not needed. ',
-    'api/src/lib/geo.ts isn’t connected to anything. Connect it to what should use it, or remove it. ',
+    '看一看谁可以用 POST /api/auth/signup：现在谁都能用它改数据。 ',
+    '按需求定谁可以用 DELETE /api/walkers/:id。 ',
+    '还没定的问题：「Can owners cancel a walk for free, and up to when?」我的回答： ',
+    '规划里没有人调用 DELETE /api/walkers/:id。补上应该用它的页面或服务，不需要的话就去掉。 ',
+    'api/src/lib/geo.ts 什么都没连上。把它连到该用它的地方，或者删掉。 ',
   ]);
   assert.match(buildOut, /DESIGN REVIEW {2}0 important · 3 worth fixing · 2 minor/);
 });

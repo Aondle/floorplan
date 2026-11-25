@@ -395,7 +395,7 @@ test('a first map hands developer words in labels back to the model once, and ne
       };
       const { results, log, notes } = drive(p, m);
       assert.deepEqual(seen, [null], `the architecture job ran once (${kind})`);
-      assert.match(asked[0].report, /plain language: node "api" uses developer words: "Express backend" in its label[\s\S]*plain language: node "web"/);
+      assert.match(asked[0].report, /plain language: 节点「api」用了开发者才懂的词：「Express backend」写在 label[\s\S]*plain language: 节点「web」/);
       assert.equal(results.build.ok, true);
       assert.equal(results.build.descriptions.complete, true, `the map was finished either way (${kind})`);
       const arch = readJson(path.join(p, 'floorplan', 'architecture.json'));
@@ -491,7 +491,7 @@ test('unattended mode leaves a map from before the rename (show-code/) where it 
 // ---------- a map that names no agent ----------
 /** The viewer's agent labels, as the built page works them out (run against a pretend window). */
 function agentLabels(html, { server, agent }) {
-  const code = /const AGENT_ID = [\s\S]*?signIn: 'Run <code>claude<\/code>[^\n]*\n/.exec(html)?.[0];
+  const code = /const AGENT_ID = [\s\S]*?signIn: '在终端里运行一次 <code>claude<\/code>[^\n]*\n/.exec(html)?.[0];
   assert.ok(code, 'the page works out its agent labels in one place (const AGENT_ID … const AGENT)');
   return vm.runInNewContext(code + '\nAGENT', { window: { FLOORPLAN_SERVER: server }, G: { meta: { agent } } });
 }
@@ -508,7 +508,7 @@ test('a map made in unattended mode records agent "none", and its page names no 
     assert.match(html, /"agent":"none"/);
     const A = agentLabels(html, { agent: 'none' });
     // what Health's and the blueprint's buttons and hints say: "Fix with …", "paste it into …"
-    for (const shown of [`Fix with ${A.name}`, `Build this with ${A.name}`, `Copied. Paste it into ${A.app}.`]) assert.doesNotMatch(shown, /Claude|Codex/, shown);
+    for (const shown of [`让 ${A.name} 来改`, `让 ${A.name} 来做`, `已复制。贴进 ${A.app}。`]) assert.doesNotMatch(shown, /Claude|Codex/, shown);
     assert.equal(A.id, 'none');
     // the map's server, when it runs, still decides: it names the CLI it found
     assert.equal(agentLabels(html, { agent: 'none', server: { engine: 'codex' } }).name, 'Codex');
