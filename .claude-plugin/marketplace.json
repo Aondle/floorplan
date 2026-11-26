@@ -5,13 +5,13 @@
     "url": "https://github.com/haydenschmitty"
   },
   "metadata": {
-    "description": "Floorplan: an interactive map of your codebase for Claude Code."
+    "description": "Floorplan（中文版）：专为 Claude Code 打造的项目结构交互地图，不用看代码也能摸清你的应用。"
   },
   "plugins": [
     {
       "name": "floorplan",
       "source": "./",
-      "description": "An interactive map of your codebase: every part, file and web request with a plain-English name and description, plus a health check, screens, guided flows and recent-work highlights.",
+      "description": "给整个项目画一张能点开的中文结构地图：每个模块、文件和网络请求都有大白话名字和说明，还带健康检查、页面预览、一步步的流程导览和最近改动高亮。",
       "category": "productivity"
     }
   ]

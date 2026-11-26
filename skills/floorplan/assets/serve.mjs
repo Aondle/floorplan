@@ -58,7 +58,7 @@ const DATA_START = '<script>window.FLOORPLAN = ';
 function exportMap(include, extraFlows = []) {
   const html = fs.readFileSync(path.join(here, 'index.html'), 'utf8');
   const a = html.indexOf(DATA_START), b = html.indexOf(';</script>', a);
-  if (a < 0 || b < 0) throw Object.assign(new Error('This map is too old to export. Ask Claude or Codex to update the floorplan first.'), { plain: true });
+  if (a < 0 || b < 0) throw Object.assign(new Error('这张地图版本太旧，没法导出。请先让 Claude 或 Codex 更新一次 floorplan。'), { plain: true });
   const g = JSON.parse(html.slice(a + DATA_START.length, b));
   const on = EXPORT_PARTS.filter((p) => include.includes(p));
   const out = {
@@ -82,7 +82,7 @@ function exportMap(include, extraFlows = []) {
 const cleanFlows = (list) => (Array.isArray(list) ? list : []).slice(0, 50)
   .filter((f) => f && typeof f.id === 'string' && Array.isArray(f.steps))
   .map((f) => ({
-    id: f.id.slice(0, 100), title: String(f.title || 'Flow').slice(0, 200), description: String(f.description || '').slice(0, 1000), custom: true,
+    id: f.id.slice(0, 100), title: String(f.title || '流程').slice(0, 200), description: String(f.description || '').slice(0, 1000), custom: true,
     steps: f.steps.slice(0, 60).filter((s) => s && typeof s.ref === 'string').map((s) => ({ ref: s.ref.slice(0, 300), note: String(s.note || '').slice(0, 2000) })),
   }))
   .filter((f) => f.steps.length >= 2);
@@ -157,7 +157,7 @@ function codexApp() {
 // CLI reads its schema from a file rather than the command line.
 const ENGINES = {
   claude: {
-    name: 'Claude Code CLI', site: 'https://docs.claude.com/en/docs/claude-code', structured: true,
+    name: 'Claude Code 命令行', site: 'https://docs.claude.com/en/docs/claude-code', structured: true,
     find: () => resolveCli(given('claude') || [
       ...which('claude'),
       path.join(HOME, '.local', 'bin', process.platform === 'win32' ? 'claude.exe' : 'claude'),
@@ -295,28 +295,28 @@ function describeCommand(command) {
   if (parts.length) {
     const one = ([, cmd, rest]) => {
       const a = rest.replace(/--\w+\s+\S+/g, '').replace(/["']/g, '').trim();
-      return { overview: 'Reading the map overview', find: a ? `Searching the map for "${a}"` : 'Searching the map', show: `Looking at ${a.split(/\s+/).map(nameFor).join(', ')}`, path: `Tracing a path ${a.split(/\s+/).map(nameFor).join(' → ')}` }[cmd] || 'Querying the map';
+      return { overview: '正在看地图全貌', find: a ? `正在地图上找「${a}」` : '正在搜地图', show: `正在看 ${a.split(/\s+/).map(nameFor).join('、')}`, path: `正在顺着依赖看 ${a.split(/\s+/).map(nameFor).join(' → ')}` }[cmd] || '正在查地图';
     };
-    return parts.slice(0, 2).map(one).join(' · ') + (parts.length > 2 ? ` (+${parts.length - 2} more)` : '');
+    return parts.slice(0, 2).map(one).join(' · ') + (parts.length > 2 ? `（还有 ${parts.length - 2} 项）` : '');
   }
   const first = cmds[0] || '';
   if (/^(rg|grep|git grep|Select-String|findstr)\b/i.test(first) && !/\s--files\b/.test(first)) {
     const pat = /\s(["'])(.+?)\1/.exec(first)?.[2] || /\s(?:-Pattern\s+)?([^\s-][^\s]*)/i.exec(first.replace(/^\S+(\s+-\S+)*/, ''))?.[1];
-    return pat ? `Searching code for "${pat}"` : 'Searching code';
+    return pat ? `正在代码里搜「${pat}」` : '正在搜代码';
   }
-  if (/^(rg\s.*--files|ls|dir|Get-ChildItem|gci|find|tree)\b/i.test(first)) return 'Listing files';
+  if (/^(rg\s.*--files|ls|dir|Get-ChildItem|gci|find|tree)\b/i.test(first)) return '正在列出文件';
   if (/^(cat|type|Get-Content|gc|sed|head|tail|nl|more|less)\b/i.test(first)) {
     const file = [...first.matchAll(/[\w@.\\/-]+\.\w{1,6}\b/g)].map((m) => m[0]).pop();
-    return file ? `Reading ${rel(file)}` : 'Reading a file';
+    return file ? `正在读 ${rel(file)}` : '正在读文件';
   }
-  return 'Running a command';
+  return '正在运行命令';
 }
 function describeTool(name, input = {}) {
   if (name === 'Bash') return describeCommand(input.command);
   // a long result the CLI saved to read back in parts lives outside the project
-  if (name === 'Read') return /[\\/]tool-results[\\/]/.test(input.file_path || '') ? 'Reading the rest of a long file' : `Reading ${rel(input.file_path)}`;
-  if (name === 'Grep') return `Searching code for "${input.pattern}"`;
-  if (name === 'Glob') return `Listing ${input.pattern}`;
+  if (name === 'Read') return /[\\/]tool-results[\\/]/.test(input.file_path || '') ? '正在继续读一个很长的文件' : `正在读 ${rel(input.file_path)}`;
+  if (name === 'Grep') return `正在代码里搜「${input.pattern}」`;
+  if (name === 'Glob') return `正在列出 ${input.pattern}`;
   return name;
 }
 function parseAnswer(ev) {
@@ -324,7 +324,7 @@ function parseAnswer(ev) {
   const t = String(ev.result || '');
   const fence = /```(?:json)?\s*([\s\S]*?)```/.exec(t);
   for (const cand of [t, fence?.[1], t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)]) { try { const v = JSON.parse(cand); if (v && typeof v === 'object') return v; } catch {} }
-  return { title: 'Answer', answer: t, items: [] };
+  return { title: '回答', answer: t, items: [] };
 }
 const failCode = (msg) => /not logged in|logged out|\/login|log ?in again|sign in|authenticat|unauthori[sz]ed|\b401\b/i.test(msg) ? 'not_logged_in'
   : /usage limit|rate limit|too many requests|\b429\b/i.test(msg) ? 'rate_limited' : 'cli_error';
@@ -347,7 +347,7 @@ function claudeRun(body, mode) {
     onEvent(ev, out) {
       if (ev.type === 'assistant') for (const c of ev.message?.content || []) if (c.type === 'tool_use') out.progress(describeTool(c.name, c.input));
       if (ev.type !== 'result') return;
-      if (ev.is_error) out.fail(String(ev.result || ev.subtype || 'Claude Code reported an error'));
+      if (ev.is_error) out.fail(String(ev.result || ev.subtype || 'Claude Code 报了个错'));
       else out.answer({ ...parseAnswer(ev), session: ev.session_id });
     },
   };
@@ -371,7 +371,7 @@ function codexRun(body, mode) {
       if (ev.type === 'item.started' && ev.item?.type === 'command_execution') out.progress(describeCommand(ev.item.command));
       if (ev.type === 'item.completed' && ev.item?.type === 'agent_message') last = String(ev.item.text || '');
       if (ev.type === 'error') error = String(ev.message || error);
-      if (ev.type === 'turn.failed') out.fail(String(ev.error?.message || error || 'Codex reported an error'));
+      if (ev.type === 'turn.failed') out.fail(String(ev.error?.message || error || 'Codex 报了个错'));
       if (ev.type === 'turn.completed') {
         const a = parseAnswer({ result: last });
         convos.set(session, [...turns, { q: question.slice(0, 500), a: String(a.answer || '').slice(0, 1500) }].slice(-4));
@@ -395,7 +395,7 @@ function runAgent(res, send, body) {
     // working out and writing a whole updated plan has long stretches with nothing to report: say so after a quiet spell
     let quiet = null, said = '';
     const say = (text) => { if (!done && text !== said) { said = text; send('progress', { text }); } };
-    const hush = () => { clearTimeout(quiet); if (body.mode === 'change' && !done) quiet = setTimeout(() => say('Working on the updated plan'), 12000); };
+    const hush = () => { clearTimeout(quiet); if (body.mode === 'change' && !done) quiet = setTimeout(() => say('正在整理更新后的规划'), 12000); };
     const out = {
       progress: (text) => { if (!done) { say(text); hush(); } },
       answer: (data) => { if (!done) { done = true; clearTimeout(quiet); resolve(data); } },
@@ -416,7 +416,7 @@ function runAgent(res, send, body) {
     child.on('error', (e) => out.fail(e.message));
     child.on('close', (code) => {
       running.delete(id);
-      out.fail(run.lastError?.() || stderr.trim() || `${engine} exited with code ${code}`);
+      out.fail(run.lastError?.() || stderr.trim() || `${engine} 异常退出了（退出码 ${code}）`);
     });
     // the browser went away (closed tab, Stop): don't leave the CLI working. Note req 'close' fires as soon as
     // the body is read, so watch the response instead.
@@ -426,7 +426,7 @@ function runAgent(res, send, body) {
 function ask(req, res, body) {
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
   const send = (event, data) => { if (!res.writableEnded) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`); };
-  if (!cli) { send('failure', { code: 'cli_missing', message: `${ENGINES[want].name} not found.` }); return res.end(); }
+  if (!cli) { send('failure', { code: 'cli_missing', message: `没找到 ${ENGINES[want].name}。` }); return res.end(); }
   if (body.mode === 'change') return changePlan(res, send, body);
   runAgent(res, send, body)
     .then((a) => send('answer', a), (e) => { if (e !== CLOSED) send('failure', { code: failCode(e.message), message: e.message }); })
@@ -454,7 +454,7 @@ function restore(dir) {
 function skillScript(name, ...args) {
   let dir;
   try { dir = readJson(path.join(here, '.cache', 'skill.json')).dir; } catch {}
-  if (!dir || !fs.existsSync(path.join(dir, 'scripts', name))) throw new Error('This map’s server can’t find the Floorplan scripts. Ask Claude Code or Codex to update the floorplan once, then try again.');
+  if (!dir || !fs.existsSync(path.join(dir, 'scripts', name))) throw new Error('地图服务器找不到 Floorplan 脚本了。请先让 Claude Code 或 Codex 更新一次 floorplan，然后再试。');
   try { return execFileSync(process.execPath, [path.join(dir, 'scripts', name), root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true, timeout: 120000 }); }
   catch (e) { throw Object.assign(new Error(String(e.stdout || '') + String(e.stderr || '') || e.message), { checks: true }); }
 }
@@ -482,7 +482,7 @@ function applyChange(data, request, lastTry) {
     const items = (Array.isArray(data.changes) ? data.changes : []).filter((c) => c && typeof c.ref === 'string').map((c) => ({ ref: c.ref, change: c.change === 'changed' ? 'changed' : 'new', note: String(c.note || '') }));
     // the Recent work panel shows plain text: the summary's first paragraph, without Markdown marks
     const plain = String(data.summary || '').split(/\n\s*\n/)[0].replace(/\*\*|__|`/g, '').replace(/\s+/g, ' ').trim();
-    write('recent-work.json', { updatedAt: new Date().toISOString(), tasks: [{ title: String(data.title || 'Changed the plan').slice(0, 80), request, summary: plain, status: 'planned, not built', items }] });
+    write('recent-work.json', { updatedAt: new Date().toISOString(), tasks: [{ title: String(data.title || '修改了规划').slice(0, 80), request, summary: plain, status: 'planned, not built', items }] });
     skillScript('plan.mjs');
     const check = skillScript('build.mjs', '--check');
     const unassigned = +(/(\d+) unassigned/.exec(check)?.[1] || 0);
@@ -499,8 +499,8 @@ function applyChange(data, request, lastTry) {
 }
 async function changePlan(res, send, body) {
   const request = String(body.question || '').slice(0, 4000);
-  if (!MODES.change) { send('failure', { code: 'cli_error', message: G.meta?.blueprint ? `${ENGINES[engine].name} can't change a plan from the map.` : 'Only a blueprint can be changed from the map.' }); return res.end(); }
-  if (changing) { send('failure', { code: 'busy', message: 'Another change to this plan is still being made. Try again when it’s done.' }); return res.end(); }
+  if (!MODES.change) { send('failure', { code: 'cli_error', message: G.meta?.blueprint ? `${ENGINES[engine].name} 没法直接在地图上改规划。` : '只有规划蓝图才能直接在地图上修改。' }); return res.end(); }
+  if (changing) { send('failure', { code: 'busy', message: '这份规划还有另一项修改正在进行中，等它完成后再试。' }); return res.end(); }
   changing = true;
   let session, errors = null;
   try {
@@ -510,7 +510,7 @@ async function changePlan(res, send, body) {
         : request;
       const data = await runAgent(res, send, { question, session, mode: 'change' });
       session = data.session || session;
-      send('progress', { text: 'Checking the updated plan' });
+      send('progress', { text: '正在检查更新后的规划' });
       const r = applyChange(data, request, attempt === 1);
       if (r.ok) {
         console.log(`plan changed: ${data.title || request.slice(0, 60)}`);
@@ -518,9 +518,9 @@ async function changePlan(res, send, body) {
         return;
       }
       errors = r.errors;
-      send('progress', { text: `Fixing ${errors.length === 1 ? 'a problem' : `${errors.length} problems`} the checks found` });
+      send('progress', { text: `正在修复检查发现的 ${errors.length} 个问题` });
     }
-    send('failure', { code: 'change_invalid', message: `The updated plan didn't pass the checks, so nothing changed:\n${errors.slice(0, 6).map((e) => `- ${e}`).join('\n')}` });
+    send('failure', { code: 'change_invalid', message: `更新后的规划没通过检查，所以这次什么都没改动：\n${errors.slice(0, 6).map((e) => `- ${e}`).join('\n')}` });
   } catch (e) {
     if (e !== CLOSED) send('failure', { code: failCode(String(e.message || e)), message: String(e.message || e) });
   } finally { changing = false; res.end(); }
@@ -528,12 +528,12 @@ async function changePlan(res, send, body) {
 /** Puts back the files a change replaced (the newest first), and redraws. */
 function undoChange() {
   const all = fs.existsSync(historyDir) ? fs.readdirSync(historyDir).sort() : [];
-  if (!all.length) return { ok: false, error: 'Nothing to undo.' };
+  if (!all.length) return { ok: false, error: '没有可以撤销的修改。' };
   const dir = path.join(historyDir, all[all.length - 1]);
   restore(dir);
   try { skillScript('plan.mjs'); skillScript('build.mjs', '--no-claude-md'); } catch (e) {
     console.error(`✗ Undo couldn't redraw the plan: ${e.message || e}`);
-    return { ok: false, error: 'Couldn’t redraw the previous plan. The details are in the map server’s output.' };
+    return { ok: false, error: '没能重新画出上一版规划。详细原因在地图服务器的输出里。' };
   }
   fs.rmSync(dir, { recursive: true, force: true });
   return { ok: true, left: all.length - 1 };
@@ -612,7 +612,7 @@ const server = http.createServer((req, res) => {
       }
     }
     if (req.method === 'POST' && url.pathname === '/api/plan/undo') {
-      const r = changing ? { ok: false, error: 'A change is still being made.' } : undoChange();
+      const r = changing ? { ok: false, error: '还有一项修改正在进行中，稍等再撤销。' } : undoChange();
       res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(r));
     }
     if (req.method === 'POST' && url.pathname === '/api/cancel') { for (const c of running.values()) c.kill(); res.writeHead(204); return res.end(); }
@@ -628,7 +628,7 @@ const server = http.createServer((req, res) => {
         } catch (e) {
           console.error(`✗ Couldn't export the map: ${e.message}`);
           res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: e.plain ? e.message : 'The map’s server couldn’t export it. The details are in its output.' }));
+          res.end(JSON.stringify({ error: e.plain ? e.message : '地图服务器没能导出这份文件。详细原因在服务器输出里。' }));
         }
       });
       return;

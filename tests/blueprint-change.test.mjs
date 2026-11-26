@@ -81,7 +81,7 @@ test('a change is checked, saved and drawn, with what changed highlighted', asyn
   const s = await served([withRefunds()]);
   const events = await s.change('also plan out refunds');
   assert.deepEqual(pick(events, 'failure'), []);
-  assert.deepEqual(pick(events, 'progress').map((p) => p.text), ['Reading floorplan/plan.json', 'Checking the updated plan']);
+  assert.deepEqual(pick(events, 'progress').map((p) => p.text), ['正在读 floorplan/plan.json', '正在检查更新后的规划']);
   const [answer] = pick(events, 'answer');
   assert.equal(answer.title, 'Planned out refunds');
   assert.equal(answer.changes, 3);
@@ -105,14 +105,14 @@ test('a change is checked, saved and drawn, with what changed highlighted', asyn
   // undo puts the plan and the map back
   assert.deepEqual(await s.undo(), { ok: true, left: 0 });
   assert.ok(!routeKeys(readGraph(s.root)).includes('POST /api/refunds'));
-  assert.deepEqual(await s.undo(), { ok: false, error: 'Nothing to undo.' });
+  assert.deepEqual(await s.undo(), { ok: false, error: '没有可以撤销的修改。' });
 });
 
 test('a plan that fails the checks goes back to the agent once, with the problems', async () => {
   const broken = withRefunds((p) => { p.endpoints.at(-1).file = 'api/src/routes/refund.ts'; });
   const s = await served([broken, withRefunds()]);
   const events = await s.change('also plan out refunds');
-  assert.ok(pick(events, 'progress').some((p) => p.text === 'Fixing a problem the checks found'));
+  assert.ok(pick(events, 'progress').some((p) => p.text === '正在修复检查发现的 1 个问题'));
   assert.equal(pick(events, 'answer')[0].title, 'Planned out refunds');
   const [, retry] = s.calls();
   assert.match(retry.input, /didn't pass the checks/);
@@ -149,5 +149,5 @@ test('a map of real code cannot be changed this way', async () => {
   run('build.mjs', root, '--no-claude-md', '--agent', 'claude');
   const s = await served([withRefunds()], root);
   const [failure] = pick(await s.change('add refunds'), 'failure');
-  assert.match(failure.message, /Only a blueprint can be changed from the map/);
+  assert.match(failure.message, /只有规划蓝图才能直接在地图上修改/);
 });

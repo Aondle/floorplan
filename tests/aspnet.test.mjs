@@ -251,7 +251,7 @@ test('Health, ASP.NET Core: class-level [Authorize], base controllers, minimal-A
   const minimal = 'var admin = app.MapGroup("/admin").RequireAuthorization("Admin");\nadmin.MapGet("/stats", Stats);\nadmin.MapGet("/health", Health).AllowAnonymous();\napp.MapPost("/orders", Create);\n';
   assert.deepEqual(health(minimal, 'Api/Program.cs', 'route').map((r) => r.public ? 'public' : r.guard || 'open'), ['.RequireAuthorization("Admin")', 'public', 'open']);
   const fallback = 'builder.Services.AddAuthorization(o => o.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());\n';
-  assert.deepEqual(health(fallback, 'Api/Program.cs', 'global-guard').map((g) => g.name), ['a fallback authorization policy']);
+  assert.deepEqual(health(fallback, 'Api/Program.cs', 'global-guard').map((g) => g.name), ['全局兜底的登录检查（FallbackPolicy）']);
   assert.deepEqual(health('o.FallbackPolicy = null;\n', 'Api/Program.cs', 'global-guard'), []);
 });
 

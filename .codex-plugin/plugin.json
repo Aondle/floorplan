@@ -1,13 +1,13 @@
 {
   "name": "floorplan",
   "version": "0.11.0",
-  "description": "See how your app actually fits together: an interactive map of your codebase where every part, file and web request has a plain-English name and description, with a health check, screens, guided flows, questions answered on the map, and highlights of what was just worked on.",
+  "description": "看看你的应用到底是怎么拼在一起的：给整个项目画一张能点开的中文结构地图，每个模块、文件和网络请求都有大白话名字和说明，还带健康检查、页面预览、一步步的流程导览、地图内提问栏和最近改动高亮。",
   "author": {
     "name": "Hayden Smith",
     "url": "https://github.com/haydenschmitty"
   },
-  "homepage": "https://github.com/haydenschmitty/floorplan",
-  "repository": "https://github.com/haydenschmitty/floorplan",
+  "homepage": "https://github.com/Aondle/floorplan",
+  "repository": "https://github.com/Aondle/floorplan",
   "license": "MIT",
   "keywords": [
     "codebase",
@@ -22,8 +22,8 @@
   "requires_local_executor": true,
   "interface": {
     "displayName": "Floorplan",
-    "shortDescription": "See how your app fits together",
-    "longDescription": "Codex reads your codebase and draws an interactive map of it. Every part, file and web request gets a plain-English name and description, and every connection between them is shown. It adds a health check for exposed keys and endpoints anyone can change, your app's screens, guided flows, highlights of what was just worked on, and an Ask bar that answers questions on the map using your own Codex sign-in.",
+    "shortDescription": "看看你的应用到底是怎么拼在一起的",
+    "longDescription": "Codex 会读懂你的整个项目，画出一张能点开的中文结构地图。每个模块、文件和网络请求都有一句大白话名字和说明，它们怎么连在一起也一目了然。地图里还带健康检查（帮你查有没有把密钥写进代码、有哪些接口谁都能乱改）、应用页面预览、一步步的流程导览、刚改过的内容高亮，以及可以直接在地图上提问的提问栏（直接用你自己的 Codex 登录，不用额外配密钥）。",
     "developerName": "Hayden Smith",
     "category": "Developer Tools",
     "capabilities": [
@@ -31,12 +31,12 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/haydenschmitty/floorplan",
-    "privacyPolicyURL": "https://github.com/haydenschmitty/floorplan/blob/main/docs/privacy-and-security.md",
+    "websiteURL": "https://github.com/Aondle/floorplan",
+    "privacyPolicyURL": "https://github.com/Aondle/floorplan/blob/main/docs/privacy-and-security.md",
     "defaultPrompt": [
-      "Draw a floorplan of this codebase",
-      "Update the floorplan with what we just changed",
-      "Show me how the frontend talks to the backend"
+      "给这个项目画一张 Floorplan 结构地图",
+      "把我们刚才改的内容更新到 Floorplan 地图里",
+      "帮我看看前端页面是怎么和后端服务器通信的"
     ],
     "composerIcon": "./.codex-plugin/icon.png",
     "logo": "./.codex-plugin/icon.png",

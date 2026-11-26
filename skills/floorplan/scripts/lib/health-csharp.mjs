@@ -11,9 +11,9 @@ import { csLastName } from './extract.mjs';
 const CS_INLINE_CHECK = /\b\w{0,40}(?:Auth|Access|Permission|Tenant|Session|Token|Login|ApiKey|Signature)\w{0,40}\.(?:Check|Verify|Require|Ensure|Validate|Authorize|Authenticate)\w{0,40}\s*\(|\b(?:Check|Verify|Require|Ensure|Validate|Authorize|Authenticate)\w{0,40}(?:Auth|Access|Permission|Token|Session|User|Caller|Signature|ApiKey|Tenant)\w{0,40}\s*\(|\bUser\.Identity\??\.IsAuthenticated\b|\b(?:Unauthorized|Forbid|Challenge)\s*\(|StatusCodes\.Status40[13]|\bAuthorizeAsync\s*\(|\[FromHeader\(\s*Name\s*=\s*"(?:Authorization|X-Api-Key|X-[\w-]{0,60}(?:Token|Key|Signature)[\w-]{0,60})"/i;
 // App-wide checks: a fallback policy, an AuthorizeFilter on every controller, or MapControllers().RequireAuthorization()
 const CS_GLOBAL_GUARDS = [
-  [/\bFallbackPolicy\s*=\s*(?!null\b)[^;]{0,500}?\bRequire/, 'a fallback authorization policy'],
-  [/\bSetFallbackPolicy\s*\(\s*(?!null\b)[^;]{0,500}?\bRequire/, 'a fallback authorization policy'],
-  [/\bFilters\.Add\s*(?:<\s*AuthorizeFilter\s*>|\(\s*new\s+AuthorizeFilter\b)/, 'an AuthorizeFilter on every controller'],
+  [/\bFallbackPolicy\s*=\s*(?!null\b)[^;]{0,500}?\bRequire/, '全局兜底的登录检查（FallbackPolicy）'],
+  [/\bSetFallbackPolicy\s*\(\s*(?!null\b)[^;]{0,500}?\bRequire/, '全局兜底的登录检查（FallbackPolicy）'],
+  [/\bFilters\.Add\s*(?:<\s*AuthorizeFilter\s*>|\(\s*new\s+AuthorizeFilter\b)/, '每个控制器上的统一登录检查（AuthorizeFilter）'],
   [/\bMapControllers\s*\(\s*\)\s*\.\s*RequireAuthorization\s*\(/, 'MapControllers().RequireAuthorization()'],
 ];
 // Custom attributes that check the caller: class FeatureAttribute : AuthorizeAttribute
