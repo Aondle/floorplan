@@ -395,7 +395,7 @@ test('a first map hands developer words in labels back to the model once, and ne
       };
       const { results, log, notes } = drive(p, m);
       assert.deepEqual(seen, [null], `the architecture job ran once (${kind})`);
-      assert.match(asked[0].report, /plain language: 节点「api」用了开发者才懂的词：「Express backend」写在 label[\s\S]*plain language: 节点「web」/);
+      assert.match(asked[0].report, /plain language: node "api" uses developer words: "Express backend" in its label[\s\S]*plain language: node "web"/);
       assert.equal(results.build.ok, true);
       assert.equal(results.build.descriptions.complete, true, `the map was finished either way (${kind})`);
       const arch = readJson(path.join(p, 'floorplan', 'architecture.json'));

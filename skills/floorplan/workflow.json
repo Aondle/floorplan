@@ -1,63 +1,63 @@
 {
   "schema": "floorplan/workflow@1",
-  "title": "不开会话，也能做一张 Floorplan 地图、并把它更新",
+  "title": "Making and updating a Floorplan map without an agent session",
   "about": [
-    "这份文件用数据描述 SKILL.md 里用散文写的步骤：跑哪些脚本、哪些活需要模型、每个活拿到什么、必须回答什么、什么时候算做完。",
-    "它用来在没有助手会话时跑 Floorplan：在持续集成里、在脚本里，或从你自己的工具里，用任何一个能读文件并返回 JSON 的模型。一个小程序（驱动）读这份文件并照着走。",
-    "机械的活全部由脚本做，脚本从不调用模型。模型只写 JSON 文件：floorplan/architecture.json、floorplan/descriptions/<key>.json 和 floorplan/recent-work.json。名称和说明用通俗简体中文。",
-    "docs/unattended.md 用一个走通的例子解释格式。tests/unattended.test.mjs 里有一个跟着这份文件走的小驱动。"
+    "This file describes, as data, the steps SKILL.md describes in prose: which scripts to run, which jobs need a model, what each job is given, what it must answer and when it's done.",
+    "It's for running Floorplan without an agent session: in CI, in scripts, or from your own tooling, with any model that can read files and return JSON. A small program (a driver) reads this file and follows it.",
+    "The scripts do everything mechanical and never call a model. A model only ever writes JSON files: floorplan/architecture.json, floorplan/descriptions/<key>.json and floorplan/recent-work.json.",
+    "docs/unattended.md explains the format with a worked example. tests/unattended.test.mjs contains a small driver that follows this file."
   ],
 
   "conventions": {
-    "skillDir": "放着这份文件的文件夹。脚本名在 <skillDir>/scripts/ 下面，参考文件相对于 <skillDir>。",
-    "root": "项目根目录：一个仓库，或一个里面并排放着好几个仓库的文件夹。每个脚本的第一个参数都是它，本文件里的每条路径（写出的文件、文件输入）都相对于它。",
+    "skillDir": "The folder holding this file. Script names are under <skillDir>/scripts/ and reference files are relative to <skillDir>.",
+    "root": "The codebase root: one repo, or a folder holding several repos side by side. Every script takes it as its first argument, and every path in this file (writes, file inputs) is relative to it.",
     "environment": { "FLOORPLAN_UNATTENDED": "1" },
-    "run": "脚本步骤这样跑：node <skillDir>/scripts/<run> <root> <args...>，并把上面的环境变量加进你自己的环境。它的 stdout 恰好是一个 JSON 对象（每一步都传 --json）；stderr 是给人看的备注，值得记下来。",
-    "exitCodes": "0 表示这一步成了，包括无事可做（JSON 里会这么说）。其他都表示失败：流程停在这里，除非这一步写了 allowFailure，那时它的 JSON 仍然保存，由后面的检查决定。",
-    "results": "带 `save` 的步骤把 JSON 存在那个名字下。`saveFields` 再把它的字段存到别的名字下，例如 { \"build\": \"build\" } 把 result.build 存成 `build`。同一个名字以最新一次为准。",
-    "paths": "点开的路径，例如 build.files.unassignedPercent，读取一份已保存的结果。还不存在的路径，在条件里算作不成立；某个输入点了这样一条路径、而且它是可选的，就把它省掉。",
-    "templates": "字符串里的 {name.path} 会换成那个值：一份已保存的结果、当前的 forEach 项、当前的 NEXT 项（`item`），或 {now}，当前时间的 ISO 8601 字符串。",
-    "conditions": "一组必须全部成立的 { path, op, value }。op 是其中之一：equals、notEquals、lessThan、atMost、greaterThan、in（value 是一个列表）。",
-    "answers": "模型一个活的回答是一个 JSON 对象，按这个活的 schema 检查（在 `schemas` 下，标准 JSON Schema，只用这些：type、properties、required、items、enum、pattern、minItems、minLength、additionalProperties、description）。对不上就把问题退回再问，最多 `answerRetries` 次。然后套用这个活的 `set` 字段（如果有），并把它按 2 空格缩进写成 JSON 到这个活的 `writes` 路径，需要时创建文件夹。模型自己从不写文件。",
+    "run": "Run a script step as: node <skillDir>/scripts/<run> <root> <args...>, with the environment above added to your own. Its stdout is exactly one JSON object (every step passes --json); stderr is notes for a person, worth logging.",
+    "exitCodes": "0 means the step worked, including when there was nothing to do (the JSON says so). Anything else means it failed: the workflow stops there, unless the step says allowFailure, in which case its JSON is still saved and a later check decides.",
+    "results": "A step with `save` stores its JSON under that name. `saveFields` also stores fields of it under other names, e.g. { \"build\": \"build\" } stores result.build as `build`. The latest save of a name wins.",
+    "paths": "A dotted path such as build.files.unassignedPercent reads a saved result. A path that doesn't exist yet counts as not met in a condition, and an input that names one is left out when it's optional.",
+    "templates": "{name.path} inside a string is replaced with that value: a saved result, the current forEach item, the current NEXT item (`item`), or {now}, the current time as an ISO 8601 string.",
+    "conditions": "A list of { path, op, value } that must all hold. op is one of: equals, notEquals, lessThan, atMost, greaterThan, in (value is a list).",
+    "answers": "A model job's answer is one JSON object, checked against the job's schema (under `schemas`, standard JSON Schema using only: type, properties, required, items, enum, pattern, minItems, minLength, additionalProperties, description). If it doesn't match, send the problems back and ask again, up to `answerRetries` times. Then apply the job's `set` fields, if any, and write it to the job's `writes` path as JSON with 2-space indentation, creating folders as needed. The model never writes files itself.",
     "answerRetries": 2,
     "tools": {
-      "read_file": "读项目根目录下的一个文本文件，可以只要一段行。只读。",
-      "list_files": "列出项目根目录下匹配一条通配路径的文件。只读。",
-      "grep": "在项目根目录下的文件里搜索一个正则，可以用通配路径限制范围。只读。",
-      "submit": "给出最终回答：一个符合这个活的 schema 的 JSON 对象。回答被接受，这个活就结束。"
+      "read_file": "Read a text file under the codebase root, optionally a range of lines. Read-only.",
+      "list_files": "List files under the codebase root matching a glob. Read-only.",
+      "grep": "Search files under the codebase root for a regular expression, optionally limited by a glob. Read-only.",
+      "submit": "Give the final answer: one JSON object matching the job's schema. The job ends when the answer is accepted."
     },
-    "toolLimits": "把模型关在项目根目录里，只读，没有网络、没有命令行、没有别的工具。每个活的 `toolCalls` 是建议的额度，不是硬限制。"
+    "toolLimits": "Keep the model inside the codebase root, read-only, with no network, no shell and no other tools. Each job's `toolCalls` is a suggested budget, not a hard rule."
   },
 
   "format": {
-    "start": "跑它的脚本并保存结果，然后取 choose 里第一个条件成立的条目：跑那个流程，或带着它的消息失败。",
-    "workflow": "{ steps: [step...], done: [conditions] }。步骤按顺序跑；之后 done 必须成立，否则这次运行失败。",
-    "run step": "{ id, run: \"<script>.mjs\", args: [...], save?, saveFields?, allowFailure?, when? }：跑一个脚本（见 conventions.run）。",
-    "job step": "{ id, job: \"<活的名字>\", forEach?, as?, parallel?, when? }：跑 `jobs` 里的一个模型活。有 forEach（一条指向列表的路径）时，每一项跑一次，这一项在模板里用 `as` 里的名字；parallel 为 true 表示这些次可以同时进行。",
-    "write step": "{ id, write: \"<路径>\", value: {...}, when? }：把那份 JSON 写到路径上，不经过模型。",
-    "repeat step": "{ id, repeat: [step...], until: [conditions], minAttempts?, maxAttempts, failMessage }：每次尝试之前，如果每个条件都成立，重复就结束（所以它可能一次都不跑），但前 minAttempts 次（默认 0）总会跑。否则跑它的步骤再检查，最多 maxAttempts 次。最后一次之后条件仍不成立，流程带着 failMessage 失败。",
-    "optional": "一个模型活或重复步骤可以有 `optional: true`、`restore: [paths]` 和 `onFail: [step...]`：它可以失败，而不让整个流程失败。跑之前，把 restore 里的每条路径留一份副本（记下哪些本来不存在）。如果它失败了（一个活在 conventions.answerRetries 之内没给出合法回答、一个脚本在没有 allowFailure 时失败、或一次重复在 maxAttempts 之后条件仍不成立），就把那些文件原样放回去（本来不存在的删掉），跑它的 onFail 步骤（这些不是可选的），在这次运行的备注里记下 { step: id, reason }，然后继续下一步。只用在「能让地图更好、但地图并不非它不可」的活上。",
-    "onlyChange": "一个活可以有 `onlyChange: { file, fields: [\"nodes[].label\", …] }`：它的回答和这个活开始前的那个文件相比，只能在这些字段上不同（`nodes[]` 表示 nodes 列表的每一项，按位置对上；列表的长度和所有其他字段必须一样）。任何别的差异都是回答的问题，像 schema 对不上一样退回。",
-    "use step": "{ id, use: \"<过程或流程的名字>\" }：就地跑一个过程（在 `procedures` 下）或一个流程（在 `workflows` 下）的步骤。",
-    "next step": "{ id, next: \"<指向 refresh 的 next 列表的路径>\", handlers: { <code>: <过程或流程的名字> | { fail: message } | { skip: true } } }：按顺序处理每一条 NEXT，这一条在模板里是 `item`，跑它的处理者。某条的 code 没有处理者，流程就失败，这样更新的 Floorplan 多了一个 code 时不会被悄悄忽略。",
-    "when": "任何步骤都可以有 `when`：一组条件；不是全部成立就跳过这一步。"
+    "start": "Run its script and save the result, then take the first entry in choose whose conditions hold: run that workflow, or fail with its message.",
+    "workflow": "{ steps: [step...], done: [conditions] }. Steps run in order; afterwards, done must hold, or the run failed.",
+    "run step": "{ id, run: \"<script>.mjs\", args: [...], save?, saveFields?, allowFailure?, when? }: run a script (see conventions.run).",
+    "job step": "{ id, job: \"<job name>\", forEach?, as?, parallel?, when? }: run a model job from `jobs`. With forEach (a path to a list), run it once per item, with the item available to templates under the name in `as`; parallel: true means those runs may happen at the same time.",
+    "write step": "{ id, write: \"<path>\", value: {...}, when? }: write that JSON to the path, with no model involved.",
+    "repeat step": "{ id, repeat: [step...], until: [conditions], minAttempts?, maxAttempts, failMessage }: before each attempt, if every condition holds, the repeat is done (so it may not run at all), except that the first minAttempts attempts (default 0) always run. Otherwise run its steps and check again, up to maxAttempts times. If the conditions still don't hold after the last attempt, the workflow fails with failMessage.",
+    "optional": "A job or repeat step may have `optional: true`, `restore: [paths]` and `onFail: [step...]`: it may fail without failing the workflow. Before running it, keep a copy of each path in restore (noting which don't exist). If it fails (a job gives no valid answer within conventions.answerRetries, a script fails without allowFailure, or a repeat's conditions still don't hold after maxAttempts), put those files back exactly as they were (deleting any that didn't exist), run its onFail steps (which are not optional), record { step: id, reason } in the run's notes, and carry on with the next step. Use it only for work that improves the map without being needed for it.",
+    "onlyChange": "A job may have `onlyChange: { file, fields: [\"nodes[].label\", …] }`: its answer may differ from that file, as it was before the job, only in those fields (`nodes[]` means every item of the nodes list, matched by position; the list's length and every other field must stay the same). Any other difference is a problem with the answer, sent back like a schema problem.",
+    "use step": "{ id, use: \"<procedure or workflow name>\" }: run the steps of a procedure (under `procedures`) or a workflow (under `workflows`) in place.",
+    "next step": "{ id, next: \"<path to refresh's next list>\", handlers: { <code>: <procedure or workflow name> | { fail: message } | { skip: true } } }: for each NEXT item in order, with the item available as `item`, run its handler. An item whose code has no handler fails the workflow, so a newer Floorplan with a new code can't be silently ignored.",
+    "when": "Any step may have `when`: a list of conditions; the step is skipped unless they all hold."
   },
 
   "start": {
-    "about": "按 status.mjs 选流程。已经有地图就更新，只重读有变化的部分。",
+    "about": "Pick the workflow from status.mjs. A map that already exists is refreshed, which re-reads only what changed.",
     "run": "status.mjs",
     "args": ["--json"],
     "save": "status",
     "choose": [
       { "when": [{ "path": "status.state", "op": "in", "value": ["map", "blueprint"] }], "workflow": "refresh" },
       { "when": [{ "path": "status.state", "op": "in", "value": ["none", "unbuilt"] }], "workflow": "first_map" },
-      { "when": [{ "path": "status.state", "op": "in", "value": ["blueprint-started", "unknown"] }], "fail": "这个文件夹里有一张从没画出来的规划蓝图，或者地图读不出来。这需要人来处理：见 SKILL.md。" }
+      { "when": [{ "path": "status.state", "op": "in", "value": ["blueprint-started", "unknown"] }], "fail": "This folder holds a blueprint that was never drawn, or its map couldn't be read. That needs a person: see SKILL.md." }
     ]
   },
 
   "workflows": {
     "first_map": {
-      "about": "第一张地图：扫描，让模型写 architecture.json 直到构建干净，再给它一次机会只改写构建说用了开发者用语的标签和说明（build.plainLanguage，这是提醒，绝不是失败：可选步骤，改写后构建不干净就把之前那份 architecture.json 放回去），给每个文件和每条接口写说明，然后标出最近改动。",
+      "about": "A first map: scan, have the model write architecture.json until the build is clean, give it a chance to reword only the labels and summaries the build says use developer words (build.plainLanguage, a warning, never a failure: an optional step that puts the earlier architecture.json back if the rewording doesn't build), describe every file and endpoint, then mark recent work.",
       "steps": [
         { "id": "scan", "run": "scan.mjs", "args": ["--json"], "save": "scan" },
         {
@@ -71,11 +71,11 @@
             { "path": "build.files.unassignedPercent", "op": "lessThan", "value": 10 }
           ],
           "maxAttempts": 4,
-          "failMessage": "模型最后一次写 architecture.json 之后，构建仍有错误，或超过 10% 的文件没分进去。"
+          "failMessage": "The build still has errors, or more than 10% of files are unassigned, after the model's last attempt at architecture.json."
         },
         {
           "id": "plain-language",
-          "about": "只改措辞：一条提醒不值得让整张地图失败，所以改写后的 architecture.json 构建不干净时，把之前能构建的那份放回去。",
+          "about": "Only wording: a warning is never worth failing the map over, so if the reworded architecture.json doesn't build cleanly, the one that did is put back.",
           "when": [{ "path": "build.plainLanguage.count", "op": "greaterThan", "value": 0 }],
           "optional": true,
           "restore": ["floorplan/architecture.json"],
@@ -89,7 +89,7 @@
           ],
           "minAttempts": 1,
           "maxAttempts": 2,
-          "failMessage": "改写后的 architecture.json 构建不干净，所以保留了它之前的那份。",
+          "failMessage": "The reworded architecture.json doesn't build cleanly, so the one before it was kept.",
           "onFail": [{ "id": "plain-language-undone", "run": "build.mjs", "args": ["--json"], "save": "build" }]
         },
         { "id": "describe", "use": "describe" },
@@ -102,7 +102,7 @@
     },
 
     "refresh": {
-      "about": "把已有的地图更新到最新：refresh.mjs 重新扫描并做完簿记，不用模型，然后只做它的 NEXT 清单让做的事。",
+      "about": "Bring an existing map up to date: refresh.mjs re-scans and does the bookkeeping without a model, then do only what its NEXT list asks.",
       "steps": [
         { "id": "refresh", "run": "refresh.mjs", "args": ["--json"], "save": "refresh", "saveFields": { "build": "build" }, "allowFailure": true },
         {
@@ -110,8 +110,8 @@
           "next": "refresh.next",
           "handlers": {
             "first_map": "first_map",
-            "fix_scan": { "fail": "扫描停了（某个仓库 git 列不出来，或根本没有文件）。这要在这台机器上修：见 refresh.errors。" },
-            "fix_plan": { "fail": "plan.json 有问题。规划蓝图需要人来处理：见 SKILL.md。" },
+            "fix_scan": { "fail": "The scan stopped (a repo git can't list, or no files at all). That needs fixing on the machine: see refresh.errors." },
+            "fix_plan": { "fail": "plan.json has problems. Blueprints need a person: see SKILL.md." },
             "blueprint": { "skip": true },
             "fix_build": "fix_build",
             "assign_new_files": "assign_new_files",
@@ -141,7 +141,7 @@
           { "path": "build.descriptions.complete", "op": "equals", "value": true }
         ],
         "maxAttempts": 3,
-        "failMessage": "最后一次尝试之后，仍有文件或接口没有说明（或仍需复查）。describe.mjs 只列出还缺的，所以再跑一次会从停下的地方接着做。"
+        "failMessage": "Some files or endpoints still have no description (or still need review) after the last attempt. describe.mjs lists only what's missing, so running this again picks up where it stopped."
       }
     ],
 
@@ -161,7 +161,7 @@
         ],
         "until": [{ "path": "build.ok", "op": "equals", "value": true }],
         "maxAttempts": 3,
-        "failMessage": "模型最后一次尝试修好 architecture.json 之后，构建仍有错误。"
+        "failMessage": "The build still has errors after the model's last attempt at fixing architecture.json."
       }
     ],
 
@@ -179,7 +179,7 @@
           { "path": "build.files.unassignedPercent", "op": "lessThan", "value": 10 }
         ],
         "maxAttempts": 3,
-        "failMessage": "模型最后一次尝试之后，仍有超过 10% 的文件没分进去，或构建有错误。"
+        "failMessage": "More than 10% of files are still unassigned, or the build has errors, after the model's last attempt."
       }
     ],
 
@@ -192,7 +192,7 @@
 
   "jobs": {
     "architecture": {
-      "about": "SKILL.md 第 2 到 4 步：判断应用有哪些部分，并写出 architecture.json。",
+      "about": "SKILL.md steps 2-4: decide what the parts of the app are, and write architecture.json.",
       "read": ["references/schema.md", "references/choosing-boundaries.md", "references/writing-descriptions.md"],
       "input": [
         { "name": "Scan summary", "from": "scan.summary" },
@@ -200,19 +200,18 @@
         { "name": "What the last build said about it", "from": "build.report", "optional": true }
       ],
       "instructions": [
-        "输出语言（必须遵守）：无论项目代码和注释是什么语言，模块名称、业务说明、流程步骤、导览标题和讲解全部用通俗简体中文。代码路径、变量名、接口 URL、JSON 字段名保持原样。",
-        "你在给一个项目画地图，让新人能把它当成系统图来读：有哪些部分、用了哪些外部服务、它们怎么连。没人可以问，你自己定，拿不准的写进说明里。",
-        "扫描摘要列出了仓库、带行数的代码树、可能的入口、文件夹之间最重的引用、对上了接口的网页请求，以及外部的包和主机名。根据它来工作。不要试图把每个文件都读一遍。",
-        "读发给你的参考文档：schema.md 是你这份回答（architecture.json）的格式，choosing-boundaries.md 是怎么把项目切成一张好读的地图，writing-descriptions.md 是标签和说明怎么写。",
-        "用工具够用就停：README、清单（package.json、pyproject.toml、go.mod、docker-compose、部署配置）和入口，然后每个候选部分只扫 1 到 2 个文件，直到你能用一句话概括它。你要的是系统的形状，不是代码评审。",
-        "查得省一点。能一次要几个文件就一次要，读文件开头（start_line 1，end_line 60 到 80），不要整篇读；开头看不出用途再往下看。每个候选部分都有了一句说明就停：大多数项目 15 到 30 次工具调用就够，你读过的都会留在对话里，让后面每一步变慢。",
-        "不要编造。外部节点、边或流程步骤，只加你能指出来的连线：在扫描摘要里（引用、网页请求、EXTERNAL PACKAGES、EXTERNAL HOSTS）或在你读过的代码里。一个设置或密码里出现了某个服务的名字，并不能证明代码在跟它说话；拿不准就不要加，并在说明里说一声。",
-        "目标：顶层 3 到 9 个节点；每个大的下面 3 到 12 个孩子；`paths` 通配路径盖住 90% 以上的代码文件；代码真正在说话的数据库和外部服务做成外部节点（带上 `packages` 和 `hosts`，构建才会把它们连上）；边只补扫描看不见的（队列、定时任务、别人打来的通知、地址写在设置里的调用）；1 到 3 条流程讲系统的主要工作；一条 `tour`，3 到 8 站，按新人该看的顺序（这是什么应用、人用的那些端、主服务器、外部服务，最后停在一个重要页面的文件上）。每个节点都要有 `summary`。",
-        "给谁看：除非代码明显是给工程师的（一个库、一个 SDK、基础设施），否则不要写 `audience`（就是给所有人看）。`project.summary`、每个节点的 `label` 和 `summary`、导览，都按 writing-descriptions.md 的 \"Plain language\" 用主人能懂的大白话写。短标签用「主服务器」，不要写成「商店接口（Flask）」。给所有人看时，框架和工具的名字（Express、React、FastAPI、Docker……）最多在 `project.summary` 里出现一次；节点说明、流程备注和导览里不要出现，那里说这一块做什么。",
-        "写代码今天做的事，不要写名字暗示它该做的事（writing-descriptions.md 的 \"Say what it does today\"）：某一块、某步流程或导览的一站如果只是回复一句、或什么都还不存，就直说。",
-        "路径相对于项目根目录，用正斜杠。好几个仓库并排时，从仓库文件夹开头，例如 `api-service/src/**`。",
-        "如果给了你上一份 architecture.json 以及构建对它说了什么，就改掉构建点名的每一个错误，并给 \"unassigned, by directory\" 下面每个不小的目录一个家（不属于这个系统的：生成的代码、拷进来的第三方、样例，写成一条 `ignore`）。每一条 \"plain language:\" warning 点名的标签和说明，按它建议的说法改写，并改成通俗简体中文；构建说某一块的文件自己待在几个文件夹里，就按功能区拆成孩子。其余保持原样。",
-        "提交完整的 architecture.json。"
+        "You are drawing a map of a codebase that someone new can read like a system diagram: its parts, the outside services it uses, and how they connect. You can't ask anyone anything, so decide, and record anything uncertain in a summary.",
+        "The scan summary lists the repos, a code tree with line counts, entrypoint candidates, the heaviest imports between folders, web requests matched to endpoints, and outside packages and hosts. Work from it. Don't try to read every file.",
+        "Read the reference documents you were given: schema.md is the format of your answer (architecture.json), choosing-boundaries.md is how to carve a codebase into a good map, and writing-descriptions.md says how to write labels and summaries.",
+        "Explore just enough with your tools: READMEs, manifests (package.json, pyproject.toml, go.mod, docker-compose files, deploy configs) and entrypoints, then skim 1-2 files per candidate part until you can write a one-sentence summary for each. You're after the shape of the system, not a code review.",
+        "Explore cheaply. Ask for several files in one turn when you can, and read the top of a file (start_line 1, end_line 60-80) rather than all of it; open more only if the top leaves its purpose unclear. Stop once every candidate part has its one-sentence summary: most codebases need 15-30 tool calls, and everything you read stays in the conversation and makes each later step slower.",
+        "Don't invent. Add an external node, an edge or a flow step only for a connection you can point to: in the scan summary (imports, web requests, EXTERNAL PACKAGES, EXTERNAL HOSTS) or in code you read. A setting or a password that names a service is not evidence that the code talks to it; if you're unsure, leave it out and say so in a summary.",
+        "Aim for: 3-9 top-level nodes; 3-12 children under each big one; `paths` globs covering more than 90% of code files; external nodes for the databases and outside services the code really talks to (with `packages` and `hosts` so the build connects them); edges only for what the scan can't see (queues, scheduled jobs, webhooks, calls through addresses kept in settings); 1-3 flows for the system's main jobs; and a `tour` of 3-8 stops in the order a newcomer should see them (what the app is, the apps people use, the main server, outside services, ending on an important screen's file). Every node needs a `summary`.",
+        "Audience: leave `audience` unset (everyone) unless the code is plainly for engineers (a library, an SDK, infrastructure code). Write `project.summary`, every node `label` and `summary`, and the tour in plain language for the app's owner (\"Plain language\" in writing-descriptions.md). Use short labels like \"Main server\" rather than \"Shop API (Flask)\". For everyone, framework and tool names (Express, React, FastAPI, Docker…) may appear once, in `project.summary`; keep them out of node summaries, flow notes and the tour, which say what each part does instead.",
+        "Say what the code does today, not what its names suggest (\"Say what it does today\" in writing-descriptions.md): if a part, a flow step or a tour stop is a placeholder that only replies or stores nothing yet, say so.",
+        "Paths are relative to the codebase root and use forward slashes. With several repos side by side, they start with the repo folder, e.g. `api-service/src/**`.",
+        "If you were given your last architecture.json and what the build said about it, fix every error the build names, and give each sizeable directory under \"unassigned, by directory\" a home (or an `ignore` entry for things that aren't the system: generated code, vendored copies, fixtures). Reword every label and summary a \"plain language:\" warning names, using the plain phrase it suggests, and split a part the build says holds many files in folders of their own into children by feature area. Keep the rest as it was.",
+        "Submit the complete architecture.json."
       ],
       "writes": "floorplan/architecture.json",
       "schema": "architecture",
@@ -220,18 +219,17 @@
     },
 
     "plain_language": {
-      "about": "只改写构建的 \"plain language:\" 提醒点名的那些标签和说明，别的一律不动。",
+      "about": "Reword the part labels and summaries the build's \"plain language:\" warnings name, and change nothing else.",
       "read": ["references/writing-descriptions.md"],
       "input": [
         { "name": "The current architecture.json", "file": "floorplan/architecture.json" },
         { "name": "What the build said about it", "from": "build.report" }
       ],
       "instructions": [
-        "这张地图是给所有人看的，构建在一些部分的标签和说明里发现了开发者才懂的词。构建说的每一条 \"plain language:\" warning 都会点名一个部分（它的节点 id）、哪个字段（label 或 summary）、哪些词，以及换成什么说法（writing-descriptions.md 的 \"Jargon → plain\"）。",
-        "输出语言（必须遵守）：改出来的 label 和 summary 用通俗简体中文。产品名和代码路径保持原样。",
-        "只改那些标签和说明的措辞。architecture.json 的其他字段原样保留：节点 id、kind、parent、paths、exclude、packages、hosts、tags，其他节点，以及 project、include、ignore、edges、flows、annotations 和 tour。不要加、删或重排节点。改了别的会被退回。",
-        "用大白话把同一件事说得和原来一样准。某个词如果真的是这个应用里就这么叫的（产品名，或生意自己的叫法），就留着。",
-        "不用读代码。提交完整的 architecture.json。"
+        "A map of a codebase is written for everyone, and the build found developer words in some of its part labels and summaries. Each \"plain language:\" warning in what the build said names a part (its node id), the field (label or summary), the words and a plain phrase to use instead (\"Jargon → plain\" in writing-descriptions.md).",
+        "Change ONLY the wording of those labels and summaries. Keep every other field of architecture.json exactly as it is: the node ids, kinds, parents, paths, exclude, packages, hosts and tags, the other nodes, and project, include, ignore, edges, flows, annotations and tour. Don't add, remove or reorder nodes. An answer that changes anything else is sent back.",
+        "Say the same thing in plain words, as accurately as before. If a word names something that really is called that in this app (a product name, or the business's own word for it), keep it.",
+        "You don't need to read any code. Submit the complete architecture.json."
       ],
       "writes": "floorplan/architecture.json",
       "schema": "architecture",
@@ -240,7 +238,7 @@
     },
 
     "update_architecture": {
-      "about": "更新时 NEXT 里的 fix_build、assign_new_files 和 review_structure：architecture.json 只改到这一条要求的程度。",
+      "about": "A refresh's NEXT items fix_build, assign_new_files and review_structure: change architecture.json only as far as the item asks.",
       "read": ["references/schema.md", "references/choosing-boundaries.md", "references/writing-descriptions.md"],
       "input": [
         { "name": "What to do (from the refresh's NEXT list)", "from": "item.text" },
@@ -249,12 +247,11 @@
         { "name": "The current architecture.json", "file": "floorplan/architecture.json" }
       ],
       "instructions": [
-        "输出语言（必须遵守）：新写的名称和说明用通俗简体中文。代码路径、变量名、接口 URL、JSON 字段名保持原样。",
-        "代码变了之后，你负责把这个项目的地图保持为最新。结构在 architecture.json 里（格式见 schema.md）。没人可以问，你自己定。",
-        "只做让你做的事（如果上一次构建报了错，那些也要改）：改掉它点名的构建错误（通常是流程的一步、导览的一站或一条备注指向了已删除或已移动的文件）；或者给 \"unassigned, by directory\" 下面列出的新目录一个家，把通配路径加在合适的节点上或新建一个节点（不属于这个系统的写成一条 `ignore`）；或者改动很大之后，重读那些文件增减很多的部分的说明，并检查流程还成不成立。",
-        "需要时用工具看代码。每个节点 id，以及仍然正确的每条 label 和 summary，原样保留：别的文件靠这些 id。",
-        "新写的东西跟其余部分一个风格：除非 `audience` 是 \"developers\"，否则用大白话（writing-descriptions.md），并写代码今天做的事。上一次构建对你新加或改过的部分给了 \"plain language:\" warning 的，把那些改掉。",
-        "提交完整的、更新后的 architecture.json。"
+        "You keep a map of a codebase up to date after its code changed. Its structure is in architecture.json (format: schema.md). You can't ask anyone anything, so decide.",
+        "Do only what you were asked to do (and if the last build reported errors, fix those too): fix the build errors it names (usually a flow step, tour stop or annotation pointing at a file that was deleted or moved); or give the new directories listed under \"unassigned, by directory\" a home, with globs on the right node or a new node (or an `ignore` entry for things that aren't the system); or, after a large change, re-read the summaries of the parts that gained or lost many files and check the flows still hold.",
+        "Look at the code with your tools where you need to. Keep every node id, and every label and summary that's still right, exactly as it is: other files refer to the ids.",
+        "Write anything new in the same style as the rest: plain language unless `audience` is \"developers\" (writing-descriptions.md), saying what the code does today. If the last build gave \"plain language:\" warnings for parts you add or change, reword those.",
+        "Submit the complete updated architecture.json."
       ],
       "writes": "floorplan/architecture.json",
       "schema": "architecture",
@@ -262,7 +259,7 @@
     },
 
     "descriptions": {
-      "about": "SKILL.md 第 6 步，每次一张工作表：给里面的每个文件和每条接口一个中文名字和一句话说明。",
+      "about": "SKILL.md step 6, one worksheet per run: a name and a one-line description for every file and endpoint in it.",
       "read": ["references/writing-descriptions.md"],
       "input": [
         { "name": "Worksheet", "file": "{worksheet.worksheet}" },
@@ -270,14 +267,13 @@
         { "name": "Who you're writing for", "from": "describe.style" }
       ],
       "instructions": [
-        "输出语言（必须遵守）：无论代码和注释是什么语言，每个 name 和 description 都用通俗简体中文。代码路径、变量名、接口 URL 和 JSON 的键保持原样。",
-        "你在给一张地图给代码项目的文件和接口起名、写说明。先读 writing-descriptions.md，并照着做。",
-        "工作表是每个文件的摘要（定义了什么、文档注释、用了什么，以及哪些文件引用了它、给它发网页请求或点了它的名）和每条接口（它的处理函数），并引用每条接口的代码以及很短的文件的全文。大多数凭这个就能写。摘要看不出用途，或你要写它没显示的判断时，用 read_file 打开文件（开头大约 80 行，或那个处理函数）。名字很泛的（utils、index、common）和大文件通常要看一眼。",
-        "写代码今天做的事，不要写名字暗示它该做的事（\"Say what it does today\" in writing-descriptions.md）。引用的代码只是回复一句、什么都不存，或只是占位时，就直说（「……还没有存到任何地方」）。不要说谁在跑它、什么在用它（手动、按时间表、某个工具），除非工作表的 imported by / sent web requests by / named in 那几行，或你读过的代码写了；也绝不编造示例值。",
-        "待填的文件里，工作表列出的每一项已经有条目。把每条空的 description 填上，并把每个 name 改好。不要改、加、删键：构建靠它们把条目对上文件和接口。接口的键是 \"METHOD /path\"，和工作表印出来的完全一致。",
-        "工作表标了 REVIEW 的条目已经有说明，但代码变了：变化要紧就更新名字和说明，然后去掉 `review` 字段。工作表没列出的条目原样留下。",
-        "同一个文件里保持一致：相邻的文件读起来应该像一套，两个相邻的绝不应该得到几乎一样的说明。",
-        "提交整个文件，每一条都要在。"
+        "You name and describe the files and endpoints of a codebase for its map. Read writing-descriptions.md first and follow it.",
+        "The worksheet is a digest of each file (what it defines, its doc comments, what it uses, and the files that import it, send it web requests or name it) and each endpoint (its handler), and it quotes the code of each endpoint and the whole of very short files. That's enough to describe most of them. Open a file with read_file (its first ~80 lines, or the handler) when the digest leaves its purpose unclear, or before you claim anything it doesn't show: generic names (utils, index, common) and big files usually need a look.",
+        "Say what the code does today, not what its name suggests (\"Say what it does today\" in writing-descriptions.md). When quoted code only replies, stores nothing or is otherwise a placeholder, say so plainly (\"…without keeping it anywhere yet\"). Don't say who or what runs or uses something (by hand, on a schedule, by a tool) unless the worksheet's imported by / sent web requests by / named in lines or code you read show it, and never invent example values.",
+        "The file to fill in already has an entry for everything the worksheet lists. Fill in every empty description and improve every name. Don't change, add or remove keys: they're how the build matches entries to files and endpoints. Endpoint keys are \"METHOD /path\" exactly as the worksheet prints them.",
+        "Entries the worksheet marks REVIEW already have a description, but their code changed: update the name and description if the change matters, then drop the `review` field. Leave entries the worksheet doesn't list exactly as they are.",
+        "Be consistent within the file: sibling files should read as a set, and two siblings should never get nearly the same description.",
+        "Submit the whole file, every entry included."
       ],
       "writes": "{worksheet.descriptions}",
       "schema": "descriptions",
@@ -285,19 +281,18 @@
     },
 
     "recent_work": {
-      "about": "SKILL.md 第 7 步，但没有对话：recent.mjs 的事实（上次地图以来的变化、未提交的改动、最近的提交）是唯一来源。",
+      "about": "SKILL.md step 7 without a conversation: the facts from recent.mjs (changes since the last map, uncommitted changes, recent commits) are the only source.",
       "read": ["references/schema.md"],
       "input": [
         { "name": "Recent work facts", "from": "recent.text" }
       ],
       "instructions": [
-        "输出语言（必须遵守）：title、summary 和 note 用通俗简体中文。代码路径、变量名、接口 URL 保持原样。",
-        "你在地图上标出最近做过的事：刚改过的卡片会得到「改过了」或「新加的」标记，以及你的备注。格式见 schema.md 的 \"Recent work\" 一节。",
-        "这里没有可以参照的对话，所以发给你的事实是唯一来源：上次地图以来变了什么、还没提交的改动、最近的提交，每一项都对上它显示成的那张卡片。用明显还在进行的。如果什么都没有，提交 { \"tasks\": [] }，把旧的高亮清掉。",
-        "提交和改动显示的每一件工作（一个功能、一处修复）写成一个任务：`title`（2 到 5 个词）；`request` 留空（\"\"），因为地图会把它显示成「你当时说：……」，而这里没有人开口要这件事，把提交说明放上去等于替读者说话；`summary`（1 到 2 句：这件工作打算做什么，用人话，然后做了什么、现在到哪了，包括删掉的，因为删掉的文件不在地图上）。",
-        "`items`：为这个任务改变了行为的卡片，通常 3 到 15 张，每一张是文件路径、节点 id 或 \"METHOD /path\"，和事实里列出的完全一致，带上 `change`（\"new\" 或 \"changed\"）和 `note`：一两句人话，说这张卡片上改了什么、它怎么服务于这个任务。测试和顺手改的跳过，除非它们就是重点。一个文件改了接口，可以把两个都列上。",
-        "除非地图是给开发者看的，否则不要把代码里的词写进备注。备注里绝不放密钥。写这次改动今天做的事，是占位也要说，并且绝不编造示例值：只用事实或代码里看得到的值。",
-        "提交 recent-work.json。"
+        "You mark recent work on a codebase's map: the cards for what was just worked on get a \"Changed\" or \"New\" tag and your note. The format is the \"Recent work\" section of schema.md.",
+        "There's no conversation to go on, so the facts you were given are your only source: what changed since the previous map, uncommitted changes, and recent commits, each with the card it shows up as. Use what is clearly in flight. If nothing is, submit { \"tasks\": [] } so old highlights clear.",
+        "One task per piece of work the commits and changes show (a feature, a fix): `title` (2-5 words); `request`: leave it empty (\"\"), because the map shows it as \"You asked: ...\" and nobody asked for this work here, so a commit message there would put words in the reader's mouth; `summary` (1-2 sentences: what the work set out to do, in plain words, then what was done and where it stands, including anything deleted, since deleted files aren't on the map).",
+        "`items`: the cards whose behaviour changed for that task, usually 3-15, each a file path, node id or \"METHOD /path\" exactly as the facts list them, with `change` (\"new\" or \"changed\") and a `note`: one or two plain sentences on what changed on this card and how it serves the task. Skip tests and drive-by edits unless they're the point. A file with a changed endpoint can list both.",
+        "Keep the code's words out unless the map's audience is developers. Never put secrets in notes. Say what the change does today, including when it's a placeholder, and never invent example values: use only values you can see in the facts or the code.",
+        "Submit recent-work.json."
       ],
       "writes": "floorplan/recent-work.json",
       "set": { "updatedAt": "{now}" },
@@ -309,7 +304,7 @@
   "schemas": {
     "architecture": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "description": "floorplan/architecture.json。完整格式和含义见 references/schema.md。build.mjs 会拿它去对扫描结果，并点名每一个问题。给人看的文字用通俗简体中文。",
+      "description": "floorplan/architecture.json. The full format and its meaning: references/schema.md. build.mjs checks it against the scan and names every problem.",
       "type": "object",
       "required": ["project", "nodes"],
       "additionalProperties": false,
@@ -321,7 +316,7 @@
           "additionalProperties": false,
           "properties": {
             "name": { "type": "string", "minLength": 1 },
-            "summary": { "type": "string", "description": "1 到 3 句，通俗简体中文" },
+            "summary": { "type": "string", "description": "1-3 sentences, plain language" },
             "entrypoints": { "type": "array", "items": { "type": "string" } }
           }
         },
@@ -340,7 +335,7 @@
               "label": { "type": "string", "minLength": 1 },
               "kind": { "type": "string", "enum": ["ui", "service", "worker", "library", "feature", "data", "config", "test", "script", "infra", "external"] },
               "parent": { "type": "string" },
-              "summary": { "type": "string", "description": "一句话：它负责什么。用通俗简体中文。每个节点都该有。" },
+              "summary": { "type": "string", "description": "one sentence: what it is responsible for. Every node should have one." },
               "details": { "type": "string" },
               "paths": { "type": "array", "items": { "type": "string" } },
               "exclude": { "type": "array", "items": { "type": "string" } },
@@ -396,7 +391,7 @@
                   "required": ["node", "note"],
                   "additionalProperties": false,
                   "properties": {
-                    "node": { "type": "string", "description": "节点 id 或文件路径" },
+                    "node": { "type": "string", "description": "a node id or a file path" },
                     "note": { "type": "string" }
                   }
                 }
@@ -411,7 +406,7 @@
             "required": ["node", "title", "note"],
             "additionalProperties": false,
             "properties": {
-              "node": { "type": "string", "description": "节点 id 或文件路径" },
+              "node": { "type": "string", "description": "a node id or a file path" },
               "title": { "type": "string" },
               "note": { "type": "string" }
             }
@@ -422,7 +417,7 @@
 
     "descriptions": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "description": "floorplan/descriptions/<key>.json：每个文件（以路径为键）和每条接口（以 \"METHOD /path\" 为键）的名字和说明，用通俗简体中文。指南：references/writing-descriptions.md。`review` 只会由 refresh.mjs 留在代码变了的条目上；改对了就去掉。",
+      "description": "floorplan/descriptions/<key>.json: a name and description for each file (keyed by path) and endpoint (keyed by \"METHOD /path\"). Guide: references/writing-descriptions.md. `review` is only ever left by refresh.mjs, for entries whose code changed; drop it once the entry is right.",
       "type": "object",
       "required": ["files"],
       "additionalProperties": false,
@@ -458,7 +453,7 @@
 
     "recent_work": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "description": "floorplan/recent-work.json。格式见 references/schema.md 的 \"Recent work\" 一节。给人看的文字用通俗简体中文。{ \"tasks\": [] } 清掉高亮。",
+      "description": "floorplan/recent-work.json. Format: the \"Recent work\" section of references/schema.md. { \"tasks\": [] } clears the highlights.",
       "type": "object",
       "required": ["tasks"],
       "additionalProperties": false,
@@ -482,7 +477,7 @@
                   "required": ["ref", "change", "note"],
                   "additionalProperties": false,
                   "properties": {
-                    "ref": { "type": "string", "description": "文件路径、节点 id，或 \"METHOD /path\"，和地图上完全一致" },
+                    "ref": { "type": "string", "description": "a file path, a node id, or \"METHOD /path\", exactly as on the map" },
                     "change": { "type": "string", "enum": ["new", "changed"] },
                     "note": { "type": "string" }
                   }

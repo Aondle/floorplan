@@ -397,10 +397,12 @@ Archify 什么都能画成图。Understand Anything 给开发者做代码库的�
   </picture>
 </a>
 
-## 参与
+## 遇到问题怎么办
 
-欢迎提问题和拉取请求。见 [CONTRIBUTING.md](CONTRIBUTING.md) 和[开发 Floorplan](docs/development.md)。
+发现中文读着别扭，或用的时候卡住了，可以到这个仓库的 [Issues](https://github.com/Aondle/floorplan/issues) 留言告诉我们（Issues 就是 GitHub 上的留言板，点 **New issue** 写几句就行）。也可以直接把问题和报错贴给你正在用的 AI 助手，让它帮你查。
 
 ## 许可证
 
 [MIT](LICENSE) © 2026 [Hayden Smith](https://github.com/haydenschmitty)
+
+本项目沿用 MIT 开源协议，在原作者基础上提供中文本土化适配。

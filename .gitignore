@@ -10,3 +10,6 @@ CLAUDE.local.md
 Thumbs.db
 *.log
 node_modules/
+
+# Local archive of withdrawn Chinese copies
+/archivefiles/

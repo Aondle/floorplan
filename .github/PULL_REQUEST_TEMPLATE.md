@@ -1,17 +1,17 @@
-## 这次改了什么
+## What this changes
 
-<!-- 它做什么，为什么改？有议题的话把链接放上。 -->
+<!-- What does this do, and why? Link the issue if there is one. -->
 
-## 我怎么试的
+## How I tested it
 
-<!-- 在哪一类项目上试过？（语言、框架、一个仓库还是好几个） -->
+<!-- Which kind of project did you try it on? (languages, frameworks, one repo or several) -->
 
-## 清单
+## Checklist
 
-- [ ] 没有新的第三方依赖
-- [ ] 地图上给人看的话是大白话
-- [ ] 没有保存或打印密钥的值
-- [ ] 代码、注释、文档和截图里没有真实私人项目的细节
-- [ ] `npm test` 通过
-- [ ] `claude plugin validate .` 通过
-- [ ] 别人会注意到的改动，已写入 `CHANGELOG.md`
+- [ ] No new dependencies
+- [ ] Anything the map shows people is in plain language
+- [ ] No secret values stored or printed
+- [ ] No details of a real private project in code, comments, docs or screenshots
+- [ ] `npm test` passes
+- [ ] `claude plugin validate .` passes
+- [ ] `CHANGELOG.md` updated, if people will notice the change

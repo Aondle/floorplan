@@ -16,16 +16,16 @@ const NAME = 'CLAUDE.local.md';
 
 function block(rel) {
   return `${START}
-## Floorplan：这张地图在讲什么
+## Floorplan: map of this codebase
 
-\`${rel}/\` 里有这个项目的地图：每个模块、文件和接口都有通俗中文名字和一句话说明，以及它们怎么连在一起。遇到「某功能在哪」「某件事怎么走」「谁在用它」这类问题，先查地图，再去翻代码（在本文件所在的目录运行）：
+\`${rel}/\` holds a map of this codebase: every module, file and endpoint with a plain-English name and a one-line description, and what connects to what. For questions like "where is X", "how does Y work" or "what uses Z", look it up before searching the code (run these from the folder this file is in):
 
-- \`node ${rel}/query.mjs find "<words>"\`：按词找模块、文件和接口
-- \`node ${rel}/query.mjs show <file path | module id | "GET /path">\`：它是什么、它用了谁、谁用了它
-- \`node ${rel}/query.mjs path <from> <to>\`：两样东西怎么连上
-- \`node ${rel}/query.mjs overview\`：整个系统一眼看完
+- \`node ${rel}/query.mjs find "<words>"\`: modules, files and endpoints that match
+- \`node ${rel}/query.mjs show <file path | module id | "GET /path">\`: what it is, what it uses, what uses it
+- \`node ${rel}/query.mjs path <from> <to>\`: how two things connect
+- \`node ${rel}/query.mjs overview\`: the whole system at a glance
 
-无论项目代码是什么语言，你讲给用户的模块名、业务说明、流程和风险都用通俗简体中文；代码路径、变量名、接口 URL 保持原样。地图可能落后于刚改过的代码，动手改之前先在代码里确认。打开地图：\`node ${rel}/serve.mjs\`。改动大了就用 floorplan 技能更新（用户只要说「更新地图」；只会重读有变化的文件）。
+The map can lag behind recent edits, so confirm in the code before changing anything. Open it with \`node ${rel}/serve.mjs\`. After big changes, update it with the floorplan skill (the user can just ask to "update the floorplan"; only changed files are re-read).
 ${END}`;
 }
 

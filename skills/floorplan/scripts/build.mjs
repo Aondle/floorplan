@@ -449,7 +449,7 @@ if (audience === 'everyone') {
     const found = ['label', 'summary'].flatMap((field) => jargonIn(n[field], { frameworks: n.kind !== 'external', screens: ['ui', 'feature'].includes(n.kind) }).map((j) => ({ node: n.id, field, ...j })));
     if (!found.length) continue;
     plainItems.push(...found);
-    warn(`plain language: 节点「${n.id}」用了开发者才懂的词：${found.map((f) => `「${f.term}」写在 ${f.field}（${f.say}）`).join('；')}。这张地图是给所有人看的，按建议的说法改（references/writing-descriptions.md 的「Jargon → plain」）。`);
+    warn(`plain language: node "${n.id}" uses developer words: ${found.map((f) => `"${f.term}" in its ${f.field} (${f.say})`).join('; ')}. This map is for everyone, so reword them ("Jargon → plain" in references/writing-descriptions.md).`);
   }
 }
 const plainLanguage = { checked: audience === 'everyone', count: new Set(plainItems.map((i) => i.node)).size, items: plainItems };

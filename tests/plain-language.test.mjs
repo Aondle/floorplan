@@ -85,12 +85,12 @@ test('a map for everyone: developer words in labels and summaries are warnings t
         { node: 'client', field: 'label', term: 'API client', say: '别人写好的、用来跟某个服务说话的代码（例如「跟 Stripe 说话」「连上服务器」）' },
       ],
     });
-    const warning = json.warnings.find((w) => w.startsWith('plain language: 节点「client」'));
-    assert.equal(warning, 'plain language: 节点「client」用了开发者才懂的词：「API client」写在 label（别人写好的、用来跟某个服务说话的代码（例如「跟 Stripe 说话」「连上服务器」））。这张地图是给所有人看的，按建议的说法改（references/writing-descriptions.md 的「Jargon → plain」）。');
-    assert.ok(!json.warnings.some((w) => /节点「(web|pg)」/.test(w)), 'plain parts, and product names on an outside service, are left alone');
-    assert.match(json.report, /plain language: 节点「api」用了开发者才懂的词：「Express server」写在 summary/);
+    const warning = json.warnings.find((w) => w.startsWith('plain language: node "client"'));
+    assert.equal(warning, 'plain language: node "client" uses developer words: "API client" in its label (别人写好的、用来跟某个服务说话的代码（例如「跟 Stripe 说话」「连上服务器」）). This map is for everyone, so reword them ("Jargon → plain" in references/writing-descriptions.md).');
+    assert.ok(!json.warnings.some((w) => /node "(web|pg)"/.test(w)), 'plain parts, and product names on an outside service, are left alone');
+    assert.match(json.report, /plain language: node "api" uses developer words: "Express server" in its summary/);
     // the same in the plain report people read
-    assert.match(run('build.mjs', p, '--no-claude-md', '--check'), /! \d+ warning\(s\):[\s\S]*plain language: 节点「client」/);
+    assert.match(run('build.mjs', p, '--no-claude-md', '--check'), /! \d+ warning\(s\):[\s\S]*plain language: node "client"/);
   } finally { cleanup(p); }
 });
 
